@@ -3,6 +3,9 @@ class Game {
   constructor(canvas) {
     this.canvas = canvas; this.ctx = canvas.getContext('2d'); this.input = new Input();
     this.player = new Player(arena.spawn); this.lastTime = null; this.running = false;
+    document.getElementById('character').addEventListener('change', event => {
+      this.player.characterIndex = Number(event.target.value); this.input.clear();
+    });
     this.status = document.getElementById('status'); this.tick = this.tick.bind(this);
     window.addEventListener('blur', () => { this.lastTime = null; });
     document.addEventListener('visibilitychange', () => { this.lastTime = null; });
