@@ -18,3 +18,42 @@ function moveWithCollisions(body, dx, dy, map) {
     }
   }
 }
+
+// Sweep a point along the entire segment. Expanding the rectangle by the
+// projectile radius catches impacts even when one frame crosses a thin wall.
+// The returned fraction is the first contact along the segment, or null.
+function segmentRectIntersection(x, y, endX, endY, rectangle, padding = 0) {
+  let entry = 0;
+  let exit = 1;
+  const axes = [
+    [x, endX - x, rectangle.x - padding, rectangle.x + rectangle.width + padding],
+    [y, endY - y, rectangle.y - padding, rectangle.y + rectangle.height + padding]
+  ];
+  for (const [start, delta, minimum, maximum] of axes) {
+    if (Math.abs(delta) < 1e-12) {
+      if (start < minimum || start > maximum) return null;
+      continue;
+    }
+    const first = (minimum - start) / delta;
+    const second = (maximum - start) / delta;
+    entry = Math.max(entry, Math.min(first, second));
+    exit = Math.min(exit, Math.max(first, second));
+    if (entry > exit) return null;
+  }
+  return entry;
+}
+
+// Map borders also account for the projectile radius, so its visible shape
+// stays inside the arena until contact. Starting outside is an immediate hit.
+function segmentMapExit(x, y, endX, endY, map, padding = 0) {
+  const right = map.width - padding;
+  const bottom = map.height - padding;
+  if (x < padding || y < padding || x > right || y > bottom) return 0;
+  let hit = null;
+  const add = fraction => { hit = hit === null ? fraction : Math.min(hit, fraction); };
+  if (endX > x && endX >= right) add((right - x) / (endX - x));
+  if (endX < x && endX <= padding) add((padding - x) / (endX - x));
+  if (endY > y && endY >= bottom) add((bottom - y) / (endY - y));
+  if (endY < y && endY <= padding) add((padding - y) / (endY - y));
+  return hit;
+}

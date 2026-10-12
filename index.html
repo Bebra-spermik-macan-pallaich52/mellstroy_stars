@@ -1,5 +1,45 @@
 <!doctype html>
 <html lang="ru">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Меллстрой Старс — этап 1</title><link rel="stylesheet" href="style.css"></head>
-<body><main><header><span class="tag">ПРОТОТИП · ЭТАП 1</span><h1>Меллстрой Старс</h1><p>Тестовая арена · движение и столкновения</p></header><canvas id="game" width="960" height="640" aria-label="Тестовая игровая арена"></canvas><footer><p><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> — ходьба <span id="status" aria-live="polite">Загрузка…</span></p><label for="character">Персонаж: </label><select id="character"><option value="0">Артур</option><option value="1">Котость</option><option value="2">Меллстрой Жирность</option><option value="3">Тёмный Друн</option><option value="4">Фог</option></select> <button id="restart">Вернуться на точку появления</button><p class="note">Статичные изображения персонажей. Кадры ходьбы пока не подготовлены. Бой и игровые режимы появятся на следующих этапах.</p></footer></main><script src="js/input.js"></script><script src="js/collision.js"></script><script src="js/map.js"></script><script src="js/assets.js"></script><script src="js/player.js"></script><script src="js/game.js"></script><script src="js/main.js"></script></body>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Меллстрой Старс — этап 2</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main>
+    <header>
+      <span class="tag">ПРОТОТИП · ЭТАП 2</span>
+      <h1>Меллстрой Старс</h1>
+      <p>Тренировочная арена · базовая боевая система</p>
+    </header>
+    <section class="hud" aria-label="Состояние боя">
+      <div class="metric"><div class="metric-title"><label for="health">Ваше здоровье</label><span id="health-text">1000 / 1000</span></div><progress id="health" max="1000" value="1000"></progress></div>
+      <div class="metric"><div class="metric-title"><label for="super">Заряд суперспособности</label><span id="super-text">0%</span></div><progress id="super" max="100" value="0"></progress></div>
+      <div class="metric enemy"><div class="metric-title"><label for="enemy-health">Противник</label><span id="enemy-health-text">1000 / 1000</span></div><progress id="enemy-health" max="1000" value="1000"></progress></div>
+    </section>
+    <canvas id="game" width="960" height="640" tabindex="0" aria-label="Тренировочная арена. WASD — движение, левая кнопка мыши — атака."></canvas>
+    <footer>
+      <p class="controls"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> — ходьба · мышь — прицел · ЛКМ — атака <span id="status">Загрузка…</span></p>
+      <div class="settings">
+        <label for="character">Персонаж:</label>
+        <select id="character"><option value="0">Артур</option><option value="1">Котость</option><option value="2">Меллстрой Жирность</option><option value="3">Тёмный Друн</option><option value="4">Фог</option></select>
+        <label class="checkbox"><input id="enemy-fire" type="checkbox" checked> Ответный огонь противника</label>
+        <button id="restart">Начать тренировку заново</button>
+      </div>
+      <p id="message" role="status">Обойдите стену и атакуйте тестового противника.</p>
+      <p id="stats" class="note">Противников побеждено: 0 · Ваших смертей: 0</p>
+      <p class="note">ЛКМ можно удерживать. У всех персонажей пока одинаковые параметры. Суперспособность только накапливает заряд: её эффект добавим позже. Изображения статичные; игровые режимы ещё не реализованы.</p>
+    </footer>
+  </main>
+  <script src="js/input.js"></script>
+  <script src="js/collision.js"></script>
+  <script src="js/map.js"></script>
+  <script src="js/assets.js"></script>
+  <script src="js/projectile.js"></script>
+  <script src="js/player.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/game.js"></script>
+  <script src="js/main.js"></script>
+</body>
 </html>
