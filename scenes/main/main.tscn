@@ -1,0 +1,73 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/maps/test_map.tscn" id="1_map"]
+[ext_resource type="PackedScene" path="res://scenes/characters/player.tscn" id="2_player"]
+[ext_resource type="Script" path="res://scripts/prototype_hud.gd" id="3_hud"]
+
+[node name="Main" type="Node2D"]
+
+[node name="TestMap" parent="." instance=ExtResource("1_map")]
+
+[node name="Player" parent="." instance=ExtResource("2_player")]
+position = Vector2(200, 400)
+
+[node name="HUD" type="CanvasLayer" parent="."]
+script = ExtResource("3_hud")
+
+[node name="Overlay" type="Control" parent="HUD"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Header" type="VBoxContainer" parent="HUD/Overlay"]
+offset_left = 36.0
+offset_top = 30.0
+offset_right = 820.0
+offset_bottom = 130.0
+mouse_filter = 2
+theme_override_constants/separation = 7
+
+[node name="Stage" type="Label" parent="HUD/Overlay/Header"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.47, 0.92, 0.83, 1)
+theme_override_font_sizes/font_size = 14
+text = "ЭТАП 1  /  ТЕСТОВАЯ КАРТА"
+
+[node name="Title" type="Label" parent="HUD/Overlay/Header"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+text = "Меллстрой Старс"
+
+[node name="Controls" type="Label" parent="HUD/Overlay/Header"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.75, 0.82, 0.87, 1)
+theme_override_font_sizes/font_size = 17
+text = "W A S D — движение  •  Проверьте стены и диагонали"
+
+[node name="Footer" type="VBoxContainer" parent="HUD/Overlay"]
+layout_mode = 0
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 36.0
+offset_top = -88.0
+offset_right = 1100.0
+offset_bottom = -28.0
+grow_vertical = 0
+mouse_filter = 2
+theme_override_constants/separation = 7
+
+[node name="State" type="Label" parent="HUD/Overlay/Footer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.47, 0.92, 0.83, 1)
+theme_override_font_sizes/font_size = 17
+text = "Взгляд: вниз  •  idle_down"
+
+[node name="ArtNote" type="Label" parent="HUD/Overlay/Footer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.75, 0.82, 0.87, 1)
+theme_override_font_sizes/font_size = 14
+text = "Меллстрой Жирность • Статичный спрайт. Кадры ходьбы ещё не подготовлены."

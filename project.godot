@@ -1,0 +1,43 @@
+; Godot 4 project. Open this file in the Godot Project Manager.
+config_version=5
+
+[application]
+config/name="Меллстрой Старс — прототип движения"
+run/main_scene="res://scenes/main/main.tscn"
+config/features=PackedStringArray("4.3", "GL Compatibility")
+config/icon="res://assets/characters/placeholder.svg"
+
+[display]
+window/size/viewport_width=1152
+window/size/viewport_height=720
+window/size/window_width_override=1152
+window/size/window_height_override=720
+window/stretch/mode="canvas_items"
+
+[input]
+move_up={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"physical_keycode":87)]
+}
+move_left={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"physical_keycode":65)]
+}
+move_down={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"physical_keycode":83)]
+}
+move_right={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"physical_keycode":68)]
+}
+
+[layer_names]
+2d_physics/layer_1="Стены"
+2d_physics/layer_2="Персонажи"
+
+[rendering]
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
+textures/default_filters/use_nearest_mipmap_filter=false
+environment/defaults/default_clear_color=Color(0.055, 0.08, 0.12, 1)
