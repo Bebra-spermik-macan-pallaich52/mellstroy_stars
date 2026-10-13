@@ -33,3 +33,27 @@ progress::-moz-progress-bar { background: #73e3c0; }
 #enemy-health::-moz-progress-bar { background: #ff8c86; }
 #message { color: #edf3ff; min-height: 1.5em; }
 @media (max-width: 700px) { main { padding: 16px; } .hud { grid-template-columns: 1fr; } #status { width: 100%; margin-left: 0; } }
+[hidden] { display: none !important; }
+.mode-choice { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+.scoreboard { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 16px; align-items: center; margin-bottom: 14px; }
+.team { display: flex; gap: 12px; justify-content: space-between; align-items: center; border-bottom: 2px solid currentColor; padding: 10px 0; font-size: 14px; }
+.team strong { font-size: 28px; font-variant-numeric: tabular-nums; }
+.green { color: #73e3c0; } .red { color: #ff8c86; }
+.match-time { display: flex; flex-direction: column; text-align: center; gap: 4px; }
+.match-time time { font-size: 25px; font-variant-numeric: tabular-nums; }
+.match-time span { color: #aab8cb; font-size: 12px; }
+.arena-shell { position: relative; }
+.result-overlay { position: absolute; inset: 0; display: grid; place-items: center; padding: 20px; background: rgba(10, 18, 29, 0.85); border-radius: 12px; }
+.result-card { max-width: 440px; width: 100%; padding: 28px; text-align: center; border: 1px solid #506b80; border-radius: 12px; background: #1a2635; }
+.result-card h2 { font-size: 36px; margin: 14px 0; }
+.result-card p { line-height: 1.5; }
+#owner { display: block; margin-top: 6px; }
+#zone-progress { accent-color: #ffd479; }
+#zone-progress::-webkit-progress-value { background: #ffd479; }
+#zone-progress::-moz-progress-bar { background: #ffd479; }
+.metric-title { flex-wrap: wrap; }
+@media (max-width: 700px) { .scoreboard { gap: 10px; } .team { font-size: 12px; flex-direction: column; align-items: flex-start; } .team strong { font-size: 24px; } .result-card { padding: 18px; } }
+#zone-progress::-webkit-progress-value { background: #73e3c0; }
+#zone-progress::-moz-progress-bar { background: #73e3c0; }
+#zone-progress.red-zone::-webkit-progress-value { background: #ff8c86; }
+#zone-progress.red-zone::-moz-progress-bar { background: #ff8c86; }

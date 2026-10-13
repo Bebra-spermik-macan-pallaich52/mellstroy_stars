@@ -16,7 +16,7 @@ const characterConfig = {
   animation: { fps: 8 }, image: 'assets/characters/characters.png'
 };
 
-// Игрок и тестовый противник используют одну систему движения и боя.
+// Все участники используют одну систему движения и боя.
 class Player {
   constructor(spawn, config = characterConfig, options = {}) {
     this.spawn = { ...spawn }; this.config = config;
@@ -116,6 +116,7 @@ class Player {
     ctx.fillStyle = '#101722'; ctx.fillRect(this.x - 3, this.y - 12, this.width + 6, 6);
     ctx.fillStyle = color; ctx.fillRect(this.x - 3, this.y - 12, (this.width + 6) * this.health / this.maxHealth, 6);
     ctx.font = '12px system-ui'; ctx.textAlign = 'center';
-    ctx.fillText(this.team === 0 ? characterImages[this.characterIndex].name : 'Тестовый противник', center.x, this.y - 20);
+    const label = `${characterImages[this.characterIndex].name}${this.isHuman ? ' · вы' : ''}`;
+    ctx.fillText(label, center.x, this.y - 20);
   }
 }

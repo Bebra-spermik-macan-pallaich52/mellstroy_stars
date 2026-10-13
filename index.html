@@ -3,33 +3,45 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Меллстрой Старс — этап 2</title>
+  <title>Меллстрой Старс — этап 3</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <main>
     <header>
-      <span class="tag">ПРОТОТИП · ЭТАП 2</span>
+      <span class="tag">ПРОТОТИП · ЭТАП 3</span>
       <h1>Меллстрой Старс</h1>
-      <p>Тренировочная арена · базовая боевая система</p>
+      <div class="mode-choice"><label for="mode">Режим:</label><select id="mode"><option value="donations">Сбор донатов</option><option value="cottage">Захват коттеджа</option></select><span class="note">Смена режима начинает новый матч.</span></div>
+      <p id="rules">Собирайте донаты в центре.</p>
     </header>
-    <section class="hud" aria-label="Состояние боя">
+    <section class="scoreboard" aria-label="Счёт команд и время матча">
+      <div class="team green">Зелёные · ваша команда <strong id="score-0">0</strong></div>
+      <div class="match-time"><time id="timer">03:00</time><span id="goal">Цель: 15 донатов</span></div>
+      <div class="team red">Красные <strong id="score-1">0</strong></div>
+    </section>
+    <section class="hud" aria-label="Состояние игрока и режима">
       <div class="metric"><div class="metric-title"><label for="health">Ваше здоровье</label><span id="health-text">1000 / 1000</span></div><progress id="health" max="1000" value="1000"></progress></div>
       <div class="metric"><div class="metric-title"><label for="super">Заряд суперспособности</label><span id="super-text">0%</span></div><progress id="super" max="100" value="0"></progress></div>
-      <div class="metric enemy"><div class="metric-title"><label for="enemy-health">Противник</label><span id="enemy-health-text">1000 / 1000</span></div><progress id="enemy-health" max="1000" value="1000"></progress></div>
+      <div id="donations-info" class="metric"><div class="metric-title">Ваши донаты <strong id="carried">0</strong></div><span class="note">Счёт команды — сумма донатов участников.</span></div>
+      <div id="cottage-info" class="metric" hidden><div class="metric-title"><label for="zone-progress">Захват</label><span id="zone-text">Зона пуста</span></div><progress id="zone-progress" max="100" value="0"></progress><span id="owner" class="note">Владелец: нет</span></div>
     </section>
-    <canvas id="game" width="960" height="640" tabindex="0" aria-label="Тренировочная арена. WASD — движение, левая кнопка мыши — атака."></canvas>
+    <div class="arena-shell">
+      <canvas id="game" width="960" height="640" tabindex="0" aria-label="Командная арена. WASD — движение, левая кнопка мыши — атака."></canvas>
+      <section id="result" class="result-overlay" role="dialog" aria-labelledby="result-title" aria-describedby="result-detail" hidden>
+        <div class="result-card"><span class="tag">МАТЧ ЗАВЕРШЁН</span><h2 id="result-title">Победа!</h2><p id="result-detail"></p><button id="result-restart">Сыграть ещё раз</button></div>
+      </section>
+    </div>
     <footer>
       <p class="controls"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> — ходьба · мышь — прицел · ЛКМ — атака <span id="status">Загрузка…</span></p>
       <div class="settings">
         <label for="character">Персонаж:</label>
         <select id="character"><option value="0">Артур</option><option value="1">Котость</option><option value="2">Меллстрой Жирность</option><option value="3">Тёмный Друн</option><option value="4">Фог</option></select>
-        <label class="checkbox"><input id="enemy-fire" type="checkbox" checked> Ответный огонь противника</label>
-        <button id="restart">Начать тренировку заново</button>
+        <label class="checkbox"><input id="enemy-fire" type="checkbox" checked> Огонь неподвижных участников</label>
+        <button id="restart">Начать матч заново</button>
       </div>
-      <p id="message" role="status">Обойдите стену и атакуйте тестового противника.</p>
+      <p id="message" role="status"></p>
       <p id="stats" class="note">Противников побеждено: 0 · Ваших смертей: 0</p>
-      <p class="note">ЛКМ можно удерживать. У всех персонажей пока одинаковые параметры. Суперспособность только накапливает заряд: её эффект добавим позже. Изображения статичные; игровые режимы ещё не реализованы.</p>
+      <p class="note">Две команды по три персонажа. На этом этапе остальные участники стоят на месте; движение и поиск целей ботами добавим на этапе 4. Суперспособность только накапливает заряд. Изображения пока статичные.</p>
     </footer>
   </main>
   <script src="js/input.js"></script>
@@ -38,6 +50,9 @@
   <script src="js/assets.js"></script>
   <script src="js/projectile.js"></script>
   <script src="js/player.js"></script>
+  <script src="js/donationsMode.js"></script>
+  <script src="js/cottageMode.js"></script>
+  <script src="js/gameManager.js"></script>
   <script src="js/ui.js"></script>
   <script src="js/game.js"></script>
   <script src="js/main.js"></script>

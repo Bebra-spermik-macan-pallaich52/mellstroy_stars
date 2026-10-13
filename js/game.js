@@ -1,38 +1,44 @@
 'use strict';
 
-const trainingConfig = { enemySpawn: { x: 550, y: 310 }, enemyCharacter: 3 };
-
 class Game {
   constructor(canvas) {
     this.canvas = canvas; this.ctx = canvas.getContext('2d');
     this.input = new Input(window, canvas);
-    this.player = new Player(arena.spawn);
-    this.enemy = new Player(trainingConfig.enemySpawn, characterConfig, { team: 1, characterIndex: trainingConfig.enemyCharacter });
-    this.actors = [this.player, this.enemy];
-    this.projectiles = [];
-    this.stats = { kills: 0, deaths: 0 };
-    this.message = 'Обойдите стену и атакуйте тестового противника.';
+    if (arena.teamSpawns.some(spawns => spawns.length < matchConfig.teamSize)) throw new Error('Недостаточно точек появления для выбранного размера команды.');
+    this.actors = arena.teamSpawns.flatMap((spawns, team) => spawns.slice(0, matchConfig.teamSize).map((spawn, index) =>
+      new Player(spawn, characterConfig, { team, characterIndex: team === 0 ? index : [3, 4, 1][index] })));
+    this.player = this.actors[0];
+    this.player.isHuman = true;
     this.ui = new UI();
     this.lastTime = null; this.running = false;
     this.tick = this.tick.bind(this);
+    this.reset('donations');
     document.getElementById('character').addEventListener('change', event => {
       this.player.characterIndex = Number(event.target.value); this.input.clear();
       this.canvas.focus({ preventScroll: true });
     });
-    document.getElementById('enemy-fire').addEventListener('change', () => {
+    this.ui.modeSelect.addEventListener('change', event => this.reset(event.target.value));
+    this.ui.enemyFire.addEventListener('change', () => {
       this.input.clear(); this.canvas.focus({ preventScroll: true });
     });
     window.addEventListener('blur', () => { this.lastTime = null; });
     document.addEventListener('visibilitychange', () => { this.lastTime = null; });
     document.getElementById('restart').addEventListener('click', () => this.reset());
+    document.getElementById('result-restart').addEventListener('click', () => this.reset());
   }
-  reset() {
+  reset(modeId = this.modeId || 'donations') {
+    this.modeId = modeId;
     this.input.clear();
     for (const actor of this.actors) actor.reset();
     this.projectiles = [];
     this.stats = { kills: 0, deaths: 0 };
-    this.message = 'Тренировка начата заново.';
+    this.manager = new GameManager(modeId, arena, this.actors);
+    this.message = modeId === 'donations'
+      ? 'Собирайте золотые донаты в центре. Часть донатов выпадает после смерти.'
+      : 'Выбейте защитника из коттеджа и удерживайте зону. Обе команды внутри — захват остановлен.';
+    this.ui.modeSelect.value = modeId;
     this.lastTime = null;
+    this.canvas.focus({ preventScroll: true });
   }
   async start() {
     if (this.running) return;
@@ -43,15 +49,19 @@ class Game {
     requestAnimationFrame(this.tick);
   }
   onDeath(actor) {
+    this.manager.onDeath(actor);
     if (actor === this.player) {
       this.input.clear(); this.stats.deaths++;
       this.message = `Вы погибли. Возрождение на стартовой точке через ${actor.config.respawnDelay} с.`;
-    } else {
+    } else if (actor.team !== this.player.team) {
       this.stats.kills++;
       this.message = `Противник повержен. Возрождение через ${actor.config.respawnDelay} с.`;
     }
   }
   update(dt) {
+    if (this.manager.state !== 'playing' || dt <= 0) return;
+    // Combat, mode and timer consume the same interval, including the final step.
+    dt = Math.min(dt, this.manager.remaining);
     for (const actor of this.actors) {
       if (actor.updateTimers(dt) && actor === this.player) {
         this.input.clear(); this.message = 'Вы возродились. Здоровье восстановлено.';
@@ -66,12 +76,22 @@ class Game {
         if (shot) this.projectiles.push(shot);
       }
     }
-    // A stationary test opponent verifies incoming damage, without pathfinding or game modes.
-    if (this.ui.enemyFire.checked && this.enemy.alive && this.player.alive) {
-      const from = this.enemy.center, to = this.player.center;
-      if (Math.hypot(to.x - from.x, to.y - from.y) <= this.enemy.config.attack.range) {
-        const shot = this.enemy.attack(to);
-        if (shot) this.projectiles.push(shot);
+    // Stage 3 participants stay still. Movement and objective-seeking AI belong to stage 4.
+    if (this.ui.enemyFire.checked) {
+      for (const actor of this.actors) {
+        if (actor === this.player || !actor.alive) continue;
+        const from = actor.center;
+        let nearest = null, distance = actor.config.attack.range;
+        for (const opponent of this.actors) {
+          if (!opponent.alive || opponent.team === actor.team) continue;
+          const to = opponent.center;
+          const candidate = Math.hypot(to.x - from.x, to.y - from.y);
+          if (candidate <= distance) { nearest = opponent; distance = candidate; }
+        }
+        if (nearest) {
+          const shot = actor.attack(nearest.center);
+          if (shot) this.projectiles.push(shot);
+        }
       }
     }
     for (const projectile of this.projectiles) {
@@ -83,18 +103,29 @@ class Game {
       if (wasAlive && !hit.target.alive) this.onDeath(hit.target);
     }
     this.projectiles = this.projectiles.filter(projectile => projectile.active);
+    this.manager.update(dt, this.actors);
+    if (this.manager.state === 'finished') this.input.clear();
   }
   draw() {
     arena.draw(this.ctx);
-    // Aim indicator is separate from walking direction and animation.
-    if (this.player.alive && this.input.aim()) {
+    this.manager.mode.draw(this.ctx);
+    if (this.manager.state === 'playing' && this.player.alive && this.input.aim()) {
       const from = this.player.center, direction = this.player.aimDirection;
       this.ctx.strokeStyle = 'rgba(115, 227, 192, 0.5)'; this.ctx.setLineDash([5, 5]);
       this.ctx.beginPath(); this.ctx.moveTo(from.x, from.y);
       this.ctx.lineTo(from.x + direction.x * 85, from.y + direction.y * 85); this.ctx.stroke();
       this.ctx.setLineDash([]);
     }
-    for (const actor of this.actors) actor.draw(this.ctx);
+    for (const actor of this.actors) {
+      actor.draw(this.ctx);
+      if (actor.alive && this.modeId === 'donations') {
+        const held = this.manager.mode.carried.get(actor) || 0;
+        if (held) {
+          this.ctx.fillStyle = '#ffd479'; this.ctx.font = '12px system-ui'; this.ctx.textAlign = 'center';
+          this.ctx.fillText(`${held} дон.`, actor.center.x, actor.y + actor.height + 18);
+        }
+      }
+    }
     for (const projectile of this.projectiles) projectile.draw(this.ctx);
     this.ui.render(this, document.hidden || !document.hasFocus());
   }
