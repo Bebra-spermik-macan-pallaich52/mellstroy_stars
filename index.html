@@ -3,59 +3,71 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Меллстрой Старс — этап 4</title>
+  <meta name="theme-color" content="#101827">
+  <title>Меллстрой Старс</title>
   <link rel="stylesheet" href="style.css">
   <link rel="icon" href="data:,">
 </head>
 <body>
-  <main>
-    <header>
-      <span class="tag">ПРОТОТИП · ЭТАП 4</span>
-      <h1>Меллстрой Старс</h1>
-      <div class="mode-choice"><label for="mode">Режим:</label><select id="mode"><option value="donations">Сбор донатов</option><option value="cottage">Захват коттеджа</option></select><span class="note">Смена режима начинает новый матч.</span></div>
-      <p id="rules">Собирайте донаты в центре.</p>
-    </header>
-    <section class="scoreboard" aria-label="Счёт команд и время матча">
-      <div class="team green">Зелёные · ваша команда <strong id="score-0">0</strong></div>
-      <div class="match-time"><time id="timer">03:00</time><span id="goal">Цель: 15 донатов</span></div>
-      <div class="team red">Красные <strong id="score-1">0</strong></div>
-    </section>
-    <section class="hud" aria-label="Состояние игрока и режима">
-      <div class="metric"><div class="metric-title"><label for="health">Ваше здоровье</label><span id="health-text">1000 / 1000</span></div><progress id="health" max="1000" value="1000"></progress></div>
-      <div class="metric"><div class="metric-title"><label for="super">Заряд суперспособности</label><span id="super-text">0%</span></div><progress id="super" max="100" value="0"></progress></div>
-      <div id="donations-info" class="metric"><div class="metric-title">Ваши донаты <strong id="carried">0</strong></div><span class="note">Счёт команды — сумма донатов участников.</span></div>
-      <div id="cottage-info" class="metric" hidden><div class="metric-title"><label for="zone-progress">Захват</label><span id="zone-text">Зона пуста</span></div><progress id="zone-progress" max="100" value="0"></progress><span id="owner" class="note">Владелец: нет</span></div>
-    </section>
-    <div class="arena-shell">
-      <canvas id="game" width="960" height="640" tabindex="0" aria-label="Командная арена. WASD — движение, левая кнопка мыши — атака."></canvas>
-      <section id="result" class="result-overlay" role="dialog" aria-labelledby="result-title" aria-describedby="result-detail" hidden>
-        <div class="result-card"><span class="tag">МАТЧ ЗАВЕРШЁН</span><h2 id="result-title">Победа!</h2><p id="result-detail"></p><button id="result-restart">Сыграть ещё раз</button></div>
-      </section>
-    </div>
-    <footer>
-      <p class="controls"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> — ходьба · мышь — прицел · ЛКМ — атака <span id="status">Загрузка…</span></p>
-      <div class="settings">
-        <label for="character">Персонаж:</label>
-        <select id="character"><option value="0">Артур</option><option value="1">Котость</option><option value="2">Меллстрой Жирность</option><option value="3">Тёмный Друн</option><option value="4">Фог</option></select>
-        <label class="checkbox"><input id="enemy-fire" type="checkbox" checked> Атаки ботов</label>
-        <button id="restart">Начать матч заново</button>
+  <main class="app">
+    <section id="main-menu" class="main-menu" aria-labelledby="game-title">
+      <header class="menu-header">
+        <a href="#" class="wordmark" id="home-link" aria-label="Меллстрой Старс, главное меню"><span class="brand-star" aria-hidden="true">✦</span> MS</a>
+        <div class="profile-strip"><span id="profile-name">Игрок</span><span class="level-chip" id="profile-level">Ур. 1</span><span class="coin-chip"><span aria-hidden="true">◆</span> <strong id="profile-coins">0</strong></span><button id="open-settings" class="icon-button" aria-label="Настройки">⚙</button></div>
+      </header>
+      <div class="menu-hero">
+        <div><span class="eyebrow">ТВОЯ КОМАНДА. ТВОЯ АРЕНА.</span><h1 id="game-title">МЕЛЛСТРОЙ<br><span>СТАРС<span class="title-star" aria-hidden="true">✦</span></span></h1><p class="hero-copy">Забирай донаты. Держи коттедж.<br>Выходи на арену — и побеждай.</p></div>
+        <div class="hero-art" aria-hidden="true"><div class="hero-orbit"></div><div class="hero-gem">◆</div><span class="art-caption">3 × 3</span><span class="art-tag">АРЕНА ЖДЁТ</span></div>
       </div>
-      <p id="message" role="status"></p>
-      <p id="stats" class="note">Противников побеждено: 0 · Ваших смертей: 0</p>
-      <p class="note">Две команды по три персонажа: вы, два союзных бота и три бота соперника. Боты обходят стены, сражаются и выполняют цель режима. Суперспособность только накапливает заряд. Изображения пока статичные.</p>
-    </footer>
+      <section class="roster" aria-labelledby="roster-title">
+        <div class="section-heading"><h2 id="roster-title">ТВОЙ ПЕРСОНАЖ</h2><span id="roster-count" class="muted">1 / 5 открыто</span></div>
+        <div id="character-cards" class="character-cards"></div>
+        <label class="sr-only" for="character">Выбранный персонаж</label><select id="character" class="sr-only" tabindex="-1" aria-hidden="true"></select>
+        <div class="character-detail"><strong id="character-name">Артур</strong><span id="character-description"></span><span id="character-super" class="ability-label"></span></div>
+      </section>
+      <section class="match-picker" aria-label="Настройки нового матча">
+        <div class="picker"><label for="mode">РЕЖИМ</label><select id="mode"><option value="donations">Сбор донатов</option><option value="cottage">Захват коттеджа</option><option value="teamfight">Командный бой</option></select><p id="mode-description">Собери 15 донатов своей командой.</p></div>
+        <div class="picker"><label for="map">КАРТА</label><select id="map"></select><p id="map-description"></p></div>
+        <button id="start-match" class="primary-button play-button">НА АРЕНУ <span aria-hidden="true"></span></button>
+      </section>
+      <p id="menu-message" class="menu-message" role="status"></p>
+      <details class="profile-details"><summary>МОЙ ПРОГРЕСС <span id="profile-xp">0 / 300 опыта</span></summary><div class="profile-metrics"><span>Матчи <strong id="profile-matches">0</strong></span><span>Победы <strong id="profile-wins">0</strong></span><span>Поражения <strong id="profile-losses">0</strong></span><span>Ничьи <strong id="profile-draws">0</strong></span><span>Побеждено <strong id="profile-kills">0</strong></span></div><ol id="match-history" class="match-history"></ol><p class="muted">Прогресс хранится только в этом браузере. Монеты и опыт начисляются за завершённые матчи.</p></details>
+      <footer class="menu-footer"><span>ЛОКАЛЬНАЯ ИГРА · БЕЗ ИНТЕРНЕТА</span><span>WASD · МЫШЬ · ЛКМ · Q</span></footer>
+    </section>
+
+    <section id="match-view" class="match-view" hidden aria-label="Матч">
+      <header class="match-header"><span class="match-brand">MS<span aria-hidden="true">✦</span></span><span id="match-label">Сбор донатов</span><button id="pause-button" class="quiet-button">Пауза <kbd>Esc</kbd></button></header>
+      <section class="scoreboard" aria-label="Счёт команд и время матча"><div class="team green"><span>ВАША КОМАНДА</span><strong id="score-0">0</strong></div><div class="match-time"><time id="timer">03:00</time><span id="goal">Цель: 15 донатов</span></div><div class="team red"><strong id="score-1">0</strong><span>СОПЕРНИКИ</span></div></section>
+      <div class="arena-shell">
+        <canvas id="game" width="960" height="640" tabindex="0" aria-label="Арена. WASD — движение; мышь — прицел; левая кнопка — атака; Q — суперспособность; Escape — пауза."></canvas>
+        <section id="result" class="result-overlay" role="dialog" aria-modal="true" aria-labelledby="result-title" aria-describedby="result-detail" hidden><div class="result-card"><span class="eyebrow">МАТЧ ЗАВЕРШЁН</span><div class="result-emblem" aria-hidden="true">✦</div><h2 id="result-title">Победа!</h2><p id="result-detail"></p><p id="result-reward" class="reward-line"></p><div class="dialog-actions"><button id="result-restart" class="primary-button">ЕЩЁ МАТЧ</button><button id="result-menu" class="quiet-button">Главное меню</button></div></div></section>
+      </div>
+      <section class="hud" aria-label="Состояние игрока и режима"><div class="metric health-metric"><div class="metric-title"><label for="health">ЗДОРОВЬЕ</label><span id="health-text">1000 / 1000</span></div><progress id="health" max="1000" value="1000"></progress></div><div class="metric super-metric"><div class="metric-title"><label for="super">СУПЕР <kbd>Q</kbd></label><span id="super-text">0%</span></div><progress id="super" max="100" value="0"></progress></div><div id="donations-info" class="metric objective-metric"><span>ДОНАТЫ У ТЕБЯ</span><strong id="carried">0</strong></div><div id="cottage-info" class="metric zone-metric" hidden><div class="metric-title"><label for="zone-progress">ЗАХВАТ</label><span id="zone-text">Зона пуста</span></div><progress id="zone-progress" max="100" value="0"></progress><span id="owner" class="muted">Владелец: нет</span></div></section>
+      <footer class="match-footer"><span id="status" role="status">Загрузка…</span><span id="stats">Побеждено: 0 · Смертей: 0</span></footer><p id="message" class="match-message" role="status"></p><p id="rules" class="sr-only"></p>
+    </section>
+
+    <section id="pause-dialog" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="pause-title" hidden><div class="modal-card"><span class="eyebrow">ПЕРЕДЫШКА</span><h2 id="pause-title">Пауза</h2><p class="muted">Матч остановлен. Можно спокойно поменять настройки.</p><div class="button-stack"><button id="resume-match" class="primary-button">ПРОДОЛЖИТЬ</button><button id="pause-settings" class="quiet-button">Настройки</button><button id="restart" class="quiet-button">Начать матч заново</button><button id="leave-match" class="quiet-button">Главное меню</button></div><p class="muted small">За выход до завершения матча награда не начисляется.</p></div></section>
+    <section id="settings-dialog" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="settings-title" hidden><div class="modal-card settings-card"><span class="eyebrow">ПОД СЕБЯ</span><h2 id="settings-title">Настройки</h2><label class="field-label" for="nickname">Никнейм</label><input id="nickname" type="text" maxlength="24" autocomplete="off"><div class="settings-row"><label for="sound">Звуки</label><input id="sound" type="checkbox" checked></div><div class="settings-row"><label for="music">Музыка</label><input id="music" type="checkbox"></div><label class="volume-label" for="volume">Громкость <output id="volume-value">45%</output></label><input id="volume" type="range" min="0" max="100" value="45"><div class="settings-row"><label for="reduced-motion">Меньше эффектов</label><input id="reduced-motion" type="checkbox"></div><div class="settings-row"><label for="enemy-fire">Атаки ботов</label><input id="enemy-fire" type="checkbox" checked></div><div class="settings-row"><label for="enhancements">Случайные усиления</label><input id="enhancements" type="checkbox" checked></div><p class="muted small">Случайные усиления включаются со следующего матча. WASD — ходьба, ЛКМ — атака, Q — супер, Esc — пауза.</p><button id="close-settings" class="primary-button">ГОТОВО</button></div></section>
   </main>
   <script src="js/input.js"></script>
   <script src="js/collision.js"></script>
   <script src="js/map.js"></script>
   <script src="js/assets.js"></script>
   <script src="js/projectile.js"></script>
+  <script src="js/spriteManifest.js"></script>
+  <script src="js/characters.js"></script>
   <script src="js/player.js"></script>
   <script src="js/donationsMode.js"></script>
   <script src="js/cottageMode.js"></script>
+  <script src="js/teamfightMode.js"></script>
   <script src="js/gameManager.js"></script>
   <script src="js/bot.js"></script>
+  <script src="js/simulation.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/effects.js"></script>
+  <script src="js/profile.js"></script>
   <script src="js/ui.js"></script>
+  <script src="js/menu.js"></script>
   <script src="js/game.js"></script>
   <script src="js/main.js"></script>
 </body>

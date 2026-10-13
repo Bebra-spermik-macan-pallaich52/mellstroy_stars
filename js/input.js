@@ -3,12 +3,16 @@
 class Input {
   constructor(target = window, canvas = null) {
     this.keys = new Set();
-    this.codes = new Set(['KeyW', 'KeyA', 'KeyS', 'KeyD']);
+    this.codes = new Set(['KeyW', 'KeyA', 'KeyS', 'KeyD', 'KeyQ', 'Escape']);
+    this.actions = new Set();
     this.canvas = canvas;
     this.mouse = { clientX: 0, clientY: 0, inside: false, firing: false };
     target.addEventListener('keydown', event => {
       if (!this.codes.has(event.code) || /INPUT|TEXTAREA|SELECT/.test(event.target.tagName) || event.target.isContentEditable) return;
-      event.preventDefault(); this.keys.add(event.code);
+      event.preventDefault();
+      if (event.code === 'KeyQ' || event.code === 'Escape') {
+        if (!event.repeat) this.actions.add(event.code === 'KeyQ' ? 'super' : 'pause');
+      } else this.keys.add(event.code);
     });
     target.addEventListener('keyup', event => this.keys.delete(event.code));
     target.addEventListener('blur', () => this.clear());
@@ -32,7 +36,10 @@ class Input {
       target.addEventListener('pointercancel', () => { this.mouse.firing = false; });
     }
   }
-  clear() { this.keys.clear(); this.mouse.firing = false; }
+  clear() { this.keys.clear(); this.actions.clear(); this.mouse.firing = false; }
+  consumeAction(action) {
+    const present = this.actions.has(action); this.actions.delete(action); return present;
+  }
   direction() {
     const x = Number(this.keys.has('KeyD')) - Number(this.keys.has('KeyA'));
     const y = Number(this.keys.has('KeyS')) - Number(this.keys.has('KeyW'));

@@ -30,6 +30,7 @@ class Bot {
   // Work with the character center. Wall expansion accounts for its complete
   // rectangular hitbox; the graph is shared between plans for the same map.
   prepareNavigation(map, margin) {
+    this.navigationCache = this.navigationCache.filter(nav => nav.map !== map || nav.version === (map.navVersion || 0));
     const cached = this.navigationCache.find(nav => nav.map === map && nav.margin === margin);
     if (cached) { this.navigation = cached; return cached; }
     const halfWidth = this.actor.width / 2, halfHeight = this.actor.height / 2;
@@ -47,7 +48,7 @@ class Bot {
       width: wall.width + 2 * halfWidth - 2e-6,
       height: wall.height + 2 * halfHeight - 2e-6
     }));
-    const nav = { map, margin, bounds, walls, physicalWalls, nodes: [], edges: [] };
+    const nav = { map, version: map.navVersion || 0, margin, bounds, walls, physicalWalls, nodes: [], edges: [] };
     const epsilon = 0.01;
     for (const wall of walls) {
       for (const x of [wall.x - epsilon, wall.x + wall.width + epsilon]) {
@@ -196,6 +197,19 @@ class Bot {
         x: map.resourcePoint.x + Math.cos(angle) * this.config.waitingRadius,
         y: map.resourcePoint.y + Math.sin(angle) * this.config.waitingRadius
       }, map);
+    } else if (manager.modeId === 'teamfight') {
+      const visible = this.selectEnemy(world);
+      const enemy = visible || this.targetEnemy;
+      if (!enemy) { this.path = []; this.goal = null; return; }
+      const from = this.actor.center, target = enemy.center;
+      const distance = this.distance(from, target);
+      const preferred = this.actor.config.attack.range * 0.6;
+      if (visible && distance <= preferred && distance >= 95) { this.path = []; this.goal = { ...from }; return; }
+      if (visible && distance < 95) {
+        const divisor = distance || 1;
+        this.planTo({ x: from.x + (from.x - target.x) / divisor * 90,
+          y: from.y + (from.y - target.y) / divisor * 90 }, map);
+      } else this.planTo(target, map);
     } else {
       const zone = map.captureZone;
       const slot = ((this.index % 6) + 6) % 6;
@@ -226,6 +240,9 @@ class Bot {
     this.wasAlive = this.actor.alive;
     if (!this.actor.alive || !Number.isFinite(dt) || !(dt > 0)) return null;
     this.replanRemaining = Math.max(0, this.replanRemaining - dt);
+    if (this.navigation && this.navigation.version !== (world.map.navVersion || 0)) {
+      this.navigationCache = []; this.path = []; this.navigation = null; this.replanRemaining = 0;
+    }
     if (this.targetItem && !world.manager.mode.items.includes(this.targetItem)) this.replanRemaining = 0;
     if (this.replanRemaining === 0) {
       this.chooseObjective(world);

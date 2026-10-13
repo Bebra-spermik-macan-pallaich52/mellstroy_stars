@@ -5,8 +5,8 @@ const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
 const context = vm.createContext({ console });
-for (const file of ['assets.js', 'collision.js', 'projectile.js', 'player.js', 'map.js',
-  'donationsMode.js', 'cottageMode.js', 'gameManager.js', 'bot.js']) {
+for (const file of ['assets.js', 'collision.js', 'projectile.js', 'characters.js', 'player.js', 'map.js',
+  'donationsMode.js', 'cottageMode.js', 'teamfightMode.js', 'gameManager.js', 'bot.js']) {
   vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'js', file), 'utf8'), context);
 }
 vm.runInContext('globalThis.subject = { Bot, botConfig, Player, GameManager, characterConfig, arena, overlaps };', context);
