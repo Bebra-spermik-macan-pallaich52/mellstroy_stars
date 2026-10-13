@@ -3,13 +3,14 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Меллстрой Старс — этап 3</title>
+  <title>Меллстрой Старс — этап 4</title>
   <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="data:,">
 </head>
 <body>
   <main>
     <header>
-      <span class="tag">ПРОТОТИП · ЭТАП 3</span>
+      <span class="tag">ПРОТОТИП · ЭТАП 4</span>
       <h1>Меллстрой Старс</h1>
       <div class="mode-choice"><label for="mode">Режим:</label><select id="mode"><option value="donations">Сбор донатов</option><option value="cottage">Захват коттеджа</option></select><span class="note">Смена режима начинает новый матч.</span></div>
       <p id="rules">Собирайте донаты в центре.</p>
@@ -36,12 +37,12 @@
       <div class="settings">
         <label for="character">Персонаж:</label>
         <select id="character"><option value="0">Артур</option><option value="1">Котость</option><option value="2">Меллстрой Жирность</option><option value="3">Тёмный Друн</option><option value="4">Фог</option></select>
-        <label class="checkbox"><input id="enemy-fire" type="checkbox" checked> Огонь неподвижных участников</label>
+        <label class="checkbox"><input id="enemy-fire" type="checkbox" checked> Атаки ботов</label>
         <button id="restart">Начать матч заново</button>
       </div>
       <p id="message" role="status"></p>
       <p id="stats" class="note">Противников побеждено: 0 · Ваших смертей: 0</p>
-      <p class="note">Две команды по три персонажа. На этом этапе остальные участники стоят на месте; движение и поиск целей ботами добавим на этапе 4. Суперспособность только накапливает заряд. Изображения пока статичные.</p>
+      <p class="note">Две команды по три персонажа: вы, два союзных бота и три бота соперника. Боты обходят стены, сражаются и выполняют цель режима. Суперспособность только накапливает заряд. Изображения пока статичные.</p>
     </footer>
   </main>
   <script src="js/input.js"></script>
@@ -53,6 +54,7 @@
   <script src="js/donationsMode.js"></script>
   <script src="js/cottageMode.js"></script>
   <script src="js/gameManager.js"></script>
+  <script src="js/bot.js"></script>
   <script src="js/ui.js"></script>
   <script src="js/game.js"></script>
   <script src="js/main.js"></script>

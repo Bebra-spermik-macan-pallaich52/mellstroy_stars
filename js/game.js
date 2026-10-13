@@ -9,6 +9,7 @@ class Game {
       new Player(spawn, characterConfig, { team, characterIndex: team === 0 ? index : [3, 4, 1][index] })));
     this.player = this.actors[0];
     this.player.isHuman = true;
+    this.bots = this.actors.slice(1).map((actor, index) => new Bot(actor, index));
     this.ui = new UI();
     this.lastTime = null; this.running = false;
     this.tick = this.tick.bind(this);
@@ -30,12 +31,14 @@ class Game {
     this.modeId = modeId;
     this.input.clear();
     for (const actor of this.actors) actor.reset();
+    for (const bot of this.bots) bot.reset();
     this.projectiles = [];
     this.stats = { kills: 0, deaths: 0 };
     this.manager = new GameManager(modeId, arena, this.actors);
+    this.world = { map: arena, actors: this.actors, manager: this.manager, bots: this.bots };
     this.message = modeId === 'donations'
       ? 'Собирайте золотые донаты в центре. Часть донатов выпадает после смерти.'
-      : 'Выбейте защитника из коттеджа и удерживайте зону. Обе команды внутри — захват остановлен.';
+      : 'Займите коттедж вместе с союзниками. Обе команды внутри — захват остановлен.';
     this.ui.modeSelect.value = modeId;
     this.lastTime = null;
     this.canvas.focus({ preventScroll: true });
@@ -50,6 +53,7 @@ class Game {
   }
   onDeath(actor) {
     this.manager.onDeath(actor);
+    this.bots.find(bot => bot.actor === actor)?.reset();
     if (actor === this.player) {
       this.input.clear(); this.stats.deaths++;
       this.message = `Вы погибли. Возрождение на стартовой точке через ${actor.config.respawnDelay} с.`;
@@ -63,8 +67,11 @@ class Game {
     // Combat, mode and timer consume the same interval, including the final step.
     dt = Math.min(dt, this.manager.remaining);
     for (const actor of this.actors) {
-      if (actor.updateTimers(dt) && actor === this.player) {
-        this.input.clear(); this.message = 'Вы возродились. Здоровье восстановлено.';
+      if (actor.updateTimers(dt)) {
+        this.bots.find(bot => bot.actor === actor)?.reset();
+        if (actor === this.player) {
+          this.input.clear(); this.message = 'Вы возродились. Здоровье восстановлено.';
+        }
       }
     }
     this.player.update(dt, this.input, arena);
@@ -76,23 +83,9 @@ class Game {
         if (shot) this.projectiles.push(shot);
       }
     }
-    // Stage 3 participants stay still. Movement and objective-seeking AI belong to stage 4.
-    if (this.ui.enemyFire.checked) {
-      for (const actor of this.actors) {
-        if (actor === this.player || !actor.alive) continue;
-        const from = actor.center;
-        let nearest = null, distance = actor.config.attack.range;
-        for (const opponent of this.actors) {
-          if (!opponent.alive || opponent.team === actor.team) continue;
-          const to = opponent.center;
-          const candidate = Math.hypot(to.x - from.x, to.y - from.y);
-          if (candidate <= distance) { nearest = opponent; distance = candidate; }
-        }
-        if (nearest) {
-          const shot = actor.attack(nearest.center);
-          if (shot) this.projectiles.push(shot);
-        }
-      }
+    for (const bot of this.bots) {
+      const shot = bot.update(dt, this.world, this.ui.enemyFire.checked);
+      if (shot) this.projectiles.push(shot);
     }
     for (const projectile of this.projectiles) {
       const hit = projectile.update(dt, arena, this.actors);
@@ -116,8 +109,17 @@ class Game {
       this.ctx.lineTo(from.x + direction.x * 85, from.y + direction.y * 85); this.ctx.stroke();
       this.ctx.setLineDash([]);
     }
+    const labelBounds = [];
+    this.ctx.font = '12px system-ui';
     for (const actor of this.actors) {
-      actor.draw(this.ctx);
+      const label = `${characterImages[actor.characterIndex].name}${actor.isHuman ? ' · вы' : ''}`;
+      const labelWidth = this.ctx.measureText(label).width + 4;
+      const bounds = { x: actor.center.x - labelWidth / 2, y: actor.y - 32, width: labelWidth, height: 14 };
+      const crowded = this.actors.some(other => other !== actor && other.alive && overlaps(bounds,
+        { x: other.x - 3, y: other.y - 15, width: other.width + 6, height: other.height + 15 }));
+      const showLabel = actor.isHuman || (!crowded && !labelBounds.some(other => overlaps(bounds, other)));
+      if (actor.alive && showLabel) labelBounds.push(bounds);
+      actor.draw(this.ctx, showLabel);
       if (actor.alive && this.modeId === 'donations') {
         const held = this.manager.mode.carried.get(actor) || 0;
         if (held) {

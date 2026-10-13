@@ -3,7 +3,7 @@ const arena = {
   width: 960, height: 640, spawn: { x: 120, y: 300 },
   teamSpawns: [
     [{ x: 120, y: 300 }, { x: 70, y: 80 }, { x: 70, y: 550 }],
-    [{ x: 500, y: 288 }, { x: 840, y: 80 }, { x: 840, y: 540 }]
+    [{ x: 840, y: 288 }, { x: 840, y: 80 }, { x: 840, y: 540 }]
   ],
   resourcePoint: { x: 480, y: 320 },
   captureZone: { x: 400, y: 230, width: 230, height: 180 },

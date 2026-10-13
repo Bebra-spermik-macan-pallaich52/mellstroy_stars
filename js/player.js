@@ -81,7 +81,7 @@ class Player {
     if (!this.alive || actualDamage <= 0) return;
     this.superCharge = Math.min(100, this.superCharge + actualDamage / this.config.super.damageRequired * 100);
   }
-  draw(ctx) {
+  draw(ctx, showLabel = true) {
     const color = this.team === 0 ? '#73e3c0' : '#ff8c86';
     const center = this.center;
     if (!this.alive) {
@@ -117,6 +117,6 @@ class Player {
     ctx.fillStyle = color; ctx.fillRect(this.x - 3, this.y - 12, (this.width + 6) * this.health / this.maxHealth, 6);
     ctx.font = '12px system-ui'; ctx.textAlign = 'center';
     const label = `${characterImages[this.characterIndex].name}${this.isHuman ? ' · вы' : ''}`;
-    ctx.fillText(label, center.x, this.y - 20);
+    if (showLabel) ctx.fillText(label, center.x, this.y - 20);
   }
 }

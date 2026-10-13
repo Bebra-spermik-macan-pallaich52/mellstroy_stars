@@ -103,7 +103,7 @@ class DonationsMode {
     ctx.font = 'bold 13px sans-serif';
     ctx.textAlign = 'center';
     ctx.fillStyle = '#f8dc8a';
-    ctx.fillText('ТОЧКА ДОНАТОВ', point.x, point.y - 80);
+    ctx.fillText('ТОЧКА ДОНАТОВ', point.x, point.y - 120);
     for (const item of this.items) {
       ctx.fillStyle = '#ffd257'; ctx.strokeStyle = '#fff0b2';
       ctx.beginPath();
