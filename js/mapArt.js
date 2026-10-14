@@ -36,15 +36,14 @@ class MapArt {
     ctx.fillStyle = theme.ground; ctx.fillRect(0, 0, map.width, map.height);
     ctx.globalAlpha = map.id === 'courtyard' ? 0.48 : map.id === 'crossroads' ? 0.40 : 0.62;
     ctx.fillStyle = ctx.createPattern(this.tile(theme.tile, 0, map.id === 'crossroads' ? 190 : 270), 'repeat'); ctx.fillRect(0, 0, map.width, map.height);
-    ctx.globalAlpha = 0.22; ctx.strokeStyle = theme.path; ctx.lineWidth = map.id === 'courtyard' ? 75 : 110; ctx.lineCap = 'round';
-    ctx.beginPath(); ctx.moveTo(0, 330); ctx.bezierCurveTo(240, 380, 620, 280, map.width, 330); ctx.stroke();
-    if (map.id === 'crossroads') { ctx.beginPath(); ctx.moveTo(480, 0); ctx.lineTo(480, map.height); ctx.stroke(); }
+    ctx.globalAlpha = map.id === 'crossroads' ? 0.35 : 0.24;
+    ctx.strokeStyle = theme.path; ctx.lineWidth = map.id === 'courtyard' ? 110 : 145; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    for (const road of map.roads || []) {
+      ctx.beginPath(); road.forEach((point, index) => index ? ctx.lineTo(point.x, point.y) : ctx.moveTo(point.x, point.y)); ctx.stroke();
+    }
     if (map.id === 'courtyard') {
-      ctx.globalAlpha = 0.18; ctx.strokeStyle = '#f8e4bc'; ctx.lineWidth = 2;
-      for (let x = 35; x < map.width; x += 56) {
-        const y = 324 + Math.sin(x / 150) * 20;
-        ctx.strokeRect(x, y - 15, 35, 30);
-      }
+      ctx.globalAlpha = 0.19; ctx.strokeStyle = '#f8e4bc'; ctx.lineWidth = 2;
+      for (let x = 35; x < map.width; x += 66) ctx.strokeRect(x, map.height / 2 - 17, 40, 34);
     }
     ctx.globalAlpha = 0.28; ctx.strokeStyle = theme.edge; ctx.lineWidth = 7;
     ctx.strokeRect(3.5, 3.5, map.width - 7, map.height - 7);
@@ -68,10 +67,13 @@ class MapArt {
     this.wood = ctx.createPattern(canvas, 'repeat'); return this.wood;
   }
 
-  draw(ctx, map) {
+  draw(ctx, map, camera = null) {
     if (!this.image) return false;
     const theme = this.themes[map.id];
-    ctx.save(); ctx.drawImage(this.ground(map), 0, 0);
+    ctx.save();
+    const ground = this.ground(map);
+    if (camera) ctx.drawImage(ground, camera.x, camera.y, camera.width, camera.height, camera.x, camera.y, camera.width, camera.height);
+    else ctx.drawImage(ground, 0, 0);
     map.teamSpawns.forEach((spawns, team) => {
       for (const spawn of spawns) {
         ctx.globalAlpha = 0.35; ctx.strokeStyle = team === 0 ? '#326c8b' : '#a64d50'; ctx.lineWidth = 3;
@@ -81,6 +83,7 @@ class MapArt {
     });
     if (!this.wallPatterns.has(map.id)) this.wallPatterns.set(map.id, ctx.createPattern(this.tile(theme.tile, 1, 135), 'repeat'));
     for (const wall of map.walls) {
+      if (camera && !camera.visible(wall, 20)) continue;
       ctx.fillStyle = 'rgba(48,33,46,.25)'; ctx.fillRect(wall.x + 6, wall.y + 10, wall.width, wall.height);
       ctx.fillStyle = wall.destructible ? '#745035' : theme.side; ctx.fillRect(wall.x, wall.y + 7, wall.width, wall.height);
       ctx.fillStyle = wall.destructible ? this.woodPattern(ctx) : this.wallPatterns.get(map.id); ctx.fillRect(wall.x, wall.y, wall.width, wall.height);

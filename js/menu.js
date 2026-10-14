@@ -94,6 +94,8 @@ class MenuController {
     this.byId('selected-mode-name').textContent = mode.name;
     this.byId('selected-map-name').textContent = map.name;
     this.byId('open-events').dataset.mode = this.byId('mode').value;
+    const column = ['donations', 'cottage', 'teamfight'].indexOf(this.byId('mode').value);
+    this.byId('open-events').querySelector('.event-symbol').replaceChildren(this.badge(Math.max(0, column), 0));
     this.renderEvents();
   }
 
@@ -131,6 +133,30 @@ class MenuController {
     use.setAttribute('href', `#i-${name}`); svg.append(use); return svg;
   }
 
+  badge(column, row) {
+    const span = document.createElement('span'); span.className = 'game-badge';
+    span.style.setProperty('--icon-x', `${column * 50}%`); span.style.setProperty('--icon-y', `${row * 100}%`);
+    span.setAttribute('aria-hidden', 'true'); return span;
+  }
+
+  paintMapPreview(canvas, mapId) {
+    const map = createMap(mapId), ctx = canvas.getContext('2d');
+    const colors = { arena: ['#d8b579', '#975d3c'], courtyard: ['#98a679', '#455f4d'], crossroads: ['#b4a09c', '#685168'] }[map.id];
+    ctx.fillStyle = '#30212e'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+    const scale = Math.min((canvas.width - 24) / map.width, (canvas.height - 14) / map.height);
+    ctx.save(); ctx.translate((canvas.width - map.width * scale) / 2, 7); ctx.scale(scale, scale);
+    ctx.fillStyle = colors[0]; ctx.fillRect(0, 0, map.width, map.height);
+    ctx.strokeStyle = '#ead8b3'; ctx.lineWidth = 50;
+    for (const road of map.roads) { ctx.beginPath(); road.forEach((point, index) => index ? ctx.lineTo(point.x, point.y) : ctx.moveTo(point.x, point.y)); ctx.stroke(); }
+    for (const wall of map.walls) { ctx.fillStyle = wall.destructible ? '#efbe64' : colors[1]; ctx.fillRect(wall.x, wall.y, wall.width, wall.height); }
+    const zone = map.captureZone;
+    ctx.strokeStyle = '#fff0cf'; ctx.lineWidth = 14; ctx.strokeRect(zone.x, zone.y, zone.width, zone.height);
+    map.teamSpawns.forEach((spawns, team) => spawns.forEach(spawn => {
+      ctx.fillStyle = team ? '#d85d64' : '#348daf'; ctx.beginPath(); ctx.arc(spawn.x + 24, spawn.y + 32, 28, 0, Math.PI * 2); ctx.fill();
+    }));
+    ctx.restore();
+  }
+
   renderEvents() {
     const holder = this.byId('event-cards'); holder.replaceChildren();
     const art = { donations: ['coin', 'СОБИРАЙ И БЕРЕГИ', 0], cottage: ['cottage', 'ЗАЙМИ. ЗАХВАТИ. УДЕРЖИ.', 1], teamfight: ['battle', 'ДЕСЯТЬ ПОБЕД ДО ФИНИША', 2] };
@@ -139,7 +165,7 @@ class MenuController {
       button.dataset.mode = id; button.type = 'button';
       button.setAttribute('aria-pressed', String(this.byId('mode').value === id));
       const stripe = document.createElement('span'); stripe.className = 'event-card-stripe';
-      stripe.append(this.icon(art[id][0]));
+      stripe.append(this.badge(art[id][2], 0));
       const title = document.createElement('strong'); title.textContent = mode.name; stripe.append(title);
       const illustration = document.createElement('span'); illustration.className = 'event-illustration'; illustration.style.setProperty('--scene', art[id][2]);
       const tag = document.createElement('small'); tag.textContent = art[id][1]; illustration.append(tag);
@@ -153,9 +179,11 @@ class MenuController {
     mapCatalog.forEach((map, index) => {
       const button = document.createElement('button'); button.className = 'map-card'; button.type = 'button'; button.dataset.map = map.id;
       button.setAttribute('aria-pressed', String(this.byId('map').value === map.id));
-      const preview = document.createElement('span'); preview.className = 'map-preview'; preview.style.setProperty('--scene', index); preview.setAttribute('aria-hidden', 'true');
+      const preview = document.createElement('span'); preview.className = 'map-preview'; preview.setAttribute('aria-hidden', 'true');
+      const diagram = document.createElement('canvas'); diagram.width = 360; diagram.height = 160; this.paintMapPreview(diagram, map.id);
+      const badge = this.badge(index, 1); badge.classList.add('map-badge'); preview.append(diagram, badge);
       const name = document.createElement('strong'); name.textContent = map.name;
-      const caption = document.createElement('small'); caption.textContent = ['ПЕСОК И ТЕРРАКОТА', 'ТРАВА И САДОВЫЙ КАМЕНЬ', 'БРУСЧАТКА И КИРПИЧ'][index];
+      const caption = document.createElement('small'); caption.textContent = `${map.width} × ${map.height} · ${['РЫНОЧНЫЕ УЛИЦЫ', 'САДОВЫЕ ДВОРИКИ', 'ПЕРЕУЛКИ'][index]}`;
       button.append(preview, name, caption);
       button.addEventListener('click', () => { this.byId('map').value = map.id; this.updateChoices(); this.byId('map-cards').querySelector(`[data-map="${map.id}"]`).focus({ preventScroll: true }); });
       maps.append(button);

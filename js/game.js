@@ -8,6 +8,8 @@ class Game {
     this.audio = audio;
     this.profile = profile;
     this.input = new Input(window, canvas);
+    this.camera = new Camera(canvas.width, canvas.height);
+    this.input.camera = this.camera;
     this.ui = new UI();
     this.effects = new VisualEffects({ reducedMotion: Boolean(profile?.settings?.reducedMotion) });
     this.sim = null;
@@ -64,7 +66,10 @@ class Game {
     }
     const seed = Number.isFinite(this.lastOptions.seed) ? this.lastOptions.seed : Math.floor(Math.random() * 0x100000000);
     this.sim = new Simulation({ ...this.lastOptions, seed });
+    // Build the shared graph during match setup, before the first movement frame.
+    for (const bot of this.bots) bot.prepareNavigation(this.map, bot.config.obstacleMargin);
     this.attachImages();
+    this.camera.update(this.player.center, this.map, 0, true);
     this.stats = { kills: 0, deaths: 0 };
     this.matchId = `${Date.now()}-${++this.matchCounter}-${Math.random().toString(36).slice(2)}`;
     this.finishedProcessed = false;
@@ -128,7 +133,10 @@ class Game {
       }
       if (event.type === 'respawn' && event.actorId === this.player.id) this.message = 'Вы снова в игре.';
     }
-    if (wasAlive !== this.player.alive) this.input.clear();
+    if (wasAlive !== this.player.alive) {
+      this.input.clear();
+      if (this.player.alive) this.camera.update(this.player.center, this.map, 0, true);
+    }
     if (this.manager.state === 'finished' && !this.finishedProcessed) {
       this.finishedProcessed = true;
       this.input.clear();
@@ -151,9 +159,32 @@ class Game {
     }
   }
 
+  drawObjectiveHint() {
+    if (this.modeId === 'teamfight' || this.manager.state !== 'playing') return;
+    const point = this.modeId === 'cottage' ? {
+      x: this.map.captureZone.x + this.map.captureZone.width / 2,
+      y: this.map.captureZone.y + this.map.captureZone.height / 2
+    } : this.map.resourcePoint;
+    const screen = this.camera.worldToScreen(point), width = this.canvas.width, height = this.canvas.height;
+    if (screen.x > 25 && screen.x < width - 25 && screen.y > 25 && screen.y < height - 25) return;
+    const dx = screen.x - width / 2, dy = screen.y - height / 2;
+    const ratio = 1 / Math.max(Math.abs(dx) / (width / 2 - 58), Math.abs(dy) / (height / 2 - 38));
+    const x = width / 2 + dx * ratio, y = height / 2 + dy * ratio;
+    this.ctx.save(); this.ctx.translate(x, y); this.ctx.rotate(Math.atan2(dy, dx));
+    this.ctx.fillStyle = '#f8c64c'; this.ctx.strokeStyle = '#30212e'; this.ctx.lineWidth = 3;
+    this.ctx.beginPath(); this.ctx.moveTo(12, 0); this.ctx.lineTo(-8, -10); this.ctx.lineTo(-4, 0); this.ctx.lineTo(-8, 10); this.ctx.closePath(); this.ctx.fill(); this.ctx.stroke();
+    this.ctx.restore(); this.ctx.save(); this.ctx.font = 'bold 11px sans-serif'; this.ctx.textAlign = 'center';
+    const label = this.modeId === 'cottage' ? 'КОТТЕДЖ' : 'ДОНАТЫ';
+    this.ctx.strokeStyle = '#30212e'; this.ctx.lineWidth = 3; this.ctx.strokeText(label, x, y + 26);
+    this.ctx.fillStyle = '#fff0cf'; this.ctx.fillText(label, x, y + 26); this.ctx.restore();
+  }
+
   draw() {
     if (!this.sim || !this.active) return;
-    this.map.draw(this.ctx);
+    this.ctx.save();
+    this.ctx.beginPath(); this.ctx.rect(0, 0, this.canvas.width, this.canvas.height); this.ctx.clip();
+    this.ctx.translate(-this.camera.x, -this.camera.y);
+    this.map.draw(this.ctx, this.camera);
     this.manager.mode.draw(this.ctx);
     this.drawPowerups();
     if (this.manager.state === 'playing' && this.player.alive && this.input.aim()) {
@@ -163,7 +194,7 @@ class Game {
       this.ctx.lineTo(from.x + direction.x * 85, from.y + direction.y * 85); this.ctx.stroke(); this.ctx.restore();
     }
     const labels = [];
-    for (const actor of this.actors.slice().sort((a, b) => a.y - b.y)) {
+    for (const actor of this.actors.filter(actor => this.camera.visible(actor)).sort((a, b) => a.y - b.y)) {
       const name = `${characterImages[actor.characterIndex].name}${actor.isHuman ? ' · вы' : ''}`;
       this.ctx.font = '12px system-ui';
       const width = this.ctx.measureText(name).width + 4;
@@ -183,6 +214,8 @@ class Game {
     }
     for (const shot of this.projectiles) shot.draw(this.ctx);
     this.effects.draw(this.ctx);
+    this.ctx.restore();
+    this.drawObjectiveHint();
     this.ui.render(this, this.paused || document.hidden || !document.hasFocus());
   }
 
@@ -193,6 +226,7 @@ class Game {
     const focused = !document.hidden && document.hasFocus();
     if (this.active && !this.paused && focused) {
       this.update(dt);
+      if (this.player) this.camera.update(this.player.center, this.map, dt);
       this.effects.update(dt);
     } else this.input.clear();
     this.draw();

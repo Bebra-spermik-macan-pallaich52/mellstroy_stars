@@ -6,6 +6,7 @@ class Input {
     this.codes = new Set(['KeyW', 'KeyA', 'KeyS', 'KeyD', 'KeyQ', 'Escape']);
     this.actions = new Set();
     this.canvas = canvas;
+    this.camera = null;
     this.mouse = { clientX: 0, clientY: 0, inside: false, firing: false };
     target.addEventListener('keydown', event => {
       if (!this.codes.has(event.code) || /INPUT|TEXTAREA|SELECT/.test(event.target.tagName) || event.target.isContentEditable) return;
@@ -51,8 +52,12 @@ class Input {
     const rect = this.canvas.getBoundingClientRect();
     if (!this.canvas.clientWidth || !this.canvas.clientHeight) return null;
     // CSS border is excluded from the playable world, including after resizing.
-    const x = (this.mouse.clientX - rect.left - this.canvas.clientLeft) * this.canvas.width / this.canvas.clientWidth;
-    const y = (this.mouse.clientY - rect.top - this.canvas.clientTop) * this.canvas.height / this.canvas.clientHeight;
-    return x >= 0 && y >= 0 && x <= this.canvas.width && y <= this.canvas.height ? { x, y } : null;
+    // Bounding rectangles retain subpixel CSS sizes; clientHeight is rounded.
+    const displayWidth = rect.width ? rect.width - this.canvas.clientLeft * 2 : this.canvas.clientWidth;
+    const displayHeight = rect.height ? rect.height - this.canvas.clientTop * 2 : this.canvas.clientHeight;
+    const x = (this.mouse.clientX - rect.left - this.canvas.clientLeft) * this.canvas.width / displayWidth;
+    const y = (this.mouse.clientY - rect.top - this.canvas.clientTop) * this.canvas.height / displayHeight;
+    if (x < 0 || y < 0 || x > this.canvas.width || y > this.canvas.height) return null;
+    return this.camera ? this.camera.screenToWorld({ x, y }) : { x, y };
   }
 }

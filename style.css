@@ -1901,3 +1901,43 @@ input[type=range] {
     font-size:19px;
   }
 }
+/* The six badges share one local atlas; map diagrams use the real wall layout. */
+.game-badge {
+  display:block;
+  width:48px;
+  height:48px;
+  flex-shrink:0;
+  background-image:url('assets/ui/mode-map-icons.png');
+  background-size:300% 200%;
+  background-position:var(--icon-x) var(--icon-y);
+  background-repeat:no-repeat;
+}
+.event-symbol {
+  background:transparent;
+  border:0;
+  transform:none;
+}
+.event-symbol .game-badge { width:62px; height:62px; }
+.event-card-stripe { padding:7px 8px; gap:8px; }
+.event-card-stripe .game-badge { width:46px; height:46px; }
+.map-preview {
+  background-image:none;
+  background-color:#30212e;
+  height:100px;
+  position:relative;
+  overflow:hidden;
+}
+.map-preview canvas { display:block; width:100%; height:100%; object-fit:contain; }
+.map-badge { position:absolute; bottom:1px; right:3px; width:63px; height:63px; }
+@media(max-width:850px) {
+  .event-card-stripe .game-badge { width:34px; height:34px; }
+  .event-card-stripe strong { font-size:16px; }
+  .event-symbol .game-badge { width:50px; height:50px; }
+}
+@media(max-width:580px) {
+  .event-card-stripe .game-badge { width:36px; height:36px; }
+  .event-card-stripe strong { font-size:17px; }
+  .event-symbol .game-badge { width:38px; height:38px; }
+  .map-preview { height:76px; }
+  .map-badge { width:35px; height:35px; right:0; bottom:0; }
+}

@@ -140,7 +140,7 @@ test('all three maps have distinct layouts, six free spawns, and an unobstructed
       assert.ok(body.x >= 0 && body.y >= 0 && body.x + body.width <= map.width && body.y + body.height <= map.height);
     }
     assert.ok(!map.walls.some(wall => overlaps({ x: map.resourcePoint.x - 12, y: map.resourcePoint.y - 12, width: 24, height: 24 }, wall)));
-    assert.equal(map.walls.filter(wall => wall.destructible).length, 2);
+    assert.ok(map.walls.filter(wall => wall.destructible).length >= 4);
   }
   assert.equal(layouts.size, 3);
 });
@@ -159,7 +159,7 @@ test('swept projectiles damage the first destructible piece once without tunnell
 
 test('destroyed walls invalidate navigation graphs and let bots plan through the opening', () => {
   const sim = make(); const actor = sim.actors[0]; actor.x = 100; actor.y = 250;
-  const wall = { id: 'partition', x: 220, y: 0, width: 20, height: 640, destructible: true, health: 600 };
+  const wall = { id: 'partition', x: 220, y: 0, width: 20, height: sim.map.height, destructible: true, health: 600 };
   sim.map.walls = [wall]; const bot = new Bot(actor, 0);
   assert.equal(bot.planTo({ x: 500, y: 282 }, sim.map), false);
   const oldGraph = bot.navigation; sim.damageWall(wall, 600, actor);

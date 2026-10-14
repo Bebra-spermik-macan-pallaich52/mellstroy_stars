@@ -3,8 +3,11 @@
 // Navigation and decision timers are independent of the browser frame rate.
 const botConfig = {
   replanInterval: 0.45, obstacleMargin: 3, waypointTolerance: 0.1,
-  reservationPenalty: 80, waitingRadius: 52, stuckTime: 0.65
+  reservationPenalty: 120, waitingRadius: 100, stuckTime: 0.65,
+  observationInterval: 0.1, retreatHealth: 0.32, separationRadius: 58, dodgeHorizon: 0.55
 };
+
+const botNavigationGraphs = new WeakMap();
 
 class Bot {
   constructor(actor, index, config = botConfig) {
@@ -25,6 +28,10 @@ class Bot {
     this.stuckElapsed = 0;
     this.wasAlive = this.actor.alive;
     this.manager = null;
+    this.state = 'objective'; this.combatEnabled = true;
+    this.elapsed = 0; this.observationElapsed = 0; this.observations = new Map();
+    this.underFire = 0; this.lastHealth = this.actor.health;
+    this.targetPowerup = null; this.dodgeRemaining = 0; this.dodgeCooldown = 0; this.dodgeVector = null;
   }
 
   // Work with the character center. Wall expansion accounts for its complete
@@ -33,6 +40,12 @@ class Bot {
     this.navigationCache = this.navigationCache.filter(nav => nav.map !== map || nav.version === (map.navVersion || 0));
     const cached = this.navigationCache.find(nav => nav.map === map && nav.margin === margin);
     if (cached) { this.navigation = cached; return cached; }
+    let shared = botNavigationGraphs.get(map);
+    if (!shared || shared.version !== (map.navVersion || 0)) {
+      shared = { version: map.navVersion || 0, entries: [] }; botNavigationGraphs.set(map, shared);
+    }
+    const existing = shared.entries.find(nav => nav.margin === margin && nav.actorWidth === this.actor.width && nav.actorHeight === this.actor.height);
+    if (existing) { this.navigation = existing; this.navigationCache.push(existing); return existing; }
     const halfWidth = this.actor.width / 2, halfHeight = this.actor.height / 2;
     const bounds = {
       left: halfWidth, right: map.width - halfWidth,
@@ -48,7 +61,7 @@ class Bot {
       width: wall.width + 2 * halfWidth - 2e-6,
       height: wall.height + 2 * halfHeight - 2e-6
     }));
-    const nav = { map, version: map.navVersion || 0, margin, bounds, walls, physicalWalls, nodes: [], edges: [] };
+    const nav = { map, version: map.navVersion || 0, margin, actorWidth: this.actor.width, actorHeight: this.actor.height, bounds, walls, physicalWalls, nodes: [], edges: [] };
     const epsilon = 0.01;
     for (const wall of walls) {
       for (const x of [wall.x - epsilon, wall.x + wall.width + epsilon]) {
@@ -69,6 +82,7 @@ class Bot {
     }
     this.navigation = nav;
     this.navigationCache.push(nav);
+    shared.entries.push(nav);
     return nav;
   }
 
@@ -115,6 +129,7 @@ class Bot {
     }).sort((a, b) => this.distance(a, point) - this.distance(b, point));
   }
 
+  // A* on the shared visibility graph; straight-line distance is the heuristic.
   findPath(from, goal, nav) {
     if (this.clearSegment(from, goal, nav)) return [{ ...goal }];
     const nodes = [...nav.nodes, from, goal];
@@ -135,7 +150,7 @@ class Bot {
     for (let iteration = 0; iteration < nodes.length; iteration++) {
       let current = -1;
       for (let index = 0; index < nodes.length; index++) {
-        if (!visited.has(index) && (current === -1 || distances[index] < distances[current])) current = index;
+        if (!visited.has(index) && (current === -1 || distances[index] + this.distance(nodes[index], goal) < distances[current] + this.distance(nodes[current], goal))) current = index;
       }
       if (current === -1 || !Number.isFinite(distances[current])) break;
       if (current === finish) {
@@ -177,9 +192,100 @@ class Bot {
     return false;
   }
 
+  lineOfFire(from, to, map, radius = this.actor.config.attack.radius) {
+    return !map.walls.some(wall => segmentRectIntersection(from.x, from.y, to.x, to.y, wall, radius) !== null);
+  }
+
+  observe(dt, world) {
+    this.elapsed += dt; this.observationElapsed += dt;
+    this.underFire = Math.max(0, this.underFire - dt);
+    if (this.actor.health < this.lastHealth || this.actor.hitFlash > 0) this.underFire = 2.4;
+    this.lastHealth = this.actor.health;
+    if (this.observationElapsed < this.config.observationInterval) return;
+    this.observationElapsed = 0;
+    for (const actor of world.actors) {
+      if (!actor.alive || actor.team === this.actor.team) { this.observations.delete(actor); continue; }
+      const point = actor.center, previous = this.observations.get(actor);
+      let velocity = { x: 0, y: 0 };
+      if (previous) {
+        const delta = this.elapsed - previous.time;
+        const x = (point.x - previous.x) / delta, y = (point.y - previous.y) / delta;
+        // Respawn/teleport is not movement and must never produce a giant lead.
+        if (Math.hypot(x, y) <= actor.config.speed * 1.1) velocity = { x, y };
+      }
+      this.observations.set(actor, { ...point, time: this.elapsed, velocity });
+    }
+  }
+
+  aimTarget(enemy, map) {
+    const position = enemy.center, from = this.actor.center;
+    const velocity = this.observations.get(enemy)?.velocity || { x: 0, y: 0 };
+    const speed = this.actor.config.attack.speed;
+    const dx = position.x - from.x, dy = position.y - from.y;
+    const a = velocity.x ** 2 + velocity.y ** 2 - speed ** 2;
+    const b = 2 * (dx * velocity.x + dy * velocity.y), c = dx * dx + dy * dy;
+    const discriminant = b * b - 4 * a * c;
+    let time = 0;
+    if (discriminant >= 0 && Math.abs(a) > 1e-8) {
+      const roots = [(-b - Math.sqrt(discriminant)) / (2 * a), (-b + Math.sqrt(discriminant)) / (2 * a)].filter(value => value > 0);
+      if (roots.length) time = Math.min(...roots);
+    }
+    time = Math.min(time, this.actor.config.attack.range / speed, 0.7);
+    const prediction = { x: position.x + velocity.x * time, y: position.y + velocity.y * time };
+    return this.lineOfFire(from, prediction, map) ? prediction : position;
+  }
+
+  tacticalObjective(world, enemy) {
+    const from = this.actor.center, health = this.actor.health / this.actor.maxHealth;
+    const threat = enemy || this.targetEnemy;
+    const danger = threat && this.distance(from, threat.center) < 650;
+    // A real health pickup is useful even without an opponent immediately ahead.
+    if (health < 0.72) {
+      const heals = (world.powerups || []).filter(item => item.kind === 'heal' && this.distance(from, item) < 650)
+        .sort((a, b) => this.distance(from, a) - this.distance(from, b));
+      for (const item of heals) if (this.planTo(item, world.map, item)) { this.state = 'heal'; this.targetPowerup = item; return true; }
+    }
+    if (danger && health < this.config.retreatHealth && this.underFire > 0) {
+      const nav = this.prepareNavigation(world.map, this.config.obstacleMargin);
+      const candidates = nav.nodes.filter(point => this.distance(from, point) > 55 && this.distance(from, point) < 500)
+        .map(point => ({ point, score: (this.lineOfFire(threat.center, point, world.map) ? 0 : 400) + this.distance(point, threat.center) * 0.6 - this.distance(from, point) * 0.8 }))
+        .sort((a, b) => b.score - a.score);
+      for (const { point } of candidates.slice(0, 5)) if (this.planTo(point, world.map)) { this.state = 'retreat'; return true; }
+      const distance = this.distance(from, threat.center) || 1;
+      if (this.planTo({ x: from.x + (from.x - threat.center.x) / distance * 230, y: from.y + (from.y - threat.center.y) / distance * 230 }, world.map)) { this.state = 'retreat'; return true; }
+    }
+    if (!enemy) return false;
+    const carried = world.manager.mode.carried?.get(this.actor) || 0;
+    if (carried >= 4 && (health < 0.65 || world.manager.mode.scores[this.actor.team] >= 12)) {
+      const point = world.map.resourcePoint, side = this.actor.team === 0 ? -1 : 1;
+      if (this.planTo({ x: point.x + side * 310, y: point.y + ((this.index % 3) - 1) * 115 }, world.map)) { this.state = 'protect'; return true; }
+    }
+    if (world.manager.modeId === 'donations') {
+      const nearItem = world.manager.mode.items.some(item => this.distance(from, item) < 150);
+      if (nearItem && this.distance(from, enemy.center) > 150) return false;
+    }
+    const zone = world.map.captureZone;
+    const inside = world.manager.modeId === 'cottage' && world.manager.mode.inZone(this.actor);
+    if (world.manager.modeId === 'cottage' && !inside && this.distance(from, { x: zone.x + zone.width / 2, y: zone.y + zone.height / 2 }) > 330) return false;
+    const distance = this.distance(from, enemy.center) || 1;
+    const ux = (enemy.center.x - from.x) / distance, uy = (enemy.center.y - from.y) / distance;
+    const preferred = this.actor.config.attack.range * (this.actor.config.super.kind === 'nova' ? 0.52 : 0.7);
+    const radial = Math.max(-150, Math.min(130, distance - preferred));
+    const sign = (Math.floor(this.elapsed / 1.8) + this.index) % 2 ? 1 : -1;
+    const goal = { x: from.x + ux * radial - uy * sign * 100, y: from.y + uy * radial + ux * sign * 100 };
+    if (inside) {
+      goal.x = Math.max(zone.x + this.actor.width / 2 + 5, Math.min(zone.x + zone.width - this.actor.width / 2 - 5, goal.x));
+      goal.y = Math.max(zone.y + this.actor.height / 2 + 5, Math.min(zone.y + zone.height - this.actor.height / 2 - 5, goal.y));
+    }
+    if (this.planTo(goal, world.map)) { this.state = 'engage'; return true; }
+    return false;
+  }
+
   chooseObjective(world) {
     const { map, manager } = world;
-    this.targetItem = null;
+    this.targetItem = null; this.targetPowerup = null; this.state = 'objective';
+    const enemy = this.selectEnemy(world);
+    if (this.combatEnabled && this.tacticalObjective(world, enemy)) return;
     if (manager.modeId === 'donations') {
       const position = this.actor.center;
       const ranked = manager.mode.items.map(item => {
@@ -221,15 +327,61 @@ class Bot {
   }
 
   selectEnemy(world) {
+    const from = this.actor.center, attack = this.actor.config.attack;
+    const previous = this.targetEnemy;
+    const opponents = world.actors.filter(actor => actor !== this.actor && actor.alive && actor.team !== this.actor.team);
+    const score = actor => this.distance(from, actor.center) + actor.health / actor.maxHealth * 90
+      - (actor === previous ? 35 : 0) - (world.manager.mode.carried?.get(actor) || 0) * 20;
+    const visible = opponents.filter(actor => this.distance(from, actor.center) <= attack.range && this.lineOfFire(from, actor.center, world.map))
+      .sort((a, b) => score(a) - score(b));
+    this.targetEnemy = visible[0] || opponents.sort((a, b) => this.distance(from, a.center) - this.distance(from, b.center))[0] || null;
+    return visible[0] || null;
+  }
+
+  steer(direction, world, dt) {
     const from = this.actor.center;
-    const opponents = world.actors.filter(actor => actor !== this.actor && actor.alive && actor.team !== this.actor.team)
-      .sort((a, b) => this.distance(from, a.center) - this.distance(from, b.center));
-    const attack = this.actor.config.attack;
-    const visible = opponents.find(actor => this.distance(from, actor.center) <= attack.range &&
-      !world.map.walls.some(wall => segmentRectIntersection(from.x, from.y,
-        actor.center.x, actor.center.y, wall, attack.radius) !== null));
-    this.targetEnemy = visible || opponents[0] || null;
-    return visible || null;
+    this.dodgeCooldown = Math.max(0, this.dodgeCooldown - dt);
+    this.dodgeRemaining = Math.max(0, this.dodgeRemaining - dt);
+    if (this.combatEnabled && this.dodgeCooldown === 0) {
+      for (const shot of (world.projectiles || []).slice(0, 32)) {
+        if (!shot.active || shot.owner.team === this.actor.team || shot.traveled / shot.speed < 0.12) continue;
+        if (!this.lineOfFire({ x: shot.x, y: shot.y }, from, world.map, shot.radius)) continue;
+        const vx = shot.direction.x * shot.speed, vy = shot.direction.y * shot.speed;
+        const time = ((from.x - shot.x) * vx + (from.y - shot.y) * vy) / (shot.speed ** 2);
+        if (time < 0 || time > this.config.dodgeHorizon || time > (shot.range - shot.traveled) / shot.speed) continue;
+        const gap = Math.hypot(shot.x + vx * time - from.x, shot.y + vy * time - from.y);
+        if (gap > Math.max(this.actor.width, this.actor.height) / 2 + shot.radius + 10) continue;
+        const side = (from.x - shot.x) * -shot.direction.y + (from.y - shot.y) * shot.direction.x;
+        for (const sign of [side >= 0 ? 1 : -1, side >= 0 ? -1 : 1]) {
+          const vector = { x: -shot.direction.y * sign, y: shot.direction.x * sign };
+          const nav = this.prepareNavigation(world.map, this.config.obstacleMargin);
+          const point = { x: from.x + vector.x * 65, y: from.y + vector.y * 65 };
+          if (!this.freePoint(point, nav) || !this.clearSegment(from, point, nav)) continue;
+          this.dodgeVector = vector; this.dodgeRemaining = 0.24; this.dodgeCooldown = 0.65; break;
+        }
+        if (this.dodgeRemaining > 0) break;
+      }
+    }
+    let x = direction.x, y = direction.y;
+    if (this.dodgeRemaining > 0) { x = this.dodgeVector.x; y = this.dodgeVector.y; }
+    else if (this.path.length) {
+      for (const ally of world.actors) {
+        if (ally === this.actor || !ally.alive || ally.team !== this.actor.team) continue;
+        const dx = from.x - ally.center.x, dy = from.y - ally.center.y, distance = Math.hypot(dx, dy);
+        if (distance > 0.01 && distance < this.config.separationRadius) {
+          const weight = (1 - distance / this.config.separationRadius) * 0.65;
+          x += dx / distance * weight; y += dy / distance * weight;
+        }
+      }
+    }
+    const length = Math.hypot(x, y);
+    if (length > 1) { x /= length; y /= length; }
+    // Never turn a safe route into steering through a corner or a narrow gate.
+    if (this.navigation && (x !== direction.x || y !== direction.y)) {
+      const ahead = { x: from.x + x * this.actor.config.speed * Math.max(dt, 0.12), y: from.y + y * this.actor.config.speed * Math.max(dt, 0.12) };
+      if (!this.freePoint(ahead, this.navigation) || !this.clearSegment(from, ahead, this.navigation)) return direction;
+    }
+    return { x, y };
   }
 
   update(dt, world, allowFire = true) {
@@ -239,11 +391,13 @@ class Bot {
     }
     this.wasAlive = this.actor.alive;
     if (!this.actor.alive || !Number.isFinite(dt) || !(dt > 0)) return null;
+    this.combatEnabled = allowFire; this.observe(dt, world);
     this.replanRemaining = Math.max(0, this.replanRemaining - dt);
     if (this.navigation && this.navigation.version !== (world.map.navVersion || 0)) {
       this.navigationCache = []; this.path = []; this.navigation = null; this.replanRemaining = 0;
     }
-    if (this.targetItem && !world.manager.mode.items.includes(this.targetItem)) this.replanRemaining = 0;
+    if (this.targetItem && !(world.manager.mode.items || []).includes(this.targetItem)) this.replanRemaining = 0;
+    if (this.targetPowerup && !(world.powerups || []).includes(this.targetPowerup)) this.replanRemaining = 0;
     if (this.replanRemaining === 0) {
       this.chooseObjective(world);
       this.replanRemaining = this.config.replanInterval;
@@ -256,7 +410,8 @@ class Bot {
       const length = Math.min(1, distance / (this.actor.config.speed * dt));
       direction = { x: (point.x - from.x) / distance * length, y: (point.y - from.y) / distance * length };
     }
-    this.actor.update(dt, { direction: () => direction }, world.map);
+    const steering = this.steer(direction, world, dt);
+    this.actor.update(dt, { direction: () => steering }, world.map);
     const moved = this.distance(from, this.actor.center);
     if (this.path.length && moved < this.actor.config.speed * dt * 0.1) this.stuckElapsed += dt;
     else this.stuckElapsed = 0;
@@ -266,7 +421,8 @@ class Bot {
       this.stuckElapsed = 0;
     }
     const enemy = this.selectEnemy(world);
-    if (enemy) this.actor.aimAt(enemy.center);
-    return allowFire && enemy ? this.actor.attack(enemy.center) : null;
+    const aim = enemy ? this.aimTarget(enemy, world.map) : null;
+    if (aim) this.actor.aimAt(aim);
+    return allowFire && aim ? this.actor.attack(aim) : null;
   }
 }

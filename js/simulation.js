@@ -19,7 +19,10 @@ class Simulation {
     }));
     this.bots = this.actors.filter(actor => !actor.isHuman).map(actor => new Bot(actor, actor.id));
     this.manager = new GameManager(modeId, this.map, this.actors, modeOverrides);
+    const simulation = this;
     this.world = {
+      get projectiles() { return simulation.projectiles; },
+      get powerups() { return simulation.powerups; },
       map: this.map, actors: this.actors, bots: this.bots, manager: this.manager,
       emit: event => this.emit(event), addProjectile: projectile => this.addProjectile(projectile),
       dealDamage: (owner, target, amount, charge = true) => this.dealDamage(owner, target, amount, charge),
@@ -120,7 +123,9 @@ class Simulation {
       if (needsHeal) actor.useSuper(actor.center, this.world);
     } else if (kind === 'nova') {
       if (enemy && bot.distance(enemy.center, actor.center) <= actor.config.super.radius) actor.useSuper(enemy.center, this.world);
-    } else if (enemy) actor.useSuper(enemy.center, this.world);
+    } else if (enemy && (kind !== 'shield' || bot.underFire > 0 || bot.distance(enemy.center, actor.center) < actor.config.attack.range * 0.85)) {
+      actor.useSuper(bot.aimTarget(enemy, this.map), this.world);
+    }
   }
   step(dt, commands = {}) {
     if (!Number.isFinite(dt) || dt <= 0 || this.manager.state !== 'playing') return;
