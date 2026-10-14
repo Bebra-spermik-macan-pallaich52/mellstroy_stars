@@ -34,16 +34,33 @@ class MapArt {
     const canvas = document.createElement('canvas'); canvas.width = map.width; canvas.height = map.height;
     const ctx = canvas.getContext('2d');
     ctx.fillStyle = theme.ground; ctx.fillRect(0, 0, map.width, map.height);
-    ctx.globalAlpha = map.id === 'courtyard' ? 0.48 : map.id === 'crossroads' ? 0.40 : 0.62;
-    ctx.fillStyle = ctx.createPattern(this.tile(theme.tile, 0, map.id === 'crossroads' ? 190 : 270), 'repeat'); ctx.fillRect(0, 0, map.width, map.height);
+    // Flat floor with sparse schematic marks; no repeated image edges or grain.
+    ctx.globalAlpha = 0.12; ctx.strokeStyle = theme.edge; ctx.lineWidth = 3;
+    if (map.id === 'crossroads') {
+      for (let y = 0, row = 0; y < map.height; y += 120, row++) {
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(map.width, y); ctx.stroke();
+        for (let x = row % 2 ? 120 : 0; x < map.width; x += 240) {
+          ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x, y + 120); ctx.stroke();
+        }
+      }
+    } else {
+      for (let y = 90, row = 0; y < map.height; y += 180, row++) {
+        for (let x = 80 + (row % 2) * 100; x < map.width; x += 220) {
+          ctx.beginPath();
+          if (map.id === 'courtyard') {
+            ctx.moveTo(x - 7, y - 8); ctx.lineTo(x, y); ctx.lineTo(x + 7, y - 8);
+          } else {
+            ctx.moveTo(x, y); ctx.lineTo(x + 8, y - 4);
+            ctx.moveTo(x + 9, y + 5); ctx.lineTo(x + 17, y + 1);
+          }
+          ctx.stroke();
+        }
+      }
+    }
     ctx.globalAlpha = map.id === 'crossroads' ? 0.35 : 0.24;
     ctx.strokeStyle = theme.path; ctx.lineWidth = map.id === 'courtyard' ? 110 : 145; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
     for (const road of map.roads || []) {
       ctx.beginPath(); road.forEach((point, index) => index ? ctx.lineTo(point.x, point.y) : ctx.moveTo(point.x, point.y)); ctx.stroke();
-    }
-    if (map.id === 'courtyard') {
-      ctx.globalAlpha = 0.19; ctx.strokeStyle = '#f8e4bc'; ctx.lineWidth = 2;
-      for (let x = 35; x < map.width; x += 66) ctx.strokeRect(x, map.height / 2 - 17, 40, 34);
     }
     ctx.globalAlpha = 0.28; ctx.strokeStyle = theme.edge; ctx.lineWidth = 7;
     ctx.strokeRect(3.5, 3.5, map.width - 7, map.height - 7);
@@ -55,14 +72,11 @@ class MapArt {
     if (this.wood) return this.wood;
     const canvas = document.createElement('canvas'); canvas.width = 128; canvas.height = 96;
     const pen = canvas.getContext('2d'); pen.fillStyle = '#bc8750'; pen.fillRect(0, 0, 128, 96);
-    pen.strokeStyle = '#65452f'; pen.lineWidth = 3;
-    for (let y = 0; y < 96; y += 24) {
-      pen.fillStyle = y % 48 ? '#b57c48' : '#c49157'; pen.fillRect(0, y, 128, 23);
-      pen.beginPath(); pen.moveTo(0, y + 23); pen.lineTo(128, y + 23); pen.stroke();
-      pen.strokeStyle = '#e2b67c'; pen.lineWidth = 1;
-      pen.beginPath(); pen.moveTo(5, y + 4); pen.bezierCurveTo(35, y + 1, 80, y + 8, 120, y + 4); pen.stroke();
-      pen.strokeStyle = '#65452f'; pen.lineWidth = 2;
-      for (const x of [7, 119]) { pen.fillStyle = '#513b31'; pen.beginPath(); pen.arc(x, y + 12, 2, 0, Math.PI * 2); pen.fill(); }
+    // Three flat planks. No grain, scratches or tiny nail details.
+    for (let y = 0; y < 96; y += 32) {
+      pen.fillStyle = y === 32 ? '#c49157' : '#bc8750'; pen.fillRect(0, y, 128, 32);
+      pen.strokeStyle = '#65452f'; pen.lineWidth = 3;
+      pen.beginPath(); pen.moveTo(0, y); pen.lineTo(128, y); pen.stroke();
     }
     this.wood = ctx.createPattern(canvas, 'repeat'); return this.wood;
   }
@@ -92,9 +106,6 @@ class MapArt {
       ctx.strokeStyle = 'rgba(255,238,190,.5)'; ctx.lineWidth = 2;
       ctx.beginPath(); ctx.moveTo(wall.x + 4, wall.y + 4); ctx.lineTo(wall.x + wall.width - 4, wall.y + 4); ctx.stroke();
       if (wall.destructible) {
-        ctx.strokeStyle = '#f4d298'; ctx.lineWidth = 2;
-        const center = wall.x + wall.width / 2;
-        ctx.beginPath(); ctx.moveTo(center - 6, wall.y + 8); ctx.lineTo(center + 3, wall.y + wall.height / 2); ctx.lineTo(center - 4, wall.y + wall.height - 7); ctx.stroke();
         if (wall.health < wall.maxHealth) {
           ctx.fillStyle = '#30212e'; ctx.fillRect(wall.x, wall.y - 9, wall.width, 5);
           ctx.fillStyle = '#f8c64c'; ctx.fillRect(wall.x + 1, wall.y - 8, (wall.width - 2) * wall.health / wall.maxHealth, 3);
