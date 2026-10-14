@@ -99,14 +99,14 @@ test('respawn restores health and spawn only after the delay', () => {
   const a = player(); a.x = 500; a.superCharge = 70; a.takeDamage(1000);
   assert.equal(a.updateTimers(2.99), false); assert.equal(a.alive, false);
   assert.equal(a.updateTimers(0.02), true); assert.equal(a.alive, true);
-  assert.equal(a.health, 1000); assert.equal(a.x, a.spawn.x); assert.equal(a.superCharge, 0);
+  assert.equal(a.health, 1000); assert.equal(a.x, a.spawn.x); assert.equal(a.superCharge, 70);
 });
-test('super charge uses actual damage, caps at 100, and resets on death', () => {
+test('super charge uses actual damage, caps at 100, and survives death', () => {
   const a = player(), target = player(150, 100, 1);
   a.chargeSuper(target.takeDamage(950)); assert.equal(a.superCharge, 95);
   a.chargeSuper(target.takeDamage(200)); assert.equal(a.superCharge, 100);
   a.chargeSuper(200); assert.equal(a.superCharge, 100);
-  a.takeDamage(1000); assert.equal(a.superCharge, 0); a.chargeSuper(200); assert.equal(a.superCharge, 0);
+  a.takeDamage(1000); assert.equal(a.superCharge, 100); a.chargeSuper(200); assert.equal(a.superCharge, 100);
 });
 test('reset restores position, health, cooldown and combat state', () => {
   const a = player(); a.x = 400; a.takeDamage(200); a.attack({ x: 500, y: 100 }); a.chargeSuper(300);

@@ -129,3 +129,29 @@ test('audio failures never escape event handlers or unlock', async () => {
   audio.context.createOscillator = () => { throw new Error('device lost'); };
   assert.equal(audio.handle({ type: 'hit' }), false); assert.equal(audio.voices.size, 0);
 });
+
+test('each character has distinct shot and ability sound frequencies', async () => {
+  const shots = [], abilities = [];
+  for (const characterId of ['arthur', 'kotost', 'mellstroy_fat', 'dark_drun', 'fog']) {
+    const { AudioManager } = audioEnvironment(), audio = new AudioManager();
+    await audio.unlock(); assert(audio.handle({ type: 'shot', characterId }));
+    shots.push(audio.context.oscillators[0].frequency.values[0]);
+    const index = audio.context.oscillators.length;
+    assert(audio.handle({ type: 'ability', characterId }));
+    abilities.push(audio.context.oscillators[index].frequency.values[0]);
+  }
+  assert.equal(new Set(shots).size, 5); assert.equal(new Set(abilities).size, 5);
+});
+test('signature rendering restores both canvas layers when a shape draw fails', () => {
+  const effects = new (load().VisualEffects)();
+  effects.emit({ type: 'ability', characterId: 'kotost', kind: 'heal', x: 10, y: 20, radius: 180 });
+  effects.items = effects.items.filter(item => item.kind === 'signature');
+  let depth = 0;
+  const ctx = new Proxy({}, { get(object, key) {
+    if (key === 'save') return () => depth++;
+    if (key === 'restore') return () => depth--;
+    if (key === 'arc') return () => { throw new Error('signature draw failed'); };
+    return () => {};
+  } });
+  assert.throws(() => effects.draw(ctx)); assert.equal(depth, 0);
+});

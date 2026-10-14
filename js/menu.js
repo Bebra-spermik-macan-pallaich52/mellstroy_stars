@@ -134,7 +134,7 @@ class MenuController {
   }
 
   badge(column, row) {
-    const span = document.createElement('span'); span.className = 'game-badge';
+    const span = document.createElement('span'); span.className = row === 0 ? 'game-badge mode-glyph' : 'game-badge';
     span.style.setProperty('--icon-x', `${column * 50}%`); span.style.setProperty('--icon-y', `${row * 100}%`);
     span.setAttribute('aria-hidden', 'true'); return span;
   }
@@ -226,7 +226,7 @@ class MenuController {
         else this.byId('menu-message').textContent = `${definition.name}: открывается за ${definition.unlockCost} монет. Завершай матчи, чтобы получать награды.`;
       });
       card.append(pick);
-      const unlock = document.createElement('button'); unlock.className = 'character-unlock'; unlock.type = 'button'; unlock.textContent = unlocked ? `${definition.maxHealth} HP · УРОН ${definition.attack.damage}` : `ОТКРЫТЬ · ${definition.unlockCost} МОНЕТ`;
+      const unlock = document.createElement('button'); unlock.className = 'character-unlock'; unlock.type = 'button'; unlock.textContent = unlocked ? `${definition.maxHealth} HP · ${definition.attack.count > 1 ? definition.attack.count + '×' : ''}${definition.attack.damage} УРОН` : `ОТКРЫТЬ · ${definition.unlockCost} МОНЕТ`;
       if (unlocked) { unlock.disabled = true; unlock.tabIndex = -1; }
       else unlock.addEventListener('click', () => {
         const result = this.profile.unlockCharacter(index);
@@ -240,7 +240,7 @@ class MenuController {
     const definition = this.definitions[selected] || this.definitions[0];
     this.byId('character-name').textContent = definition.name;
     this.byId('character-name').parentElement.classList.toggle('long-name', definition.name.length > 15);
-    this.byId('character-description').textContent = `${definition.maxHealth} здоровья / ${definition.attack.damage} урон`;
+    this.byId('character-description').textContent = `${definition.maxHealth} здоровья / ${definition.attack.name}: ${definition.attack.count > 1 ? definition.attack.count + '×' : ''}${definition.attack.damage} урона`;
     this.byId('character-super').textContent = definition.description;
     const hero = this.byId('hero-character'); hero.setAttribute('aria-label', `Выбранный персонаж: ${definition.name}`);
     this.paintPortrait(hero, selected, true);

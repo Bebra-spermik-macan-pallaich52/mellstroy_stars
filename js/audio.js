@@ -65,6 +65,26 @@ class AudioManager {
       wallDestroyed: [[145, 45, 0.22, 'triangle', 0.09], [95, 40, 0.2, 'sine', 0.07, 0.07]]
     };
     let notes = cues[event.type];
+    if (event.type === 'shot') {
+      notes = {
+        arthur: [[720, 320, 0.07, 'triangle', 0.07]],
+        kotost: [[340, 200, 0.09, 'triangle', 0.065]],
+        mellstroy_fat: [[155, 75, 0.12, 'triangle', 0.09]],
+        dark_drun: [[190, 110, 0.11, 'sine', 0.1]],
+        fog: [[1100, 600, 0.045, 'sine', 0.07]]
+      }[event.characterId] || notes;
+    }
+    if (event.type === 'ability') {
+      notes = {
+        arthur: [[392, 784, 0.24, 'triangle', 0.085]],
+        kotost: [[330, 440, 0.2, 'sine', 0.07], [550, 660, 0.24, 'sine', 0.06, 0.12]],
+        mellstroy_fat: [[120, 40, 0.3, 'triangle', 0.1]],
+        dark_drun: [[160, 240, 0.25, 'sine', 0.08], [320, 240, 0.24, 'sine', 0.05, 0.08]],
+        fog: [[800, 1200, 0.15, 'sine', 0.075], [1200, 900, 0.15, 'sine', 0.05, 0.08]]
+      }[event.characterId] || notes;
+    }
+    if (event.type === 'blast') notes = [[95, 40, 0.18, 'triangle', 0.085]];
+    if (event.type === 'ricochet') notes = [[1400, 900, 0.04, 'sine', 0.05]];
     if (event.type === 'finish') {
       const localTeam = Number.isInteger(context.localTeam) ? context.localTeam : 0;
       const melody = event.winner == null ? [392, 392, 330]

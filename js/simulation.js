@@ -7,7 +7,7 @@ class Simulation {
     this.map = createMap(mapId); this.mapId = this.map.id; this.modeId = modeId;
     this.elapsed = 0; this.botFire = botFire; this.enhancements = enhancements;
     this.randomState = (Number.isFinite(seed) ? seed : 1) >>> 0;
-    this.events = []; this.projectiles = []; this.powerups = [];
+    this.events = []; this.projectiles = []; this.pendingShots = []; this.powerups = [];
     this.powerupElapsed = 0; this.powerupId = 0;
     this.humanSlots = new Set(humanSlots.filter(id => Number.isInteger(id) && id >= 0 && id < 6));
     const choices = characterIndices || [characterIndex, 1, 2, 3, 4, 1];
@@ -35,17 +35,58 @@ class Simulation {
   }
   drainEvents() { const events = this.events; this.events = []; return events; }
   addProjectile(projectile) {
-    if (!projectile?.active || this.projectiles.length >= 160) return;
+    if (!projectile) return;
+    for (const shot of [projectile, ...(projectile.companions || [])]) {
+      if (!shot.active || this.projectiles.length + this.pendingShots.length >= 160) continue;
+      if (shot.delay > 0) this.pendingShots.push({ projectile: shot, remaining: shot.delay });
+      else this.activateProjectile(shot);
+    }
+  }
+  activateProjectile(projectile) {
     this.projectiles.push(projectile);
     this.emit({ type: 'shot', actorId: projectile.owner.id, team: projectile.owner.team,
+      characterId: projectile.characterId, style: projectile.style,
       x: projectile.x, y: projectile.y, dx: projectile.direction.x, dy: projectile.direction.y });
+  }
+  updatePendingShots(dt) {
+    this.pendingShots = this.pendingShots.filter(entry => {
+      const shot = entry.projectile;
+      if (!shot.owner.alive || shot.ownerLife !== shot.owner.lifeId) return false;
+      entry.remaining -= dt;
+      if (entry.remaining > 1e-9) return true;
+      shot.x = shot.owner.center.x; shot.y = shot.owner.center.y;
+      this.activateProjectile(shot); return false;
+    });
+  }
+  explode(projectile) {
+    if (projectile.exploded) return;
+    projectile.exploded = true;
+    const walls = [...this.map.walls], radius = projectile.blastRadius;
+    const blocked = (x, y, ignored = null) => walls.some(wall => wall !== ignored &&
+      segmentRectIntersection(projectile.x, projectile.y, x, y, wall) !== null);
+    for (const actor of this.actors) {
+      if (!actor.alive || actor.team === projectile.owner.team) continue;
+      const x = Math.max(actor.x, Math.min(projectile.x, actor.x + actor.width));
+      const y = Math.max(actor.y, Math.min(projectile.y, actor.y + actor.height));
+      if (Math.hypot(x - projectile.x, y - projectile.y) <= radius && !blocked(actor.center.x, actor.center.y)) {
+        this.dealDamage(projectile.owner, actor, projectile.damage);
+      }
+    }
+    for (const wall of walls) {
+      if (!wall.destructible) continue;
+      const x = Math.max(wall.x, Math.min(projectile.x, wall.x + wall.width));
+      const y = Math.max(wall.y, Math.min(projectile.y, wall.y + wall.height));
+      if (Math.hypot(x - projectile.x, y - projectile.y) <= radius && !blocked(x, y, wall)) this.damageWall(wall, projectile.damage, projectile.owner);
+    }
+    this.emit({ type: 'blast', characterId: projectile.characterId, team: projectile.owner.team,
+      x: projectile.x, y: projectile.y, radius });
   }
   dealDamage(owner, target, amount, charge = true) {
     if (this.manager.state !== 'playing' || !target.alive || owner.team === target.team) return 0;
     const damage = target.takeDamage(amount);
     if (charge) owner.chargeSuper(damage);
     if (damage > 0) this.emit({ type: 'hit', actorId: target.id, sourceId: owner.id,
-      team: target.team, x: target.center.x, y: target.center.y, damage });
+      team: target.team, characterId: owner.config?.id, x: target.center.x, y: target.center.y, damage });
     if (!target.alive) {
       this.manager.onDeath(target, owner);
       this.bots.find(bot => bot.actor === target)?.reset();
@@ -149,6 +190,7 @@ class Simulation {
         if (actor.isHuman) revivedHumans.add(actor.id);
         this.emit({ type: 'respawn', actorId: actor.id, team: actor.team, x: actor.center.x, y: actor.center.y });
       }
+      this.updatePendingShots(delta);
       for (const id of this.humanSlots) {
         const actor = this.actors[id];
         if (!actor.alive || revivedHumans.has(id)) continue;
@@ -168,11 +210,15 @@ class Simulation {
       for (const projectile of this.projectiles) {
         const wasActive = projectile.active;
         const hit = projectile.update(delta, this.map, this.actors);
-        if (hit?.target) this.dealDamage(hit.owner, hit.target, hit.damage);
-        else if (hit?.wall) this.damageWall(hit.wall, hit.damage, hit.owner);
-        if (wasActive && !projectile.active && !hit?.target) this.emit({ type: 'impact',
-          team: projectile.owner.team, x: projectile.x, y: projectile.y,
-          dx: projectile.direction.x, dy: projectile.direction.y });
+        if (projectile.blastRadius > 0 && !projectile.active) this.explode(projectile);
+        else {
+          for (const entry of hit?.hits || (hit?.target ? [hit] : [])) this.dealDamage(entry.owner, entry.target, entry.damage);
+          if (hit?.wall) this.damageWall(hit.wall, projectile.damage, projectile.owner);
+        }
+        for (const point of projectile.ricochets) this.emit({ type: 'ricochet', ...point, characterId: projectile.characterId, team: projectile.owner.team });
+        if (wasActive && !projectile.active && !hit?.target && !projectile.blastRadius) this.emit({ type: 'impact',
+          team: projectile.owner.team, characterId: projectile.characterId, style: projectile.style,
+          x: projectile.x, y: projectile.y, dx: projectile.direction.x, dy: projectile.direction.y });
       }
       this.projectiles = this.projectiles.filter(projectile => projectile.active);
       this.updatePowerups(delta);

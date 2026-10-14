@@ -11,12 +11,14 @@ class Player {
     this.reset();
   }
   get center() { return { x: this.x + this.width / 2, y: this.y + this.height / 2 }; }
-  reset() {
+  reset({ preserveSuper = false } = {}) {
+    const charge = preserveSuper ? (this.superCharge || 0) : 0;
+    this.lifeId = (this.lifeId || 0) + 1;
     this.x = this.spawn.x; this.y = this.spawn.y;
     this.health = this.maxHealth; this.alive = true;
     this.direction = 'down'; this.moving = false;
     this.cooldownRemaining = 0; this.respawnRemaining = 0;
-    this.superCharge = 0; this.hitFlash = 0;
+    this.superCharge = charge; this.hitFlash = 0;
     this.buffs = {};
     this.aimDirection = { x: this.team === 0 ? 1 : -1, y: 0 };
     this.animator.update(this.direction, false, 0);
@@ -27,12 +29,13 @@ class Player {
     this.hitFlash = Math.max(0, this.hitFlash - dt);
     this.cooldownRemaining = Math.max(0, this.cooldownRemaining - dt);
     for (const [kind, buff] of Object.entries(this.buffs)) {
+      if (kind === 'regen' && this.alive) this.heal(buff.rate * Math.min(dt, buff.remaining));
       buff.remaining = Math.max(0, buff.remaining - dt);
       if (buff.remaining === 0) delete this.buffs[kind];
     }
     if (this.alive) return false;
     this.respawnRemaining = Math.max(0, this.respawnRemaining - dt);
-    if (this.respawnRemaining === 0) { this.reset(); return true; }
+    if (this.respawnRemaining === 0) { this.reset({ preserveSuper: true }); return true; }
     return false;
   }
   update(dt, input, map) {
@@ -59,8 +62,17 @@ class Player {
   attack(target) {
     if (!this.alive || this.cooldownRemaining > 0 || !this.aimAt(target)) return null;
     this.cooldownRemaining = this.config.attack.cooldown;
-    return new Projectile(this, this.aimDirection, { ...this.config.attack,
-      damage: this.config.attack.damage * (this.buffs.damage?.multiplier ?? 1) });
+    const attack = this.config.attack, count = Math.max(1, attack.count || 1);
+    const angle = Math.atan2(this.aimDirection.y, this.aimDirection.x), shots = [];
+    for (let index = 0; index < count; index++) {
+      const offset = attack.kind === 'scatter' ? (index - (count - 1) / 2) * attack.spread : 0;
+      shots.push(new Projectile(this, { x: Math.cos(angle + offset), y: Math.sin(angle + offset) }, {
+        ...attack, delay: attack.kind === 'burst' ? index * attack.interval : 0,
+        damage: attack.damage * (this.buffs.damage?.multiplier ?? 1)
+      }));
+    }
+    if (shots.length > 1) shots[0].companions = shots.slice(1);
+    return shots[0];
   }
   takeDamage(amount) {
     if (!this.alive || !Number.isFinite(amount) || amount <= 0) return 0;
@@ -69,7 +81,7 @@ class Player {
     this.health -= actualDamage; this.hitFlash = 0.12;
     if (this.health === 0) {
       this.alive = false; this.moving = false;
-      this.respawnRemaining = this.config.respawnDelay; this.superCharge = 0;
+      this.respawnRemaining = this.config.respawnDelay;
       this.buffs = {};
       this.animator.update(this.direction, false, 0);
     }
@@ -103,7 +115,10 @@ class Player {
       }
     } else if (settings.kind === 'heal') {
       for (const actor of world.actors) {
-        if (actor.alive && actor.team === this.team && Math.hypot(actor.center.x - center.x, actor.center.y - center.y) <= settings.radius) actor.heal(settings.heal);
+        if (actor.alive && actor.team === this.team && Math.hypot(actor.center.x - center.x, actor.center.y - center.y) <= settings.radius) {
+          actor.heal(settings.heal);
+          if (settings.regen) actor.buffs.regen = { remaining: settings.duration, rate: settings.regen };
+        }
       }
     } else if (settings.kind === 'nova') {
       for (const actor of world.actors) {
@@ -117,7 +132,7 @@ class Player {
     } else if (settings.kind === 'shield') {
       this.buffs.superShield = { remaining: settings.duration, reduction: settings.reduction };
     }
-    world.emit({ type: 'ability', actorId: this.id, team: this.team, x: center.x, y: center.y, kind: settings.kind, radius: settings.radius || 0 });
+    world.emit({ type: 'ability', actorId: this.id, team: this.team, x: center.x, y: center.y, kind: settings.kind, characterId: this.config.id, dx: this.aimDirection.x, dy: this.aimDirection.y, radius: settings.radius || 0 });
     return true;
   }
   draw(ctx, showLabel = true) {
@@ -165,8 +180,12 @@ class Player {
       ctx.fillStyle = 'rgba(255, 100, 100, 0.3)'; ctx.fillRect(this.x, this.y, this.width, this.height);
     }
     if (this.buffs.shield || this.buffs.superShield) {
-      ctx.strokeStyle = '#90bafa'; ctx.lineWidth = 3;
+      ctx.strokeStyle = this.buffs.superShield ? '#ad90be' : '#90bafa'; ctx.lineWidth = 3;
       ctx.beginPath(); ctx.ellipse(center.x, center.y, this.width * 0.7, this.height * 0.65, 0, 0, Math.PI * 2); ctx.stroke(); ctx.lineWidth = 1;
+    }
+    if (this.buffs.regen) {
+      ctx.strokeStyle = '#85ac78'; ctx.lineWidth = 2; ctx.beginPath();
+      ctx.ellipse(center.x, this.y + this.height, this.width * 0.7, 12, 0, 0, Math.PI * 2); ctx.stroke(); ctx.lineWidth = 1;
     }
     ctx.fillStyle = '#101722'; ctx.fillRect(this.x - 3, this.y - 12, this.width + 6, 6);
     ctx.fillStyle = color; ctx.fillRect(this.x - 3, this.y - 12, (this.width + 6) * this.health / this.maxHealth, 6);

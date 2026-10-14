@@ -269,7 +269,7 @@ class Bot {
     if (world.manager.modeId === 'cottage' && !inside && this.distance(from, { x: zone.x + zone.width / 2, y: zone.y + zone.height / 2 }) > 330) return false;
     const distance = this.distance(from, enemy.center) || 1;
     const ux = (enemy.center.x - from.x) / distance, uy = (enemy.center.y - from.y) / distance;
-    const preferred = this.actor.config.attack.range * (this.actor.config.super.kind === 'nova' ? 0.52 : 0.7);
+    const preferred = this.actor.config.attack.range * (this.actor.config.attack.kind === 'scatter' ? 0.46 : this.actor.config.super.kind === 'nova' ? 0.52 : 0.7);
     const radial = Math.max(-150, Math.min(130, distance - preferred));
     const sign = (Math.floor(this.elapsed / 1.8) + this.index) % 2 ? 1 : -1;
     const goal = { x: from.x + ux * radial - uy * sign * 100, y: from.y + uy * radial + ux * sign * 100 };

@@ -1941,3 +1941,7 @@ input[type=range] {
   .map-preview { height:76px; }
   .map-badge { width:35px; height:35px; right:0; bottom:0; }
 }
+/* Mode symbols use the same cream fill and ink outline as the menu controls. */
+.mode-glyph {
+  background-image:url('assets/ui/mode-symbols.png');
+}
