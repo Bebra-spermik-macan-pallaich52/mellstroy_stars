@@ -40,7 +40,9 @@ class Game {
     this.running = true;
     const loader = new ImageLoader();
     this.ready = Promise.all(characterDefinitions.map((_, index) => loader.load(getCharacterConfig(index).image)));
+    const terrainReady = typeof mapArt !== 'undefined' ? mapArt.load(loader) : Promise.resolve();
     this.images = await this.ready;
+    await terrainReady;
     if (this.images.some(image => !image)) this.photo = await loader.load('assets/characters/characters.png');
     this.attachImages();
     requestAnimationFrame(this.tick);
@@ -156,7 +158,7 @@ class Game {
     this.drawPowerups();
     if (this.manager.state === 'playing' && this.player.alive && this.input.aim()) {
       const from = this.player.center, direction = this.player.aimDirection;
-      this.ctx.save(); this.ctx.strokeStyle = 'rgba(115,227,192,0.5)'; this.ctx.setLineDash([5, 5]);
+      this.ctx.save(); this.ctx.strokeStyle = 'rgba(45,105,140,0.7)'; this.ctx.setLineDash([5, 5]);
       this.ctx.beginPath(); this.ctx.moveTo(from.x, from.y);
       this.ctx.lineTo(from.x + direction.x * 85, from.y + direction.y * 85); this.ctx.stroke(); this.ctx.restore();
     }

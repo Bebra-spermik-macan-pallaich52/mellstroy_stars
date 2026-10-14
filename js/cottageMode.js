@@ -66,8 +66,8 @@ class CottageMode {
 
   draw(ctx) {
     const zone = this.map.captureZone;
-    const green = '#73e3c0', red = '#ff8c86';
-    const color = this.contested ? '#e9c46a' : this.progress > 0 ? green : this.progress < 0 ? red : '#bac7d5';
+    const green = '#458bac', red = '#b9575b';
+    const color = this.contested ? '#e9c46a' : this.progress > 0 ? green : this.progress < 0 ? red : '#554451';
     ctx.save();
     ctx.globalAlpha = 0.14;
     ctx.fillStyle = color; ctx.fillRect(zone.x, zone.y, zone.width, zone.height);

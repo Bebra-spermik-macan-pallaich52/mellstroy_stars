@@ -1,7 +1,7 @@
 'use strict';
 
 const mapCatalog = [
-  { id: 'arena', name: 'Тестовая арена', description: 'Открытый центр и боковые проходы.' },
+  { id: 'arena', name: 'Песчаный двор', description: 'Открытый центр и боковые проходы.' },
   { id: 'courtyard', name: 'Двор коттеджа', description: 'Симметричные перегородки вокруг центра.' },
   { id: 'crossroads', name: 'Перекрёсток', description: 'Четыре бастиона и широкие коридоры.' }
 ];
@@ -33,19 +33,20 @@ const mapLayouts = {
 };
 
 function drawMap(ctx) {
-  ctx.fillStyle = '#1c2d39'; ctx.fillRect(0, 0, this.width, this.height);
-  ctx.strokeStyle = '#263b49'; ctx.lineWidth = 1;
-  for (let x = 0; x <= this.width; x += 40) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, this.height); ctx.stroke(); }
-  for (let y = 0; y <= this.height; y += 40) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(this.width, y); ctx.stroke(); }
+  if (typeof mapArt !== 'undefined' && mapArt.draw(ctx, this)) return;
+  ctx.fillStyle = { arena: '#d8b579', courtyard: '#99a57c', crossroads: '#a89a98' }[this.id];
+  ctx.fillRect(0, 0, this.width, this.height);
+  ctx.strokeStyle = '#554451'; ctx.lineWidth = 5;
+  ctx.strokeRect(2.5, 2.5, this.width - 5, this.height - 5);
   this.teamSpawns.forEach((spawns, team) => {
-    ctx.strokeStyle = team === 0 ? '#73e3c0' : '#ff8c86'; ctx.setLineDash([5, 5]);
+    ctx.strokeStyle = team === 0 ? '#458bac' : '#b9575b'; ctx.setLineDash([5, 5]);
     for (const spawn of spawns) ctx.strokeRect(spawn.x, spawn.y, 48, 64);
     ctx.setLineDash([]);
   });
   for (const wall of this.walls) {
     ctx.fillStyle = '#0f202c'; ctx.fillRect(wall.x + 5, wall.y + 6, wall.width, wall.height);
-    ctx.fillStyle = wall.destructible ? '#a17950' : '#506b80'; ctx.fillRect(wall.x, wall.y, wall.width, wall.height);
-    ctx.fillStyle = wall.destructible ? '#c69a6b' : '#6b879a'; ctx.fillRect(wall.x, wall.y, wall.width, 5);
+    ctx.fillStyle = wall.destructible ? '#a17950' : '#796878'; ctx.fillRect(wall.x, wall.y, wall.width, wall.height);
+    ctx.fillStyle = wall.destructible ? '#c69a6b' : '#b9a18e'; ctx.fillRect(wall.x, wall.y, wall.width, 5);
     if (wall.destructible) {
       ctx.strokeStyle = '#674d38'; ctx.beginPath();
       ctx.moveTo(wall.x + wall.width * 0.4, wall.y + 5); ctx.lineTo(wall.x + wall.width * 0.55, wall.y + wall.height * 0.5);

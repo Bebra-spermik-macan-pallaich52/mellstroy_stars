@@ -12,6 +12,8 @@ class MenuController {
       teamfight: { name: 'Командный бой', description: 'Победи соперников 10 раз командой.' }
     };
     this.settingsSource = 'menu';
+    this.portraitLoader = new ImageLoader();
+    this.currentScreen = 'lobby';
     this.bind();
     this.populateChoices();
     this.syncSettings();
@@ -36,6 +38,13 @@ class MenuController {
     on('result-menu', 'click', () => this.show());
     for (const id of ['restart', 'result-restart']) on(id, 'click', () => this.rematch());
     on('open-settings', 'click', () => this.showSettings('menu'));
+    on('open-roster', 'click', () => this.openScreen('roster'));
+    on('change-character', 'click', () => this.openScreen('roster'));
+    on('open-events', 'click', () => this.openScreen('events'));
+    on('open-arenas', 'click', () => this.openScreen('events'));
+    on('open-profile', 'click', () => this.openScreen('progress'));
+    on('confirm-event', 'click', () => this.openScreen('lobby'));
+    document.querySelectorAll('[data-back]').forEach(button => button.addEventListener('click', () => this.openScreen('lobby')));
     on('pause-settings', 'click', () => this.showSettings('pause'));
     on('close-settings', 'click', () => this.closeSettings());
     on('mode', 'change', () => this.updateChoices());
@@ -50,6 +59,9 @@ class MenuController {
       const settings = this.byId('settings-dialog');
       if (event.code === 'Escape' && !settings.hidden) {
         event.preventDefault(); event.stopPropagation(); this.closeSettings(); return;
+      }
+      if (event.code === 'Escape' && !this.game.active && this.currentScreen !== 'lobby') {
+        event.preventDefault(); this.openScreen('lobby'); return;
       }
       if (event.key !== 'Tab') return;
       const dialog = !settings.hidden ? settings : !this.byId('pause-dialog').hidden ? this.byId('pause-dialog') : !this.byId('result').hidden ? this.byId('result') : null;
@@ -79,12 +91,17 @@ class MenuController {
     const map = mapCatalog.find(item => item.id === this.byId('map').value) || mapCatalog[0];
     this.byId('mode-description').textContent = mode.description;
     this.byId('map-description').textContent = map?.description || '';
+    this.byId('selected-mode-name').textContent = mode.name;
+    this.byId('selected-map-name').textContent = map.name;
+    this.byId('open-events').dataset.mode = this.byId('mode').value;
+    this.renderEvents();
   }
 
   renderProfile() {
     const data = this.profile.profile;
     const fields = { 'profile-name': this.profile.settings.nickname, 'profile-coins': data.coins, 'profile-level': `Ур. ${this.profile.level}`, 'profile-xp': `${data.xp % 300} / 300 опыта`, 'profile-matches': data.matches, 'profile-wins': data.wins, 'profile-losses': data.losses, 'profile-draws': data.draws, 'profile-kills': data.kills, 'roster-count': `${data.unlocked.length} / ${this.definitions.length} открыто` };
     for (const [id, value] of Object.entries(fields)) this.byId(id).textContent = value;
+    this.byId('lobby-roster-count').textContent = `${data.unlocked.length} / ${this.definitions.length}`;
     const history = this.byId('match-history'); history.replaceChildren();
     for (const match of this.profile.history.slice(-5).reverse()) {
       const row = document.createElement('li');
@@ -98,24 +115,90 @@ class MenuController {
     }
   }
 
+  openScreen(screen) {
+    this.currentScreen = screen;
+    this.byId('menu-message').textContent = this.profile.storageMessage || '';
+    for (const name of ['lobby', 'roster', 'events', 'progress']) this.byId(`${name}-screen`).hidden = name !== screen;
+    this.byId('main-menu').dataset.screen = screen;
+    if (screen === 'lobby') this.byId('start-match').focus({ preventScroll: true });
+    else this.byId(`${screen}-screen`).querySelector('[data-back]').focus({ preventScroll: true });
+  }
+
+  icon(name) {
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('aria-hidden', 'true');
+    const use = document.createElementNS('http://www.w3.org/2000/svg', 'use');
+    use.setAttribute('href', `#i-${name}`); svg.append(use); return svg;
+  }
+
+  renderEvents() {
+    const holder = this.byId('event-cards'); holder.replaceChildren();
+    const art = { donations: ['coin', 'СОБИРАЙ И БЕРЕГИ', 0], cottage: ['cottage', 'ЗАЙМИ. ЗАХВАТИ. УДЕРЖИ.', 1], teamfight: ['battle', 'ДЕСЯТЬ ПОБЕД ДО ФИНИША', 2] };
+    for (const [id, mode] of Object.entries(this.modes)) {
+      const button = document.createElement('button'); button.className = `event-card event-${id}`;
+      button.dataset.mode = id; button.type = 'button';
+      button.setAttribute('aria-pressed', String(this.byId('mode').value === id));
+      const stripe = document.createElement('span'); stripe.className = 'event-card-stripe';
+      stripe.append(this.icon(art[id][0]));
+      const title = document.createElement('strong'); title.textContent = mode.name; stripe.append(title);
+      const illustration = document.createElement('span'); illustration.className = 'event-illustration'; illustration.style.setProperty('--scene', art[id][2]);
+      const tag = document.createElement('small'); tag.textContent = art[id][1]; illustration.append(tag);
+      const rule = document.createElement('span'); rule.className = 'event-rule'; rule.textContent = mode.description;
+      const tick = document.createElement('span'); tick.className = 'selection-tick'; tick.textContent = '✓'; tick.setAttribute('aria-hidden', 'true');
+      button.append(stripe, illustration, rule, tick);
+      button.addEventListener('click', () => { this.byId('mode').value = id; this.updateChoices(); this.byId('event-cards').querySelector(`[data-mode="${id}"]`).focus({ preventScroll: true }); });
+      holder.append(button);
+    }
+    const maps = this.byId('map-cards'); maps.replaceChildren();
+    mapCatalog.forEach((map, index) => {
+      const button = document.createElement('button'); button.className = 'map-card'; button.type = 'button'; button.dataset.map = map.id;
+      button.setAttribute('aria-pressed', String(this.byId('map').value === map.id));
+      const preview = document.createElement('span'); preview.className = 'map-preview'; preview.style.setProperty('--scene', index); preview.setAttribute('aria-hidden', 'true');
+      const name = document.createElement('strong'); name.textContent = map.name;
+      const caption = document.createElement('small'); caption.textContent = ['ПЕСОК И ТЕРРАКОТА', 'ТРАВА И САДОВЫЙ КАМЕНЬ', 'БРУСЧАТКА И КИРПИЧ'][index];
+      button.append(preview, name, caption);
+      button.addEventListener('click', () => { this.byId('map').value = map.id; this.updateChoices(); this.byId('map-cards').querySelector(`[data-map="${map.id}"]`).focus({ preventScroll: true }); });
+      maps.append(button);
+    });
+  }
+
+  async paintPortrait(canvas, index, hero = false) {
+    const definition = this.definitions[index];
+    const image = await this.portraitLoader.load(`assets/characters/${definition.id}-walk.png`);
+    if (hero && this.profile.profile.selectedCharacter !== index) return;
+    const ctx = canvas.getContext('2d'); ctx.clearRect(0, 0, canvas.width, canvas.height);
+    if (hero) {
+      ctx.fillStyle = 'rgba(68,32,45,0.20)'; ctx.beginPath();
+      ctx.ellipse(canvas.width / 2, canvas.height - 16, 105, 15, 0, 0, Math.PI * 2); ctx.fill();
+    }
+    if (!image) {
+      ctx.font = 'bold 80px sans-serif'; ctx.fillStyle = '#fff1cf'; ctx.textAlign = 'center'; ctx.fillText(definition.name[0], canvas.width / 2, canvas.height / 2); return;
+    }
+    const frame = spriteManifest[definition.id]?.frames[0] || { x: 0, y: 0, width: image.width / 4, height: image.height / 4 };
+    const scale = Math.min(canvas.width * 0.87 / frame.width, (canvas.height - (hero ? 36 : 10)) / frame.height);
+    const width = frame.width * scale, height = frame.height * scale;
+    ctx.drawImage(image, frame.x, frame.y, frame.width, frame.height, (canvas.width - width) / 2, canvas.height - height - (hero ? 17 : 0), width, height);
+  }
+
   renderCharacters() {
     const holder = this.byId('character-cards'); holder.replaceChildren();
+    const roles = ['СТРЕЛОК', 'ПОДДЕРЖКА', 'ТАНК', 'ЗАЩИТНИК', 'ШТУРМОВИК'];
     this.definitions.forEach((definition, index) => {
       const unlocked = this.profile.isUnlocked(index), selected = this.profile.profile.selectedCharacter === index;
-      const card = document.createElement('article'); card.className = `character-card${selected ? ' selected' : ''}${unlocked ? '' : ' locked'}`;
+      const card = document.createElement('article'); card.className = `character-card fighter-${index}${selected ? ' selected' : ''}${unlocked ? '' : ' locked'}`;
       const pick = document.createElement('button'); pick.type = 'button'; pick.className = 'character-pick'; pick.setAttribute('aria-label', `${definition.name}${unlocked ? ', выбрать персонажа' : ', ещё не открыт'}`); pick.setAttribute('aria-pressed', String(selected));
-      const portrait = document.createElement('span'); portrait.className = 'character-portrait'; portrait.setAttribute('aria-hidden', 'true');
-      const initial = document.createElement('span'); initial.className = 'character-initial'; initial.textContent = definition.name[0]; portrait.append(initial);
-      const image = new Image(); image.onload = () => { portrait.style.backgroundImage = `url("assets/characters/${definition.id}-walk.png")`; portrait.classList.add('loaded'); }; image.src = `assets/characters/${definition.id}-walk.png`;
-      const name = document.createElement('span'); name.className = 'character-name'; name.textContent = definition.name;
-      const marker = document.createElement('span'); marker.className = `character-marker${unlocked ? '' : ' is-locked'}`; marker.textContent = selected ? 'ВЫБРАН' : unlocked ? '' : 'ЗАКРЫТ';
-      pick.append(portrait, name, marker);
+      const role = document.createElement('span'); role.className = 'fighter-role'; role.textContent = roles[index];
+      const portrait = document.createElement('canvas'); portrait.width = 300; portrait.height = 240; portrait.className = 'character-portrait'; portrait.setAttribute('aria-hidden', 'true');
+      this.paintPortrait(portrait, index);
+      const name = document.createElement('strong'); name.className = 'character-name'; name.textContent = definition.name;
+      const marker = document.createElement('span'); marker.className = 'character-marker'; marker.textContent = selected ? '✓ ВЫБРАН' : unlocked ? 'ВЫБРАТЬ' : 'ЗАКРЫТ';
+      pick.append(role, portrait, name, marker);
       pick.addEventListener('click', () => {
-        if (unlocked) this.selectCharacter(index);
+        if (unlocked) { this.selectCharacter(index); this.openScreen('lobby'); }
         else this.byId('menu-message').textContent = `${definition.name}: открывается за ${definition.unlockCost} монет. Завершай матчи, чтобы получать награды.`;
       });
       card.append(pick);
-      const unlock = document.createElement('button'); unlock.className = 'character-unlock'; unlock.type = 'button'; unlock.textContent = unlocked ? `${definition.maxHealth} HP · ${definition.speed} скорость` : `ОТКРЫТЬ · ${definition.unlockCost} ◆`;
+      const unlock = document.createElement('button'); unlock.className = 'character-unlock'; unlock.type = 'button'; unlock.textContent = unlocked ? `${definition.maxHealth} HP · УРОН ${definition.attack.damage}` : `ОТКРЫТЬ · ${definition.unlockCost} МОНЕТ`;
       if (unlocked) { unlock.disabled = true; unlock.tabIndex = -1; }
       else unlock.addEventListener('click', () => {
         const result = this.profile.unlockCharacter(index);
@@ -128,8 +211,11 @@ class MenuController {
     this.byId('character').value = selected;
     const definition = this.definitions[selected] || this.definitions[0];
     this.byId('character-name').textContent = definition.name;
-    this.byId('character-description').textContent = `${definition.maxHealth} HP · урон ${definition.attack.damage} · скорость ${definition.speed}`;
+    this.byId('character-name').parentElement.classList.toggle('long-name', definition.name.length > 15);
+    this.byId('character-description').textContent = `${definition.maxHealth} здоровья / ${definition.attack.damage} урон`;
     this.byId('character-super').textContent = definition.description;
+    const hero = this.byId('hero-character'); hero.setAttribute('aria-label', `Выбранный персонаж: ${definition.name}`);
+    this.paintPortrait(hero, selected, true);
   }
 
   selectCharacter(index) {
@@ -191,7 +277,7 @@ class MenuController {
     if (this.game.active) this.game.leaveMatch();
     this.byId('match-view').hidden = true; this.byId('main-menu').hidden = false;
     this.byId('pause-dialog').hidden = true; this.byId('settings-dialog').hidden = true; this.byId('result').hidden = true;
-    this.setInert(false); this.renderProfile(); this.renderCharacters();
+    this.setInert(false); this.renderProfile(); this.renderCharacters(); this.openScreen('lobby');
     this.byId('menu-message').textContent = this.profile.storageMessage || '';
     this.byId('start-match').focus({ preventScroll: true });
   }

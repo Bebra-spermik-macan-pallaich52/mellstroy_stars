@@ -95,17 +95,17 @@ class DonationsMode {
   draw(ctx) {
     const point = this.map.resourcePoint;
     ctx.save();
-    ctx.strokeStyle = '#d8b24c';
+    ctx.strokeStyle = '#755133';
     ctx.lineWidth = 2;
     ctx.setLineDash([6, 6]);
     ctx.beginPath(); ctx.arc(point.x, point.y, 42, 0, Math.PI * 2); ctx.stroke();
     ctx.setLineDash([]);
     ctx.font = 'bold 13px sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillStyle = '#f8dc8a';
+    ctx.fillStyle = '#513e38';
     ctx.fillText('ТОЧКА ДОНАТОВ', point.x, point.y - 120);
     for (const item of this.items) {
-      ctx.fillStyle = '#ffd257'; ctx.strokeStyle = '#fff0b2';
+      ctx.fillStyle = '#ffd257'; ctx.strokeStyle = '#6e4536';
       ctx.beginPath();
       ctx.moveTo(item.x, item.y - item.radius);
       ctx.lineTo(item.x + item.radius, item.y);

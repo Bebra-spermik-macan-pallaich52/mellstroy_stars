@@ -15,7 +15,7 @@ class TeamfightMode {
     if (source.team === 0 || source.team === 1) this.scores[source.team]++;
   }
   draw(ctx) {
-    ctx.save(); ctx.fillStyle = '#8ba1b3'; ctx.font = 'bold 13px sans-serif'; ctx.textAlign = 'center';
+    ctx.save(); ctx.fillStyle = '#513e4b'; ctx.font = 'bold 13px sans-serif'; ctx.textAlign = 'center';
     ctx.fillText('КОМАНДНЫЙ БОЙ', this.map.width / 2, 36); ctx.restore();
   }
 }

@@ -121,7 +121,7 @@ class Player {
     return true;
   }
   draw(ctx, showLabel = true) {
-    const color = this.team === 0 ? '#73e3c0' : '#ff8c86';
+    const color = this.team === 0 ? '#65bfdf' : '#ed827c';
     const center = this.center;
     if (!this.alive) {
       ctx.strokeStyle = color; ctx.setLineDash([4, 4]);
@@ -131,10 +131,10 @@ class Player {
       return;
     }
     // The visible image fits inside the hitbox without stretching.
-    ctx.fillStyle = '#10202a'; ctx.beginPath();
+    ctx.fillStyle = 'rgba(48,33,46,.35)'; ctx.beginPath();
     ctx.ellipse(center.x, this.y + this.height - 3, this.width / 2, 7, 0, 0, Math.PI * 2); ctx.fill();
-    ctx.strokeStyle = color; ctx.globalAlpha = 0.5;
-    ctx.strokeRect(this.x, this.y, this.width, this.height); ctx.globalAlpha = 1;
+    ctx.strokeStyle = color; ctx.lineWidth = this.isHuman ? 3 : 2;
+    ctx.beginPath(); ctx.ellipse(center.x, this.y + this.height - 3, this.width / 2 + 3, 9, 0, 0, Math.PI * 2); ctx.stroke(); ctx.lineWidth = 1;
     const frame = this.animator.frame();
     if (this.image) {
       let source = this.photoFallback ? characterImages[this.characterIndex] : (frame || characterImages[this.characterIndex]);
@@ -172,6 +172,9 @@ class Player {
     ctx.fillStyle = color; ctx.fillRect(this.x - 3, this.y - 12, (this.width + 6) * this.health / this.maxHealth, 6);
     ctx.font = '12px system-ui'; ctx.textAlign = 'center';
     const label = `${characterImages[this.characterIndex].name}${this.isHuman ? ' · вы' : ''}`;
-    if (showLabel) ctx.fillText(label, center.x, this.y - 20);
+    if (showLabel) {
+      ctx.strokeStyle = '#30212e'; ctx.lineWidth = 3; ctx.lineJoin = 'round'; ctx.strokeText(label, center.x, this.y - 20);
+      ctx.fillStyle = '#fff0cf'; ctx.fillText(label, center.x, this.y - 20); ctx.lineWidth = 1;
+    }
   }
 }

@@ -3,36 +3,74 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="theme-color" content="#101827">
+  <meta name="theme-color" content="#eda48c">
   <title>Меллстрой Старс</title>
   <link rel="stylesheet" href="style.css">
   <link rel="icon" href="data:,">
 </head>
 <body>
   <main class="app">
+    <svg class="svg-library" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs>
+      <symbol id="i-back" viewBox="0 0 32 32"><path d="M21 5 10 16l11 11"/></symbol>
+      <symbol id="i-fighters" viewBox="0 0 48 48"><path d="m12 32-4-13 7-7 6 2 2-7 9 1 8 14-7 17-16 1Z"/><path d="m15 15 6 9m3-14 5 12m4-7 3 9M11 29l14-2"/></symbol>
+      <symbol id="i-arena" viewBox="0 0 48 48"><path d="m5 12 12-5 14 5 12-5v29l-12 5-14-5-12 5Z"/><path d="M17 7v29m14-24v29M22 20l5 5-5 5"/></symbol>
+      <symbol id="i-medal" viewBox="0 0 48 48"><path d="M13 5h22l-4 14H17Z"/><circle cx="24" cy="29" r="14"/><path d="m24 20 3 6 6 1-5 4 1 7-5-4-5 4 1-7-5-4 6-1Z"/></symbol>
+      <symbol id="i-gear" viewBox="0 0 48 48"><path d="m20 5 8 0 2 7 7 3 6 5v8l-7 3-3 7-5 5h-8l-3-7-7-3-5-5v-8l7-3 3-7Z"/><circle cx="24" cy="24" r="7"/></symbol>
+      <symbol id="i-coin" viewBox="0 0 48 48"><circle cx="24" cy="24" r="18"/><path d="m24 12 4 8 9 1-7 6 2 9-8-5-8 5 2-9-7-6 9-1Z"/></symbol>
+      <symbol id="i-cottage" viewBox="0 0 48 48"><path d="M5 23 24 7l19 16M10 20v22h28V20M20 42V27h9v15"/></symbol>
+      <symbol id="i-battle" viewBox="0 0 48 48"><path d="m7 5 10 4 23 26-5 5L9 17Zm34 0-10 4L8 35l5 5 26-23ZM3 35l10 10m22 0 10-10"/></symbol>
+    </defs></svg>
     <section id="main-menu" class="main-menu" aria-labelledby="game-title">
       <header class="menu-header">
-        <a href="#" class="wordmark" id="home-link" aria-label="Меллстрой Старс, главное меню"><span class="brand-star" aria-hidden="true">✦</span> MS</a>
-        <div class="profile-strip"><span id="profile-name">Игрок</span><span class="level-chip" id="profile-level">Ур. 1</span><span class="coin-chip"><span aria-hidden="true">◆</span> <strong id="profile-coins">0</strong></span><button id="open-settings" class="icon-button" aria-label="Настройки">⚙</button></div>
+        <a href="#" class="wordmark" id="home-link" aria-label="Меллстрой Старс, главное меню"><h1 id="game-title">МЕЛЛСТРОЙ<span>СТАРС</span></h1></a>
+        <button id="open-profile" class="profile-badge" aria-label="Мой прогресс"><svg aria-hidden="true"><use href="#i-medal"/></svg><span><strong id="profile-name">Игрок</strong><small id="profile-level">Ур. 1</small></span></button>
+        <div class="wallet"><span class="coin-chip"><svg aria-hidden="true"><use href="#i-coin"/></svg><strong id="profile-coins">0</strong></span><button id="open-settings" class="icon-button" aria-label="Настройки"><svg aria-hidden="true"><use href="#i-gear"/></svg></button></div>
       </header>
-      <div class="menu-hero">
-        <div><span class="eyebrow">ТВОЯ КОМАНДА. ТВОЯ АРЕНА.</span><h1 id="game-title">МЕЛЛСТРОЙ<br><span>СТАРС<span class="title-star" aria-hidden="true">✦</span></span></h1><p class="hero-copy">Забирай донаты. Держи коттедж.<br>Выходи на арену — и побеждай.</p></div>
-        <div class="hero-art" aria-hidden="true"><div class="hero-orbit"></div><div class="hero-gem">◆</div><span class="art-caption">3 × 3</span><span class="art-tag">АРЕНА ЖДЁТ</span></div>
-      </div>
-      <section class="roster" aria-labelledby="roster-title">
-        <div class="section-heading"><h2 id="roster-title">ТВОЙ ПЕРСОНАЖ</h2><span id="roster-count" class="muted">1 / 5 открыто</span></div>
+
+      <section id="lobby-screen" class="menu-screen lobby-screen" aria-label="Лобби">
+        <div class="lobby-stamp" aria-hidden="true">ВСЕ СВОИ<br><b>НА АРЕНЕ</b></div>
+        <nav class="side-rail left-rail" aria-label="Разделы игры">
+          <button id="open-roster" class="rail-button fighters-button"><span><svg aria-hidden="true"><use href="#i-fighters"/></svg></span>БОЙЦЫ<small id="lobby-roster-count">1 / 5</small></button>
+          <button id="open-arenas" class="rail-button arenas-button"><span><svg aria-hidden="true"><use href="#i-arena"/></svg></span>АРЕНЫ</button>
+        </nav>
+        <div class="hero-stage">
+          <div class="hero-nameplate"><span>ТВОЙ БОЕЦ</span><strong id="character-name">Артур</strong></div>
+          <div class="hero-spotlight" aria-hidden="true"></div>
+          <canvas id="hero-character" width="480" height="440" aria-label="Выбранный персонаж: Артур"></canvas>
+          <button id="change-character" class="hero-change">СМЕНИТЬ БОЙЦА <span aria-hidden="true">↔</span></button>
+        </div>
+        <aside class="fighter-note"><span class="note-heading">В ДВУХ СЛОВАХ</span><p id="character-description"></p><span id="character-super" class="ability-label"></span></aside>
+        <div class="lobby-bottom">
+          <button id="open-events" class="selected-event"><span class="event-symbol"><svg aria-hidden="true"><use href="#i-coin"/></svg></span><span><small>РЕЖИМ · 3 НА 3</small><strong id="selected-mode-name">Сбор донатов</strong><span id="selected-map-name">Песчаный двор</span></span><b aria-hidden="true">↗</b></button>
+          <button id="start-match" class="primary-button play-button">ИГРАТЬ<span aria-hidden="true">▶</span></button>
+        </div>
+        <p class="lobby-controls">WASD — ходьба <i>·</i> ЛКМ — атака <i>·</i> Q — супер</p>
+      </section>
+
+      <section id="roster-screen" class="menu-screen collection-screen" aria-labelledby="roster-title" hidden>
+        <header class="screen-heading"><button class="back-button" data-back aria-label="Назад в лобби"><svg aria-hidden="true"><use href="#i-back"/></svg></button><div><span class="eyebrow">ВЫБЕРИ СВОЕГО</span><h2 id="roster-title">БОЙЦЫ <span id="roster-count">1 / 5 открыто</span></h2></div></header>
         <div id="character-cards" class="character-cards"></div>
-        <label class="sr-only" for="character">Выбранный персонаж</label><select id="character" class="sr-only" tabindex="-1" aria-hidden="true"></select>
-        <div class="character-detail"><strong id="character-name">Артур</strong><span id="character-description"></span><span id="character-super" class="ability-label"></span></div>
+        <p class="screen-footnote">Открывай бойцов за монеты, заработанные в матчах.</p>
       </section>
-      <section class="match-picker" aria-label="Настройки нового матча">
-        <div class="picker"><label for="mode">РЕЖИМ</label><select id="mode"><option value="donations">Сбор донатов</option><option value="cottage">Захват коттеджа</option><option value="teamfight">Командный бой</option></select><p id="mode-description">Собери 15 донатов своей командой.</p></div>
-        <div class="picker"><label for="map">КАРТА</label><select id="map"></select><p id="map-description"></p></div>
-        <button id="start-match" class="primary-button play-button">НА АРЕНУ <span aria-hidden="true"></span></button>
+
+      <section id="events-screen" class="menu-screen events-screen" aria-labelledby="events-title" hidden>
+        <header class="screen-heading"><button class="back-button" data-back aria-label="Назад в лобби"><svg aria-hidden="true"><use href="#i-back"/></svg></button><div><span class="eyebrow">КОМАНДА ИЗ ТРЁХ</span><h2 id="events-title">ВЫБЕРИ РЕЖИМ</h2></div></header>
+        <div id="event-cards" class="event-cards"></div>
+        <div class="map-heading"><h3>ГДЕ ИГРАЕМ?</h3><span id="map-description"></span></div>
+        <div id="map-cards" class="map-cards"></div>
+        <button id="confirm-event" class="primary-button confirm-button">В ЛОББИ <span aria-hidden="true">✓</span></button>
+        <p id="mode-description" class="sr-only"></p>
       </section>
+
+      <section id="progress-screen" class="menu-screen progress-screen" aria-labelledby="progress-title" hidden>
+        <header class="screen-heading"><button class="back-button" data-back aria-label="Назад в лобби"><svg aria-hidden="true"><use href="#i-back"/></svg></button><div><span class="eyebrow">ТВОЯ ИСТОРИЯ</span><h2 id="progress-title">ПРОГРЕСС</h2></div></header>
+        <div class="progress-banner"><svg aria-hidden="true"><use href="#i-medal"/></svg><div><h3>КАЖДЫЙ МАТЧ В СЧЁТ</h3><span id="profile-xp">0 / 300 опыта</span></div></div>
+        <div class="profile-metrics"><span>Матчи <strong id="profile-matches">0</strong></span><span>Победы <strong id="profile-wins">0</strong></span><span>Поражения <strong id="profile-losses">0</strong></span><span>Ничьи <strong id="profile-draws">0</strong></span><span>Побеждено <strong id="profile-kills">0</strong></span></div>
+        <h3>ПОСЛЕДНИЕ МАТЧИ</h3><ol id="match-history" class="match-history"></ol><p class="screen-footnote">Прогресс сохраняется в этом браузере.</p>
+      </section>
+      <div hidden><label for="character">Персонаж</label><select id="character"></select><label for="mode">Режим</label><select id="mode"><option value="donations">Сбор донатов</option><option value="cottage">Захват коттеджа</option><option value="teamfight">Командный бой</option></select><label for="map">Карта</label><select id="map"></select></div>
       <p id="menu-message" class="menu-message" role="status"></p>
-      <details class="profile-details"><summary>МОЙ ПРОГРЕСС <span id="profile-xp">0 / 300 опыта</span></summary><div class="profile-metrics"><span>Матчи <strong id="profile-matches">0</strong></span><span>Победы <strong id="profile-wins">0</strong></span><span>Поражения <strong id="profile-losses">0</strong></span><span>Ничьи <strong id="profile-draws">0</strong></span><span>Побеждено <strong id="profile-kills">0</strong></span></div><ol id="match-history" class="match-history"></ol><p class="muted">Прогресс хранится только в этом браузере. Монеты и опыт начисляются за завершённые матчи.</p></details>
-      <footer class="menu-footer"><span>ЛОКАЛЬНАЯ ИГРА · БЕЗ ИНТЕРНЕТА</span><span>WASD · МЫШЬ · ЛКМ · Q</span></footer>
+      <footer class="menu-footer"><span>МЕЛЛСТРОЙ СТАРС</span><span>ЛОКАЛЬНЫЕ МАТЧИ · 3 × 3</span></footer>
     </section>
 
     <section id="match-view" class="match-view" hidden aria-label="Матч">
@@ -53,6 +91,7 @@
   <script src="js/collision.js"></script>
   <script src="js/map.js"></script>
   <script src="js/assets.js"></script>
+  <script src="js/mapArt.js"></script>
   <script src="js/projectile.js"></script>
   <script src="js/spriteManifest.js"></script>
   <script src="js/characters.js"></script>
