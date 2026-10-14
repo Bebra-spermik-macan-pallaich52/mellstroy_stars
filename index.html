@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="theme-color" content="#eda48c">
+  <meta name="theme-color" content="#e6e2d5">
   <title>Меллстрой Старс</title>
   <link rel="stylesheet" href="style.css">
   <link rel="icon" href="data:,">
@@ -28,64 +28,64 @@
       </header>
 
       <section id="lobby-screen" class="menu-screen lobby-screen" aria-label="Лобби">
-        <div class="lobby-stamp" aria-hidden="true">ВСЕ СВОИ<br><b>НА АРЕНЕ</b></div>
+        <div class="lobby-stamp" aria-hidden="true">Локальная арена<br><b>3 на 3</b></div>
         <nav class="side-rail left-rail" aria-label="Разделы игры">
-          <button id="open-roster" class="rail-button fighters-button"><span><svg aria-hidden="true"><use href="#i-fighters"/></svg></span>БОЙЦЫ<small id="lobby-roster-count">1 / 5</small></button>
-          <button id="open-arenas" class="rail-button arenas-button"><span><svg aria-hidden="true"><use href="#i-arena"/></svg></span>АРЕНЫ</button>
+          <button id="open-roster" class="rail-button fighters-button"><span><svg aria-hidden="true"><use href="#i-fighters"/></svg></span>Бойцы<small id="lobby-roster-count">1 / 5</small></button>
+          <button id="open-arenas" class="rail-button arenas-button"><span><svg aria-hidden="true"><use href="#i-arena"/></svg></span>Арены</button>
         </nav>
         <div class="hero-stage">
-          <div class="hero-nameplate"><span>ТВОЙ БОЕЦ</span><strong id="character-name">Артур</strong></div>
+          <div class="hero-nameplate"><span>Твой боец</span><strong id="character-name">Артур</strong></div>
           <div class="hero-spotlight" aria-hidden="true"></div>
           <canvas id="hero-character" width="480" height="440" aria-label="Выбранный персонаж: Артур"></canvas>
-          <button id="change-character" class="hero-change">СМЕНИТЬ БОЙЦА <span aria-hidden="true">↔</span></button>
+          <button id="change-character" class="hero-change">Сменить бойца <span aria-hidden="true">↔</span></button>
         </div>
-        <aside class="fighter-note"><span class="note-heading">В ДВУХ СЛОВАХ</span><p id="character-description"></p><span id="character-super" class="ability-label"></span></aside>
+        <aside class="fighter-note"><span class="note-heading">Как играет</span><p id="character-description"></p><span id="character-super" class="ability-label"></span><span id="character-ammo" class="fighter-ammo"></span></aside>
         <div class="lobby-bottom">
-          <button id="open-events" class="selected-event"><span class="event-symbol"><svg aria-hidden="true"><use href="#i-coin"/></svg></span><span><small>РЕЖИМ · 3 НА 3</small><strong id="selected-mode-name">Сбор донатов</strong><span id="selected-map-name">Песчаный двор</span></span><b aria-hidden="true">↗</b></button>
-          <button id="start-match" class="primary-button play-button">ИГРАТЬ<span aria-hidden="true">▶</span></button>
+          <button id="open-events" class="selected-event"><span class="event-symbol"><svg aria-hidden="true"><use href="#i-coin"/></svg></span><span><small>Режим · 3 на 3</small><strong id="selected-mode-name">Сбор донатов</strong><span id="selected-map-name">Песчаный двор</span></span><b aria-hidden="true">↗</b></button>
+          <button id="start-match" class="primary-button play-button">В бой<span aria-hidden="true">▶</span></button>
         </div>
-        <p class="lobby-controls">WASD — ходьба <i>·</i> ЛКМ — атака <i>·</i> Q — супер</p>
+        <p class="lobby-controls">WASD — ходьба <i>·</i> ЛКМ — атака <i>·</i> Q — супер <i>·</i> Заряды восстанавливаются сами</p>
       </section>
 
       <section id="roster-screen" class="menu-screen collection-screen" aria-labelledby="roster-title" hidden>
-        <header class="screen-heading"><button class="back-button" data-back aria-label="Назад в лобби"><svg aria-hidden="true"><use href="#i-back"/></svg></button><div><span class="eyebrow">ВЫБЕРИ СВОЕГО</span><h2 id="roster-title">БОЙЦЫ <span id="roster-count">1 / 5 открыто</span></h2></div></header>
+        <header class="screen-heading"><button class="back-button" data-back aria-label="Назад в лобби"><svg aria-hidden="true"><use href="#i-back"/></svg></button><div><span class="eyebrow">Пять разных характеров</span><h2 id="roster-title">Бойцы <span id="roster-count">1 / 5 открыто</span></h2></div></header>
         <div id="character-cards" class="character-cards"></div>
         <p class="screen-footnote">Открывай бойцов за монеты, заработанные в матчах.</p>
       </section>
 
       <section id="events-screen" class="menu-screen events-screen" aria-labelledby="events-title" hidden>
-        <header class="screen-heading"><button class="back-button" data-back aria-label="Назад в лобби"><svg aria-hidden="true"><use href="#i-back"/></svg></button><div><span class="eyebrow">КОМАНДА ИЗ ТРЁХ</span><h2 id="events-title">ВЫБЕРИ РЕЖИМ</h2></div></header>
+        <header class="screen-heading"><button class="back-button" data-back aria-label="Назад в лобби"><svg aria-hidden="true"><use href="#i-back"/></svg></button><div><span class="eyebrow">Игрок и пять ботов</span><h2 id="events-title">Режим боя</h2></div></header>
         <div id="event-cards" class="event-cards"></div>
-        <div class="map-heading"><h3>ГДЕ ИГРАЕМ?</h3><span id="map-description"></span></div>
+        <div class="map-heading"><h3>Карта</h3><span id="map-description"></span></div>
         <div id="map-cards" class="map-cards"></div>
-        <button id="confirm-event" class="primary-button confirm-button">В ЛОББИ <span aria-hidden="true">✓</span></button>
+        <button id="confirm-event" class="primary-button confirm-button">Готово <span aria-hidden="true">✓</span></button>
         <p id="mode-description" class="sr-only"></p>
       </section>
 
       <section id="progress-screen" class="menu-screen progress-screen" aria-labelledby="progress-title" hidden>
-        <header class="screen-heading"><button class="back-button" data-back aria-label="Назад в лобби"><svg aria-hidden="true"><use href="#i-back"/></svg></button><div><span class="eyebrow">ТВОЯ ИСТОРИЯ</span><h2 id="progress-title">ПРОГРЕСС</h2></div></header>
-        <div class="progress-banner"><svg aria-hidden="true"><use href="#i-medal"/></svg><div><h3>КАЖДЫЙ МАТЧ В СЧЁТ</h3><span id="profile-xp">0 / 300 опыта</span></div></div>
+        <header class="screen-heading"><button class="back-button" data-back aria-label="Назад в лобби"><svg aria-hidden="true"><use href="#i-back"/></svg></button><div><span class="eyebrow">Сохранено на этом устройстве</span><h2 id="progress-title">Твой прогресс</h2></div></header>
+        <div class="progress-banner"><svg aria-hidden="true"><use href="#i-medal"/></svg><div><h3>Опыт и награды</h3><span id="profile-xp">0 / 300 опыта</span></div></div>
         <div class="profile-metrics"><span>Матчи <strong id="profile-matches">0</strong></span><span>Победы <strong id="profile-wins">0</strong></span><span>Поражения <strong id="profile-losses">0</strong></span><span>Ничьи <strong id="profile-draws">0</strong></span><span>Побеждено <strong id="profile-kills">0</strong></span></div>
-        <h3>ПОСЛЕДНИЕ МАТЧИ</h3><ol id="match-history" class="match-history"></ol><p class="screen-footnote">Прогресс сохраняется в этом браузере.</p>
+        <h3>Последние матчи</h3><ol id="match-history" class="match-history"></ol><p class="screen-footnote">Прогресс сохраняется в этом браузере.</p>
       </section>
       <div hidden><label for="character">Персонаж</label><select id="character"></select><label for="mode">Режим</label><select id="mode"><option value="donations">Сбор донатов</option><option value="cottage">Захват коттеджа</option><option value="teamfight">Командный бой</option></select><label for="map">Карта</label><select id="map"></select></div>
       <p id="menu-message" class="menu-message" role="status"></p>
-      <footer class="menu-footer"><span>МЕЛЛСТРОЙ СТАРС</span><span>ЛОКАЛЬНЫЕ МАТЧИ · 3 × 3</span></footer>
+      <footer class="menu-footer"><span>Меллстрой Старс</span><span>Локальные матчи · 3 × 3</span></footer>
     </section>
 
     <section id="match-view" class="match-view" hidden aria-label="Матч">
       <header class="match-header"><span class="match-brand">MS<span aria-hidden="true">✦</span></span><span id="match-label">Сбор донатов</span><button id="pause-button" class="quiet-button">Пауза <kbd>Esc</kbd></button></header>
-      <section class="scoreboard" aria-label="Счёт команд и время матча"><div class="team green"><span>ВАША КОМАНДА</span><strong id="score-0">0</strong></div><div class="match-time"><time id="timer">03:00</time><span id="goal">Цель: 15 донатов</span></div><div class="team red"><strong id="score-1">0</strong><span>СОПЕРНИКИ</span></div></section>
+      <section class="scoreboard" aria-label="Счёт команд и время матча"><div class="team green"><span>Твоя команда</span><strong id="score-0">0</strong></div><div class="match-time"><time id="timer">03:00</time><span id="goal">Цель: 15 донатов</span></div><div class="team red"><strong id="score-1">0</strong><span>Соперники</span></div></section>
       <div class="arena-shell">
         <canvas id="game" width="960" height="640" tabindex="0" aria-label="Арена. WASD — движение; мышь — прицел; левая кнопка — атака; Q — суперспособность; Escape — пауза."></canvas>
-        <section id="result" class="result-overlay" role="dialog" aria-modal="true" aria-labelledby="result-title" aria-describedby="result-detail" hidden><div class="result-card"><span class="eyebrow">МАТЧ ЗАВЕРШЁН</span><div class="result-emblem" aria-hidden="true">✦</div><h2 id="result-title">Победа!</h2><p id="result-detail"></p><p id="result-reward" class="reward-line"></p><div class="dialog-actions"><button id="result-restart" class="primary-button">ЕЩЁ МАТЧ</button><button id="result-menu" class="quiet-button">Главное меню</button></div></div></section>
+        <section id="result" class="result-overlay" role="dialog" aria-modal="true" aria-labelledby="result-title" aria-describedby="result-detail" hidden><div class="result-card"><span class="eyebrow">Матч завершён</span><div class="result-emblem" aria-hidden="true">✦</div><h2 id="result-title">Победа!</h2><p id="result-detail"></p><p id="result-reward" class="reward-line"></p><div class="dialog-actions"><button id="result-restart" class="primary-button">Ещё матч</button><button id="result-menu" class="quiet-button">Главное меню</button></div></div></section>
       </div>
-      <section class="hud" aria-label="Состояние игрока и режима"><div class="metric health-metric"><div class="metric-title"><label for="health">ЗДОРОВЬЕ</label><span id="health-text">1000 / 1000</span></div><progress id="health" max="1000" value="1000"></progress></div><div class="metric super-metric"><div class="metric-title"><label for="super">СУПЕР <kbd>Q</kbd></label><span id="super-text">0%</span></div><progress id="super" max="100" value="0"></progress></div><div id="donations-info" class="metric objective-metric"><span>ДОНАТЫ У ТЕБЯ</span><strong id="carried">0</strong></div><div id="cottage-info" class="metric zone-metric" hidden><div class="metric-title"><label for="zone-progress">ЗАХВАТ</label><span id="zone-text">Зона пуста</span></div><progress id="zone-progress" max="100" value="0"></progress><span id="owner" class="muted">Владелец: нет</span></div></section>
+      <section class="hud" aria-label="Состояние игрока и режима"><div class="metric health-metric"><div class="metric-title"><label for="health">Здоровье</label><span id="health-text">1000 / 1000</span></div><progress id="health" max="1000" value="1000"></progress></div><div class="metric ammo-metric"><div class="metric-title"><span>Выстрелы</span><span id="ammo-text">3 / 3</span></div><div id="ammo-slots" class="ammo-slots" role="img" aria-label="Боезапас: 3 из 3"></div><span id="reload-text" class="reload-text">Полный запас</span></div><div class="metric super-metric"><div class="metric-title"><label for="super">Супер <kbd>Q</kbd></label><span id="super-text">0%</span></div><progress id="super" max="100" value="0"></progress></div><div id="donations-info" class="metric objective-metric"><span>Твои донаты</span><strong id="carried">0</strong></div><div id="cottage-info" class="metric zone-metric" hidden><div class="metric-title"><label for="zone-progress">Захват</label><span id="zone-text">Зона пуста</span></div><progress id="zone-progress" max="100" value="0"></progress><span id="owner" class="muted">Владелец: нет</span></div></section>
       <footer class="match-footer"><span id="status" role="status">Загрузка…</span><span id="stats">Побеждено: 0 · Смертей: 0</span></footer><p id="message" class="match-message" role="status"></p><p id="rules" class="sr-only"></p>
     </section>
 
-    <section id="pause-dialog" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="pause-title" hidden><div class="modal-card"><span class="eyebrow">ПЕРЕДЫШКА</span><h2 id="pause-title">Пауза</h2><p class="muted">Матч остановлен. Можно спокойно поменять настройки.</p><div class="button-stack"><button id="resume-match" class="primary-button">ПРОДОЛЖИТЬ</button><button id="pause-settings" class="quiet-button">Настройки</button><button id="restart" class="quiet-button">Начать матч заново</button><button id="leave-match" class="quiet-button">Главное меню</button></div><p class="muted small">За выход до завершения матча награда не начисляется.</p></div></section>
-    <section id="settings-dialog" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="settings-title" hidden><div class="modal-card settings-card"><span class="eyebrow">ПОД СЕБЯ</span><h2 id="settings-title">Настройки</h2><label class="field-label" for="nickname">Никнейм</label><input id="nickname" type="text" maxlength="24" autocomplete="off"><div class="settings-row"><label for="sound">Звуки</label><input id="sound" type="checkbox" checked></div><div class="settings-row"><label for="music">Музыка</label><input id="music" type="checkbox"></div><label class="volume-label" for="volume">Громкость <output id="volume-value">45%</output></label><input id="volume" type="range" min="0" max="100" value="45"><div class="settings-row"><label for="reduced-motion">Меньше эффектов</label><input id="reduced-motion" type="checkbox"></div><div class="settings-row"><label for="enemy-fire">Атаки ботов</label><input id="enemy-fire" type="checkbox" checked></div><div class="settings-row"><label for="enhancements">Случайные усиления</label><input id="enhancements" type="checkbox" checked></div><p class="muted small">Случайные усиления включаются со следующего матча. WASD — ходьба, ЛКМ — атака, Q — супер, Esc — пауза.</p><button id="close-settings" class="primary-button">ГОТОВО</button></div></section>
+    <section id="pause-dialog" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="pause-title" hidden><div class="modal-card"><span class="eyebrow">Можно выдохнуть</span><h2 id="pause-title">Пауза</h2><p class="muted">Матч остановлен. Можно спокойно поменять настройки.</p><div class="button-stack"><button id="resume-match" class="primary-button">Продолжить</button><button id="pause-settings" class="quiet-button">Настройки</button><button id="restart" class="quiet-button">Начать матч заново</button><button id="leave-match" class="quiet-button">Главное меню</button></div><p class="muted small">За выход до завершения матча награда не начисляется.</p></div></section>
+    <section id="settings-dialog" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="settings-title" hidden><div class="modal-card settings-card"><span class="eyebrow">Звук и управление</span><h2 id="settings-title">Настройки</h2><label class="field-label" for="nickname">Никнейм</label><input id="nickname" type="text" maxlength="24" autocomplete="off"><div class="settings-row"><label for="sound">Звуки</label><input id="sound" type="checkbox" checked></div><div class="settings-row"><label for="music">Музыка</label><input id="music" type="checkbox"></div><label class="volume-label" for="volume">Громкость <output id="volume-value">45%</output></label><input id="volume" type="range" min="0" max="100" value="45"><div class="settings-row"><label for="reduced-motion">Меньше эффектов</label><input id="reduced-motion" type="checkbox"></div><div class="settings-row"><label for="enemy-fire">Атаки ботов</label><input id="enemy-fire" type="checkbox" checked></div><div class="settings-row"><label for="enhancements">Случайные усиления</label><input id="enhancements" type="checkbox" checked></div><p class="muted small">Случайные усиления включаются со следующего матча. WASD — ходьба, ЛКМ — атака, Q — супер, Esc — пауза.</p><button id="close-settings" class="primary-button">Готово</button></div></section>
   </main>
   <script src="js/camera.js"></script>
   <script src="js/input.js"></script>

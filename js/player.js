@@ -10,6 +10,8 @@ class Player {
     this.image = null; this.photoFallback = false; this.animator = new SpriteAnimator(config.animation);
     this.reset();
   }
+  get maxAmmo() { return this.config.attack.ammo; }
+  get reloadProgress() { return this.ammo < this.maxAmmo ? this.reloadElapsed / this.config.attack.reload : 0; }
   get center() { return { x: this.x + this.width / 2, y: this.y + this.height / 2 }; }
   reset({ preserveSuper = false } = {}) {
     const charge = preserveSuper ? (this.superCharge || 0) : 0;
@@ -18,6 +20,7 @@ class Player {
     this.health = this.maxHealth; this.alive = true;
     this.direction = 'down'; this.moving = false;
     this.cooldownRemaining = 0; this.respawnRemaining = 0;
+    this.ammo = this.maxAmmo; this.reloadElapsed = 0;
     this.superCharge = charge; this.hitFlash = 0;
     this.buffs = {};
     this.aimDirection = { x: this.team === 0 ? 1 : -1, y: 0 };
@@ -33,7 +36,16 @@ class Player {
       buff.remaining = Math.max(0, buff.remaining - dt);
       if (buff.remaining === 0) delete this.buffs[kind];
     }
-    if (this.alive) return false;
+    if (this.alive) {
+      // Restore one charge at a time. Shooting does not restart an in-progress refill.
+      if (this.ammo < this.maxAmmo) {
+        const elapsed = this.reloadElapsed + dt;
+        const restored = Math.floor((elapsed + 1e-9) / this.config.attack.reload);
+        this.ammo = Math.min(this.maxAmmo, this.ammo + restored);
+        this.reloadElapsed = this.ammo === this.maxAmmo ? 0 : Math.max(0, elapsed - restored * this.config.attack.reload);
+      }
+      return false;
+    }
     this.respawnRemaining = Math.max(0, this.respawnRemaining - dt);
     if (this.respawnRemaining === 0) { this.reset({ preserveSuper: true }); return true; }
     return false;
@@ -60,7 +72,8 @@ class Player {
     this.aimDirection = { x: dx / length, y: dy / length }; return true;
   }
   attack(target) {
-    if (!this.alive || this.cooldownRemaining > 0 || !this.aimAt(target)) return null;
+    if (!this.alive || this.ammo <= 0 || this.cooldownRemaining > 0 || !this.aimAt(target)) return null;
+    this.ammo--;
     this.cooldownRemaining = this.config.attack.cooldown;
     const attack = this.config.attack, count = Math.max(1, attack.count || 1);
     const angle = Math.atan2(this.aimDirection.y, this.aimDirection.x), shots = [];

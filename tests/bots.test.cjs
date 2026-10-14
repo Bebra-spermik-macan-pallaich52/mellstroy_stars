@@ -48,8 +48,8 @@ test('bots use shared movement speed with normalized diagonal input', () => {
   const { subject, body } = single(field);
   const from = body.center;
   step(subject, 0.2);
-  assert.ok(Math.abs(Math.hypot(body.center.x - from.x, body.center.y - from.y) - 40) < 1e-8);
-  assert.equal(body.config.speed, 200);
+  assert.ok(Math.abs(Math.hypot(body.center.x - from.x, body.center.y - from.y) - 30) < 1e-8);
+  assert.equal(body.config.speed, 150);
 });
 
 test('closest donation is collected through mode logic instead of modifying scores', () => {
@@ -182,7 +182,7 @@ test('all five real-map spawn positions can collect a center donation', () => {
   for (const [index, spawn] of arena.teamSpawns.flat().slice(1).entries()) {
     const { subject, bot, body } = single(arena, spawn);
     bot.index = index; subject.manager.mode.items.push(item());
-    run(subject, 9);
+    run(subject, 12);
     assert.equal(subject.manager.mode.carried.get(body), 1, `Spawn ${index} collected a donation`);
   }
 });

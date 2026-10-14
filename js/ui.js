@@ -4,6 +4,7 @@ class UI {
   constructor() {
     const byId = id => document.getElementById(id);
     this.health = byId('health'); this.healthText = byId('health-text');
+    this.ammoSlots = byId('ammo-slots'); this.ammoText = byId('ammo-text'); this.reloadText = byId('reload-text');
     this.super = byId('super'); this.superText = byId('super-text');
     this.enemyFire = byId('enemy-fire'); this.modeSelect = byId('mode');
     this.status = byId('status'); this.message = byId('message'); this.stats = byId('stats');
@@ -24,6 +25,20 @@ class UI {
     const mode = manager.mode;
     this.health.max = player.maxHealth; this.health.value = player.health;
     this.super.value = player.superCharge;
+    if (this.ammoSlots.children.length !== player.maxAmmo) {
+      this.ammoSlots.replaceChildren(...Array.from({ length: player.maxAmmo }, () => {
+        const slot = document.createElement('span'); slot.className = 'ammo-slot'; return slot;
+      }));
+    }
+    [...this.ammoSlots.children].forEach((slot, index) => {
+      const fill = !player.alive ? 0 : index < player.ammo ? 1 : index === player.ammo ? player.reloadProgress : 0;
+      slot.style.setProperty('--fill', `${fill * 100}%`);
+      slot.classList.toggle('loaded', index < player.ammo && player.alive);
+    });
+    this.ammoSlots.classList.toggle('empty', player.ammo === 0 || !player.alive);
+    this.ammoSlots.setAttribute('aria-label', `Боезапас: ${player.alive ? player.ammo : 0} из ${player.maxAmmo}`);
+    this.text(this.ammoText, `${player.alive ? player.ammo : 0} / ${player.maxAmmo}`);
+    this.text(this.reloadText, !player.alive ? 'Пополнится при возрождении' : player.ammo === player.maxAmmo ? 'Полный запас' : `+1 через ${Math.max(0, player.config.attack.reload - player.reloadElapsed).toFixed(1)} с`);
     this.text(this.healthText, `${Math.ceil(player.health)} / ${player.maxHealth}`);
     this.super.classList.toggle('ready', player.superCharge >= 100 && player.alive);
     this.text(this.superText, player.superCharge >= 100 ? 'ГОТОВА · Q' : `${Math.floor(player.superCharge)}%`);
@@ -56,7 +71,7 @@ class UI {
     const finished = manager.state === 'finished';
     const state = finished ? 'Матч завершён' : paused ? 'Пауза' : !player.alive
       ? `Возрождение через ${player.respawnRemaining.toFixed(1)} с`
-      : player.cooldownRemaining > 0 ? `Перезарядка: ${player.cooldownRemaining.toFixed(1)} с` : 'WASD · ЛКМ · Q — супер';
+      : player.ammo === 0 ? 'Нет зарядов — идёт перезарядка' : 'WASD · ЛКМ · Q — супер';
     this.text(this.status, state); this.text(this.message, game.message);
     if (finished) {
       const result = manager.result;

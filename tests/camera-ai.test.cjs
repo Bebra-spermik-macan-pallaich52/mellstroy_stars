@@ -68,7 +68,7 @@ test('target scoring can finish a wounded visible enemy and prioritize a donatio
 });
 test('aim leads observed movement and discards teleport velocity',()=>{
  const sim=battle(),bot=addBot(sim),actor=sim.actors[0],enemy=sim.actors[3];actor.x=100;actor.y=200;enemy.x=400;enemy.y=200;
- bot.observe(.1,sim.world);enemy.y+=20;bot.observe(.1,sim.world);assert(bot.aimTarget(enemy,sim.map).y>enemy.center.y+40);
+ bot.observe(.1,sim.world);enemy.y+=enemy.config.speed*.1;bot.observe(.1,sim.world);assert(bot.aimTarget(enemy,sim.map).y>enemy.center.y+enemy.config.speed*.2);
  enemy.y+=500;bot.observe(.1,sim.world);close(bot.aimTarget(enemy,sim.map).y,enemy.center.y);
 });
 test('predictive aiming falls back to a clear direct shot instead of leading into a wall',()=>{

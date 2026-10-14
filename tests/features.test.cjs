@@ -22,11 +22,11 @@ function run(sim, seconds, command = {}, dt = 1 / 60) {
   for (let elapsed = 0; elapsed < seconds - 1e-9; elapsed += dt) sim.step(Math.min(dt, seconds - elapsed), command);
 }
 
-test('five definitions have independent stats, real powers, and unchanged baseline fixtures', () => {
+test('five definitions have independent stats, real powers, and slower shared movement', () => {
   assert.equal(characterDefinitions.length, 5);
   assert.equal(new Set(characterDefinitions.map(item => item.super.kind)).size, 5);
-  assert.equal(getCharacterConfig(1).maxHealth, 1300); assert.equal(getCharacterConfig(4).speed, 210);
-  assert.equal(characterConfig.maxHealth, 1000); assert.equal(characterConfig.speed, 200);
+  assert.equal(getCharacterConfig(1).maxHealth, 1300); assert.equal(getCharacterConfig(4).speed, 157.5);
+  assert.equal(characterConfig.maxHealth, 1000); assert.equal(characterConfig.speed, 150);
   const a = getCharacterConfig(0), b = getCharacterConfig(0); a.attack.damage = 1;
   assert.equal(b.attack.damage, 200); assert.equal(characterConfig.attack.damage, 200);
 });
@@ -201,8 +201,8 @@ test('random pickups use reproducible seeds, free positions, a count cap, and bo
 test('simulation inputs normalize diagonal movement and reject non-finite values without huge tab jumps', () => {
   const a = make(), b = make(); const start = a.actors[0].center;
   a.step(0.25, { 0: { x: 1, y: 0 } }); b.step(0.25, { 0: { x: 1, y: 1 } });
-  close(a.actors[0].center.x - start.x, 50);
-  close(Math.hypot(b.actors[0].center.x - start.x, b.actors[0].center.y - start.y), 50);
+  close(a.actors[0].center.x - start.x, 37.5);
+  close(Math.hypot(b.actors[0].center.x - start.x, b.actors[0].center.y - start.y), 37.5);
   const actor = a.actors[0], x = actor.x;
   a.step(100, { 0: { x: NaN, y: Infinity, fire: true, aim: { x: NaN, y: 1 } } });
   assert.equal(actor.x, x); assert.ok(Number.isFinite(actor.y)); close(a.elapsed, 0.5);

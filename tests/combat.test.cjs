@@ -19,7 +19,7 @@ test('normalized movement has the same straight and diagonal speed', () => {
   const a = player(100, 100), b = player(100, 100);
   a.update(1, { direction: () => ({ x: 1, y: 0 }) }, map());
   b.update(1, { direction: () => ({ x: Math.SQRT1_2, y: Math.SQRT1_2 }) }, map());
-  close(a.x - 100, 200); close(Math.hypot(b.x - 100, b.y - 100), 200);
+  close(a.x - 100, 150); close(Math.hypot(b.x - 100, b.y - 100), 150);
 });
 test('character cannot cross thin walls and can slide along them', () => {
   const a = player(), world = map(); world.walls = [{ x: 150, y: 0, width: 1, height: 700 }];

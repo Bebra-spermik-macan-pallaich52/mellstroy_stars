@@ -142,7 +142,7 @@ class MenuController {
   paintMapPreview(canvas, mapId) {
     const map = createMap(mapId), ctx = canvas.getContext('2d');
     const colors = { arena: ['#d8b579', '#975d3c'], courtyard: ['#98a679', '#455f4d'], crossroads: ['#b4a09c', '#685168'] }[map.id];
-    ctx.fillStyle = '#30212e'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = '#ded9cc'; ctx.fillRect(0, 0, canvas.width, canvas.height);
     const scale = Math.min((canvas.width - 24) / map.width, (canvas.height - 14) / map.height);
     ctx.save(); ctx.translate((canvas.width - map.width * scale) / 2, 7); ctx.scale(scale, scale);
     ctx.fillStyle = colors[0]; ctx.fillRect(0, 0, map.width, map.height);
@@ -183,7 +183,7 @@ class MenuController {
       const diagram = document.createElement('canvas'); diagram.width = 360; diagram.height = 160; this.paintMapPreview(diagram, map.id);
       const badge = this.badge(index, 1); badge.classList.add('map-badge'); preview.append(diagram, badge);
       const name = document.createElement('strong'); name.textContent = map.name;
-      const caption = document.createElement('small'); caption.textContent = `${map.width} × ${map.height} · ${['РЫНОЧНЫЕ УЛИЦЫ', 'САДОВЫЕ ДВОРИКИ', 'ПЕРЕУЛКИ'][index]}`;
+      const caption = document.createElement('small'); caption.textContent = `${map.width} × ${map.height} · ${['рыночные улицы', 'садовые дворики', 'переулки'][index]}`;
       button.append(preview, name, caption);
       button.addEventListener('click', () => { this.byId('map').value = map.id; this.updateChoices(); this.byId('map-cards').querySelector(`[data-map="${map.id}"]`).focus({ preventScroll: true }); });
       maps.append(button);
@@ -210,7 +210,7 @@ class MenuController {
 
   renderCharacters() {
     const holder = this.byId('character-cards'); holder.replaceChildren();
-    const roles = ['СТРЕЛОК', 'ПОДДЕРЖКА', 'ТАНК', 'ЗАЩИТНИК', 'ШТУРМОВИК'];
+    const roles = ['Стрелок', 'Поддержка', 'Танк', 'Защитник', 'Штурмовик'];
     this.definitions.forEach((definition, index) => {
       const unlocked = this.profile.isUnlocked(index), selected = this.profile.profile.selectedCharacter === index;
       const card = document.createElement('article'); card.className = `character-card fighter-${index}${selected ? ' selected' : ''}${unlocked ? '' : ' locked'}`;
@@ -219,21 +219,23 @@ class MenuController {
       const portrait = document.createElement('canvas'); portrait.width = 300; portrait.height = 240; portrait.className = 'character-portrait'; portrait.setAttribute('aria-hidden', 'true');
       this.paintPortrait(portrait, index);
       const name = document.createElement('strong'); name.className = 'character-name'; name.textContent = definition.name;
-      const marker = document.createElement('span'); marker.className = 'character-marker'; marker.textContent = selected ? '✓ ВЫБРАН' : unlocked ? 'ВЫБРАТЬ' : 'ЗАКРЫТ';
+      const marker = document.createElement('span'); marker.className = 'character-marker'; marker.textContent = selected ? '✓ Выбран' : unlocked ? 'Выбрать' : 'Закрыт';
       pick.append(role, portrait, name, marker);
       pick.addEventListener('click', () => {
         if (unlocked) { this.selectCharacter(index); this.openScreen('lobby'); }
         else this.byId('menu-message').textContent = `${definition.name}: открывается за ${definition.unlockCost} монет. Завершай матчи, чтобы получать награды.`;
       });
       card.append(pick);
-      const unlock = document.createElement('button'); unlock.className = 'character-unlock'; unlock.type = 'button'; unlock.textContent = unlocked ? `${definition.maxHealth} HP · ${definition.attack.count > 1 ? definition.attack.count + '×' : ''}${definition.attack.damage} УРОН` : `ОТКРЫТЬ · ${definition.unlockCost} МОНЕТ`;
+      const unlock = document.createElement('button'); unlock.className = 'character-unlock'; unlock.type = 'button'; unlock.textContent = unlocked ? `${definition.maxHealth} HP · ${definition.attack.count > 1 ? definition.attack.count + '×' : ''}${definition.attack.damage} урона` : `Открыть · ${definition.unlockCost} монет`;
       if (unlocked) { unlock.disabled = true; unlock.tabIndex = -1; }
       else unlock.addEventListener('click', () => {
         const result = this.profile.unlockCharacter(index);
         this.byId('menu-message').textContent = result.message || '';
         this.renderProfile(); this.renderCharacters();
       });
-      card.append(unlock); holder.append(card);
+      const supply = document.createElement('p'); supply.className = 'fighter-supply';
+      supply.textContent = `${definition.attack.ammo} заряда · +1 / ${String(definition.attack.reload).replace('.', ',')} с`;
+      card.append(supply, unlock); holder.append(card);
     });
     const selected = this.profile.profile.selectedCharacter;
     this.byId('character').value = selected;
@@ -242,6 +244,7 @@ class MenuController {
     this.byId('character-name').parentElement.classList.toggle('long-name', definition.name.length > 15);
     this.byId('character-description').textContent = `${definition.maxHealth} здоровья / ${definition.attack.name}: ${definition.attack.count > 1 ? definition.attack.count + '×' : ''}${definition.attack.damage} урона`;
     this.byId('character-super').textContent = definition.description;
+    this.byId('character-ammo').textContent = `${definition.attack.ammo} заряда · +1 за ${String(definition.attack.reload).replace('.', ',')} с`;
     const hero = this.byId('hero-character'); hero.setAttribute('aria-label', `Выбранный персонаж: ${definition.name}`);
     this.paintPortrait(hero, selected, true);
   }

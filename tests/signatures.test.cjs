@@ -32,7 +32,7 @@ test('a delayed shot cannot leak into a new life even with an accelerated respaw
  assert(sim.actors[0].alive);assert.equal(sim.pendingShots.length,0);assert.equal(sim.projectiles.length,1);
 });
 test('flying and pending shots share the same global cap',()=>{
- const sim=make(4);for(let i=0;i<200;i++){sim.actors[0].cooldownRemaining=0;fire(sim,{x:600,y:132});}
+ const sim=make(4);for(let i=0;i<200;i++){sim.actors[0].cooldownRemaining=0;sim.actors[0].ammo=sim.actors[0].maxAmmo;fire(sim,{x:600,y:132});}
  assert.equal(sim.projectiles.length+sim.pendingShots.length,160);run(sim,.12);assert(sim.projectiles.length<=160);assert.equal(sim.pendingShots.length,0);
 });
 test('Drun sphere hits two different enemies once and stops at the second',()=>{
