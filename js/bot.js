@@ -4,7 +4,7 @@
 const botConfig = {
   replanInterval: 0.45, obstacleMargin: 3, waypointTolerance: 0.1,
   reservationPenalty: 120, waitingRadius: 100, stuckTime: 0.65,
-  observationInterval: 0.1, retreatHealth: 0.32, separationRadius: 58, dodgeHorizon: 0.55
+  observationInterval: 0.1, recoverHealth: 0.45, returnHealth: 0.85, separationRadius: 58, dodgeHorizon: 0.55
 };
 
 const botNavigationGraphs = new WeakMap();
@@ -28,7 +28,7 @@ class Bot {
     this.stuckElapsed = 0;
     this.wasAlive = this.actor.alive;
     this.manager = null;
-    this.state = 'objective'; this.combatEnabled = true;
+    this.state = 'objective'; this.combatEnabled = true; this.recovering = false;
     this.elapsed = 0; this.observationElapsed = 0; this.observations = new Map();
     this.underFire = 0; this.lastHealth = this.actor.health;
     this.targetPowerup = null; this.dodgeRemaining = 0; this.dodgeCooldown = 0; this.dodgeVector = null;
@@ -238,21 +238,32 @@ class Bot {
   tacticalObjective(world, enemy) {
     const from = this.actor.center, health = this.actor.health / this.actor.maxHealth;
     const threat = enemy || this.targetEnemy;
-    const danger = threat && this.distance(from, threat.center) < 650;
+    if (this.recovering) {
+      const heals = (world.powerups || []).filter(item => item.kind === 'heal' && this.distance(from, item) < 650)
+        .sort((a, b) => this.distance(from, a) - this.distance(from, b));
+      for (const item of heals) if (this.planTo(item, world.map, item)) { this.state = 'heal'; this.targetPowerup = item; return true; }
+      const threats = world.actors.filter(actor => actor.alive && actor.team !== this.actor.team && this.distance(from, actor.center) < 900);
+      const exposed = point => threats.filter(actor => this.distance(point, actor.center) < actor.config.attack.range + 90 && this.lineOfFire(actor.center, point, world.map));
+      this.state = 'recover';
+      if (!exposed(from).length) { this.path = []; this.goal = { ...from }; return true; }
+      const nav = this.prepareNavigation(world.map, this.config.obstacleMargin);
+      const candidates = [...nav.nodes, { x: this.actor.spawn.x + this.actor.width / 2, y: this.actor.spawn.y + this.actor.height / 2 }]
+        .filter(point => this.distance(from, point) > 45 && this.distance(from, point) < 700)
+        .map(point => ({ point, score: exposed(point).length * 1000 + this.distance(from, point) * 0.4
+          - Math.min(700, ...threats.map(actor => this.distance(point, actor.center))) * 0.4 }))
+        .sort((a, b) => a.score - b.score);
+      for (const { point } of candidates.slice(0, 8)) if (this.planTo(point, world.map)) return true;
+      if (threat) {
+        const distance = this.distance(from, threat.center) || 1;
+        if (this.planTo({ x: from.x + (from.x - threat.center.x) / distance * 300, y: from.y + (from.y - threat.center.y) / distance * 300 }, world.map)) return true;
+      }
+      this.path = []; this.goal = { ...from }; return true;
+    }
     // A real health pickup is useful even without an opponent immediately ahead.
     if (health < 0.72) {
       const heals = (world.powerups || []).filter(item => item.kind === 'heal' && this.distance(from, item) < 650)
         .sort((a, b) => this.distance(from, a) - this.distance(from, b));
       for (const item of heals) if (this.planTo(item, world.map, item)) { this.state = 'heal'; this.targetPowerup = item; return true; }
-    }
-    if (danger && health < this.config.retreatHealth && this.underFire > 0) {
-      const nav = this.prepareNavigation(world.map, this.config.obstacleMargin);
-      const candidates = nav.nodes.filter(point => this.distance(from, point) > 55 && this.distance(from, point) < 500)
-        .map(point => ({ point, score: (this.lineOfFire(threat.center, point, world.map) ? 0 : 400) + this.distance(point, threat.center) * 0.6 - this.distance(from, point) * 0.8 }))
-        .sort((a, b) => b.score - a.score);
-      for (const { point } of candidates.slice(0, 5)) if (this.planTo(point, world.map)) { this.state = 'retreat'; return true; }
-      const distance = this.distance(from, threat.center) || 1;
-      if (this.planTo({ x: from.x + (from.x - threat.center.x) / distance * 230, y: from.y + (from.y - threat.center.y) / distance * 230 }, world.map)) { this.state = 'retreat'; return true; }
     }
     if (!enemy) return false;
     const carried = world.manager.mode.carried?.get(this.actor) || 0;
@@ -285,7 +296,7 @@ class Bot {
     const { map, manager } = world;
     this.targetItem = null; this.targetPowerup = null; this.state = 'objective';
     const enemy = this.selectEnemy(world);
-    if (this.combatEnabled && this.tacticalObjective(world, enemy)) return;
+    if ((this.combatEnabled || this.recovering) && this.tacticalObjective(world, enemy)) return;
     if (manager.modeId === 'donations') {
       const position = this.actor.center;
       const ranked = manager.mode.items.map(item => {
@@ -392,6 +403,9 @@ class Bot {
     this.wasAlive = this.actor.alive;
     if (!this.actor.alive || !Number.isFinite(dt) || !(dt > 0)) return null;
     this.combatEnabled = allowFire; this.observe(dt, world);
+    const recovering = this.recovering ? this.actor.health < this.actor.maxHealth * this.config.returnHealth
+      : this.actor.health < this.actor.maxHealth * this.config.recoverHealth;
+    if (recovering !== this.recovering) { this.recovering = recovering; this.replanRemaining = 0; }
     this.replanRemaining = Math.max(0, this.replanRemaining - dt);
     if (this.navigation && this.navigation.version !== (world.map.navVersion || 0)) {
       this.navigationCache = []; this.path = []; this.navigation = null; this.replanRemaining = 0;
@@ -423,6 +437,6 @@ class Bot {
     const enemy = this.selectEnemy(world);
     const aim = enemy ? this.aimTarget(enemy, world.map) : null;
     if (aim) this.actor.aimAt(aim);
-    return allowFire && aim ? this.actor.attack(aim) : null;
+    return allowFire && !this.recovering && aim ? this.actor.attack(aim) : null;
   }
 }

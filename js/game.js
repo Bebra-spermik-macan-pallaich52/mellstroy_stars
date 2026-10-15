@@ -69,7 +69,7 @@ class Game {
     // Build the shared graph during match setup, before the first movement frame.
     for (const bot of this.bots) bot.prepareNavigation(this.map, bot.config.obstacleMargin);
     this.attachImages();
-    this.camera.update(this.player.center, this.map, 0, true);
+    this.camera.update(this.player.center, this.map, 0, true); this.respawnLife = null;
     this.stats = { kills: 0, deaths: 0 };
     this.matchId = `${Date.now()}-${++this.matchCounter}-${Math.random().toString(36).slice(2)}`;
     this.finishedProcessed = false;
@@ -147,6 +147,27 @@ class Game {
     }
   }
 
+  updateCamera(dt) {
+    if (!this.player) return;
+    if (!this.player.alive) {
+      if (this.respawnLife !== this.player.lifeId) {
+        this.respawnLife = this.player.lifeId;
+        this.camera.flyTo({ x: this.player.spawn.x + this.player.width / 2, y: this.player.spawn.y + this.player.height / 2 },
+          this.map, this.profile?.settings.reducedMotion ? 0 : 1.2);
+      }
+      this.camera.updateFlight(dt);
+    } else { this.respawnLife = null; this.camera.update(this.player.center, this.map, dt); }
+  }
+
+  drawSpawnMarker() {
+    if (this.player.alive || this.manager.state !== 'playing') return;
+    const x = this.player.spawn.x + this.player.width / 2, y = this.player.spawn.y + this.player.height - 3;
+    this.ctx.save(); this.ctx.fillStyle = 'rgba(87,211,97,.18)'; this.ctx.strokeStyle = '#a4f18c'; this.ctx.lineWidth = 3;
+    this.ctx.beginPath(); this.ctx.ellipse(x, y, 37, 19, 0, 0, Math.PI * 2); this.ctx.fill(); this.ctx.stroke();
+    this.ctx.font = 'bold 13px sans-serif'; this.ctx.textAlign = 'center'; this.ctx.lineWidth = 3; this.ctx.strokeStyle = '#263b27';
+    this.ctx.strokeText('Точка возрождения', x, y - 34); this.ctx.fillStyle = '#c8ffb2'; this.ctx.fillText('Точка возрождения', x, y - 34); this.ctx.restore();
+  }
+
   drawPowerups() {
     const icons = { heal: '+', damage: '↑', shield: '◇' };
     for (const pickup of this.sim.powerups || []) {
@@ -186,34 +207,30 @@ class Game {
     this.ctx.translate(-this.camera.x, -this.camera.y);
     this.map.draw(this.ctx, this.camera);
     this.manager.mode.draw(this.ctx);
-    this.drawPowerups();
+    this.drawPowerups(); this.drawSpawnMarker();
     if (this.manager.state === 'playing' && this.player.alive && this.input.aim()) {
       const from = this.player.center, direction = this.player.aimDirection;
       this.ctx.save(); this.ctx.strokeStyle = 'rgba(45,105,140,0.7)'; this.ctx.setLineDash([5, 5]);
       this.ctx.beginPath(); this.ctx.moveTo(from.x, from.y);
       this.ctx.lineTo(from.x + direction.x * 85, from.y + direction.y * 85); this.ctx.stroke(); this.ctx.restore();
     }
-    const labels = [];
-    for (const actor of this.actors.filter(actor => this.camera.visible(actor)).sort((a, b) => a.y - b.y)) {
-      const name = `${characterImages[actor.characterIndex].name}${actor.isHuman ? ' · вы' : ''}`;
-      this.ctx.font = '12px system-ui';
-      const width = this.ctx.measureText(name).width + 4;
-      const rect = { x: actor.center.x - width / 2, y: actor.y - 32, width, height: 14 };
-      const crowded = this.actors.some(other => other !== actor && other.alive && overlaps(rect,
-        { x: other.x - 3, y: other.y - 15, width: other.width + 6, height: other.height + 15 }));
-      const showLabel = actor.isHuman || (!crowded && !labels.some(other => overlaps(rect, other)));
-      if (actor.alive && showLabel) labels.push(rect);
-      actor.draw(this.ctx, showLabel);
-      if (actor.alive && this.modeId === 'donations') {
+    const visibleActors = this.actors.filter(actor => this.camera.visible(actor));
+    for (const actor of visibleActors.sort((a, b) => a.y - b.y)) {
+      actor.draw(this.ctx, false, { local: actor === this.player, localTeam: this.player.team,
+        time: this.sim.elapsed, reducedMotion: this.profile?.settings.reducedMotion });
+      if (actor === this.player && actor.alive && this.modeId === 'donations') {
         const held = this.manager.mode.carried.get(actor) || 0;
         if (held) {
           this.ctx.fillStyle = '#ffd479'; this.ctx.font = '12px system-ui'; this.ctx.textAlign = 'center';
-          this.ctx.fillText(`${held} дон.`, actor.center.x, actor.y + actor.height + 18);
+          this.ctx.fillText(`${held} дон.`, actor.center.x, actor.y + actor.height + 42);
         }
       }
     }
     for (const shot of this.projectiles) shot.draw(this.ctx);
     this.effects.draw(this.ctx);
+    // World-attached labels render last; never reveal another actor's ammo or partial super.
+    for (const actor of visibleActors.filter(actor => actor !== this.player)) actor.drawVitals(this.ctx, { local: false, localTeam: this.player.team, view: this.camera });
+    if (this.camera.visible(this.player)) this.player.drawVitals(this.ctx, { local: true, localTeam: this.player.team, nickname: this.profile?.settings.nickname, view: this.camera });
     this.ctx.restore();
     this.drawObjectiveHint();
     this.ui.render(this, this.paused || document.hidden || !document.hasFocus());
@@ -226,7 +243,7 @@ class Game {
     const focused = !document.hidden && document.hasFocus();
     if (this.active && !this.paused && focused) {
       this.update(dt);
-      if (this.player) this.camera.update(this.player.center, this.map, dt);
+      this.updateCamera(dt);
       this.effects.update(dt);
     } else this.input.clear();
     this.draw();

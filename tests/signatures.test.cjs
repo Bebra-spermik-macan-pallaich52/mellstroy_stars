@@ -74,7 +74,8 @@ test('Fog super uses five needles with exactly one ricochet and cannot hit allie
 });
 test('Kotost super heals immediately and regenerates only its affected live allies for three seconds',()=>{
  const sim=make(1),actor=sim.actors[0],ally=sim.actors[1],enemy=sim.actors[3];ally.x=130;ally.y=100;enemy.x=150;enemy.y=100;
- [actor,ally,enemy].forEach(a=>a.takeDamage(800));actor.superCharge=100;actor.useSuper(actor.center,sim.world);
+ // Isolate the timed super from the separate passive out-of-combat recovery.
+ [actor,ally,enemy].forEach(a=>{a.config={...a.config,recovery:{delay:100,rate:.13}};a.takeDamage(800);});actor.superCharge=100;actor.useSuper(actor.center,sim.world);
  assert.equal(actor.health,actor.maxHealth-350);run(sim,3.5);close(actor.health,actor.maxHealth-170);close(ally.health,ally.maxHealth-170);assert.equal(enemy.health,enemy.maxHealth-800);assert.equal(actor.buffs.regen,undefined);assert.equal(actor.superCharge,0);
 });
 test('partial and full super charge survive death and respawn for every character',()=>{

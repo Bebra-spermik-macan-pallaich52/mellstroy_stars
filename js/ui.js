@@ -3,6 +3,7 @@
 class UI {
   constructor() {
     const byId = id => document.getElementById(id);
+    this.respawnOverlay = byId('respawn-overlay'); this.respawnSeconds = byId('respawn-seconds'); this.respawnCaption = byId('respawn-caption');
     this.health = byId('health'); this.healthText = byId('health-text');
     this.ammoSlots = byId('ammo-slots'); this.ammoText = byId('ammo-text'); this.reloadText = byId('reload-text');
     this.super = byId('super'); this.superText = byId('super-text');
@@ -22,8 +23,13 @@ class UI {
   score(value) { return String(Math.round(value * 100) / 100); }
   render(game, paused) {
     const { player, manager } = game;
-    if (!player || !manager || !game.active) { this.result.hidden = true; return; }
+    if (!player || !manager || !game.active) { this.result.hidden = true; this.respawnOverlay.hidden = true; return; }
     const mode = manager.mode;
+    this.respawnOverlay.hidden = player.alive || manager.state !== 'playing';
+    if (!this.respawnOverlay.hidden) {
+      this.text(this.respawnSeconds, Math.max(1, Math.ceil(player.respawnRemaining - 1e-8)));
+      this.text(this.respawnCaption, paused ? 'Пауза' : game.camera.flight ? 'Возвращаемся к точке появления' : 'Здесь ты вернёшься в бой');
+    }
     this.health.max = player.maxHealth; this.health.value = player.health;
     this.super.value = player.superCharge;
     if (this.ammoSlots.children.length !== player.maxAmmo) {
@@ -72,7 +78,7 @@ class UI {
     const finished = manager.state === 'finished';
     const state = finished ? 'Матч завершён' : paused ? 'Пауза' : !player.alive
       ? `Возрождение через ${player.respawnRemaining.toFixed(1)} с`
-      : player.ammo === 0 ? 'Нет зарядов — идёт перезарядка' : 'WASD · ЛКМ · Q — супер';
+      : player.passiveHealing ? 'Восстановление здоровья · не атакуй' : player.ammo === 0 ? 'Нет зарядов — идёт перезарядка' : 'WASD · ЛКМ · Q — супер · 3 с без боя — отхил';
     this.text(this.status, state); this.text(this.message, game.message);
     if (finished) {
       const result = manager.result;

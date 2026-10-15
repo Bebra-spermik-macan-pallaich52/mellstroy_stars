@@ -22,6 +22,7 @@ class Player {
     this.cooldownRemaining = 0; this.respawnRemaining = 0;
     this.ammo = this.maxAmmo; this.reloadElapsed = 0;
     this.superCharge = charge; this.hitFlash = 0;
+    this.quietTime = 0; this.passiveHealing = false;
     this.buffs = {};
     this.aimDirection = { x: this.team === 0 ? 1 : -1, y: 0 };
     this.animator.update(this.direction, false, 0);
@@ -36,7 +37,14 @@ class Player {
       buff.remaining = Math.max(0, buff.remaining - dt);
       if (buff.remaining === 0) delete this.buffs[kind];
     }
+    this.passiveHealing = false;
     if (this.alive) {
+      const recovery = this.config.recovery || characterConfig.recovery;
+      this.quietTime += dt;
+      const healingTime = Math.max(0, Math.min(dt, this.quietTime - recovery.delay));
+      if (healingTime > 0 && this.health < this.maxHealth) {
+        this.passiveHealing = this.heal(this.maxHealth * recovery.rate * healingTime) > 0;
+      }
       // Restore one charge at a time. Shooting does not restart an in-progress refill.
       if (this.ammo < this.maxAmmo) {
         const elapsed = this.reloadElapsed + dt;
@@ -73,7 +81,7 @@ class Player {
   }
   attack(target) {
     if (!this.alive || this.ammo <= 0 || this.cooldownRemaining > 0 || !this.aimAt(target)) return null;
-    this.ammo--;
+    this.ammo--; this.interruptRecovery();
     this.cooldownRemaining = this.config.attack.cooldown;
     const attack = this.config.attack, count = Math.max(1, attack.count || 1);
     const angle = Math.atan2(this.aimDirection.y, this.aimDirection.x), shots = [];
@@ -92,6 +100,7 @@ class Player {
     const reduction = Math.max(this.buffs.shield?.reduction ?? 0, this.buffs.superShield?.reduction ?? 0);
     const actualDamage = Math.min(this.health, amount * (1 - reduction));
     this.health -= actualDamage; this.hitFlash = 0.12;
+    this.interruptRecovery();
     if (this.health === 0) {
       this.alive = false; this.moving = false;
       this.respawnRemaining = this.config.respawnDelay;
@@ -100,6 +109,7 @@ class Player {
     }
     return actualDamage;
   }
+  interruptRecovery() { this.quietTime = 0; this.passiveHealing = false; }
   chargeSuper(actualDamage) {
     if (!this.alive || !Number.isFinite(actualDamage) || actualDamage <= 0) return;
     this.superCharge = Math.min(100, this.superCharge + actualDamage / this.config.super.damageRequired * 100);
@@ -116,7 +126,7 @@ class Player {
     if (settings.kind === 'heavy' || settings.kind === 'fan') {
       if (!this.aimAt(target)) return false;
     }
-    this.superCharge = 0;
+    this.superCharge = 0; this.interruptRecovery();
     const center = this.center;
     if (settings.kind === 'heavy') {
       world.addProjectile(new Projectile(this, this.aimDirection, settings));
@@ -148,16 +158,65 @@ class Player {
     world.emit({ type: 'ability', actorId: this.id, team: this.team, x: center.x, y: center.y, kind: settings.kind, characterId: this.config.id, dx: this.aimDirection.x, dy: this.aimDirection.y, radius: settings.radius || 0 });
     return true;
   }
-  draw(ctx, showLabel = true) {
-    const color = this.team === 0 ? '#65bfdf' : '#ed827c';
-    const center = this.center;
-    if (!this.alive) {
-      ctx.strokeStyle = color; ctx.setLineDash([4, 4]);
-      ctx.strokeRect(this.spawn.x, this.spawn.y, this.width, this.height); ctx.setLineDash([]);
-      ctx.fillStyle = color; ctx.font = '13px system-ui'; ctx.textAlign = 'center';
-      ctx.fillText(`Возрождение: ${this.respawnRemaining.toFixed(1)} с`, this.spawn.x + this.width / 2, this.spawn.y - 12);
-      return;
+  drawSuperIndicator(ctx, { local = this.isHuman, localTeam = 0, time = 0, reducedMotion = false } = {}) {
+    if (!this.alive || (!local && this.superCharge < 100)) return;
+    const ready = this.superCharge >= 100, center = this.center;
+    ctx.save(); ctx.translate(center.x, this.y + this.height - 3); ctx.scale(1, 0.42);
+    const phase = ready && !reducedMotion ? time * 0.9 : 0;
+    ctx.lineWidth = ready ? 5 : 3;
+    const active = local ? Math.max(0, Math.min(1, this.superCharge / 100)) : 1;
+    for (let i = 0; i < 8; i++) {
+      const angle = phase + i * Math.PI / 4, length = Math.PI / 4 - 0.16;
+      ctx.strokeStyle = 'rgba(28,36,24,.28)'; ctx.beginPath(); ctx.arc(0, 0, 34, angle, angle + length); ctx.stroke();
+      const filled = Math.max(0, Math.min(1, active * 8 - i));
+      if (!filled) continue;
+      ctx.strokeStyle = local ? (ready ? '#ffd94f' : '#d7bc66') : this.team === localTeam ? '#64d8f4' : '#ff645c';
+      ctx.beginPath(); ctx.arc(0, 0, 34, angle, angle + length * filled); ctx.stroke();
     }
+    ctx.restore();
+    if (local) {
+      ctx.save(); ctx.font = 'bold 10px sans-serif'; ctx.textAlign = 'center'; ctx.lineWidth = 3; ctx.strokeStyle = '#293328';
+      const text = ready ? 'Q · СУПЕР' : `Q · ${Math.floor(this.superCharge)}%`;
+      ctx.strokeText(text, center.x, this.y + this.height + 24); ctx.fillStyle = ready ? '#ffe889' : '#f4edcf'; ctx.fillText(text, center.x, this.y + this.height + 24); ctx.restore();
+    }
+  }
+  drawVitals(ctx, { local = this.isHuman, localTeam = 0, nickname = '', view = null } = {}) {
+    if (!this.alive) return;
+    const margin = local ? 82 : 40;
+    const x = view ? Math.max(view.x + margin, Math.min(view.x + view.width - margin, this.center.x)) : this.center.x;
+    const top = view ? Math.max(this.y, view.y + (local ? 60 : 34)) : this.y, width = 74;
+    ctx.save();
+    if (local) {
+      ctx.font = 'bold 13px sans-serif'; ctx.textAlign = 'center'; ctx.lineWidth = 3; ctx.lineJoin = 'round'; ctx.strokeStyle = '#243425';
+      const name = nickname || characterImages[this.characterIndex].name;
+      ctx.strokeText(name, x, top - 43, 160); ctx.fillStyle = '#a5f477'; ctx.fillText(name, x, top - 43, 160);
+    }
+    const color = local ? '#79dc59' : this.team === localTeam ? '#5ec9ee' : '#ed645d';
+    ctx.fillStyle = '#293329'; ctx.fillRect(x - width / 2 - 2, top - 32, width + 4, 14);
+    ctx.fillStyle = '#4b5145'; ctx.fillRect(x - width / 2, top - 30, width, 10);
+    ctx.fillStyle = color; ctx.fillRect(x - width / 2, top - 30, width * this.health / this.maxHealth, 10);
+    ctx.font = 'bold 10px sans-serif'; ctx.textAlign = 'center'; ctx.lineWidth = 2; ctx.strokeStyle = '#293329';
+    const hp = String(Math.ceil(this.health)); ctx.strokeText(hp, x, top - 22); ctx.fillStyle = '#fffdf0'; ctx.fillText(hp, x, top - 22);
+    if (local) {
+      const gap = 3, slotWidth = (width - gap * (this.maxAmmo - 1)) / this.maxAmmo;
+      for (let i = 0; i < this.maxAmmo; i++) {
+        const left = x - width / 2 + i * (slotWidth + gap);
+        ctx.fillStyle = '#293329'; ctx.fillRect(left - 1, top - 15, slotWidth + 2, 8);
+        ctx.fillStyle = '#6a6250'; ctx.fillRect(left, top - 14, slotWidth, 6);
+        const fill = i < this.ammo ? 1 : i === this.ammo ? this.reloadProgress : 0;
+        ctx.fillStyle = '#f5c455'; ctx.fillRect(left, top - 14, slotWidth * fill, 6);
+      }
+    }
+    if (local && this.passiveHealing) {
+      ctx.fillStyle = '#aff68d'; ctx.font = 'bold 16px sans-serif'; ctx.textAlign = 'left'; ctx.fillText('+', x + width / 2 + 6, top - 20);
+    }
+    ctx.restore();
+  }
+  draw(ctx, showLabel = true, options = {}) {
+    const color = (options.local ?? this.isHuman) ? '#8be46c' : this.team === (options.localTeam ?? 0) ? '#65bfdf' : '#ed827c';
+    const center = this.center;
+    if (!this.alive) return;
+    this.drawSuperIndicator(ctx, options);
     // The visible image fits inside the hitbox without stretching.
     ctx.fillStyle = 'rgba(48,33,46,.35)'; ctx.beginPath();
     ctx.ellipse(center.x, this.y + this.height - 3, this.width / 2, 7, 0, 0, Math.PI * 2); ctx.fill();
@@ -200,13 +259,6 @@ class Player {
       ctx.strokeStyle = '#85ac78'; ctx.lineWidth = 2; ctx.beginPath();
       ctx.ellipse(center.x, this.y + this.height, this.width * 0.7, 12, 0, 0, Math.PI * 2); ctx.stroke(); ctx.lineWidth = 1;
     }
-    ctx.fillStyle = '#101722'; ctx.fillRect(this.x - 3, this.y - 12, this.width + 6, 6);
-    ctx.fillStyle = color; ctx.fillRect(this.x - 3, this.y - 12, (this.width + 6) * this.health / this.maxHealth, 6);
-    ctx.font = '12px system-ui'; ctx.textAlign = 'center';
-    const label = `${characterImages[this.characterIndex].name}${this.isHuman ? ' · вы' : ''}`;
-    if (showLabel) {
-      ctx.strokeStyle = '#30212e'; ctx.lineWidth = 3; ctx.lineJoin = 'round'; ctx.strokeText(label, center.x, this.y - 20);
-      ctx.fillStyle = '#fff0cf'; ctx.fillText(label, center.x, this.y - 20); ctx.lineWidth = 1;
-    }
+    if (showLabel) this.drawVitals(ctx, { local: this.isHuman });
   }
 }

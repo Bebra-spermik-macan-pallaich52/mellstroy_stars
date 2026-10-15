@@ -82,7 +82,7 @@ test('wounded bots seek real health pickups without modifying health directly',(
 });
 test('a badly wounded bot under fire retreats and uses the same speed/collisions',()=>{
  const sim=battle(),bot=addBot(sim),actor=sim.actors[0],enemy=sim.actors[3];actor.x=300;actor.y=300;enemy.x=600;enemy.y=300;
- actor.takeDamage(760);const from=actor.center;bot.update(.1,sim.world,true);assert.equal(bot.state,'retreat');assert(bot.goal.x<from.x);
+ actor.takeDamage(760);const from=actor.center;bot.update(.1,sim.world,true);assert.equal(bot.state,'recover');assert(bot.goal.x<from.x);
  assert(Math.hypot(actor.center.x-from.x,actor.center.y-from.y)<=actor.config.speed*.1+1e-7);
 });
 test('loaded donation carriers protect their resources rather than rushing the enemy',()=>{

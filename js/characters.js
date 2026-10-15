@@ -13,6 +13,7 @@ const characterImages = [
 const characterConfig = {
   speed: 150, width: 48, height: 64, maxHealth: 1000, respawnDelay: 3,
   attack: { damage: 200, speed: 620, range: 420, cooldown: 0.45, radius: 5, ammo: 3, reload: 1.5 },
+  recovery: { delay: 3, rate: 0.13 },
   super: { damageRequired: 1000 },
   animation: { fps: 8 }, image: 'assets/characters/characters.png'
 };

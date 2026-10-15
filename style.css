@@ -2062,3 +2062,12 @@ svg.road-art { width:64px; padding:20px 0; color:#8c692b; fill:#e3c472; }
   .result-progression p { font-size:11px; }
   .result-card .dialog-actions { margin-top:12px; }
 }
+
+/* Only the death countdown is screen-attached; combat vitals follow actors in Canvas. */
+.respawn-overlay { position:absolute; inset:0; display:grid; place-items:center; pointer-events:none; z-index:5; }
+.respawn-countdown { width:min(300px,85%); padding:20px; text-align:center; border-radius:16px; color:#fff9e9; background:rgba(27,38,29,.82); box-shadow:0 4px 20px rgba(0,0,0,.15); }
+.respawn-countdown>span { font-size:17px; font-weight:700; }
+.respawn-countdown>strong { display:block; font:700 100px/1.15 var(--display); color:#b5f58f; font-variant-numeric:tabular-nums; }
+.respawn-countdown>small { display:block; font-size:12px; line-height:1.5; color:#d9e7cf; }
+.hud:has(.objective-metric[hidden]):has(.zone-metric[hidden]) { display:none; }
+@media(max-width:580px) { .respawn-countdown { width:220px; padding:12px; } .respawn-countdown>strong { font-size:70px; } .respawn-countdown>span { font-size:14px; } .respawn-countdown>small { font-size:10px; } }

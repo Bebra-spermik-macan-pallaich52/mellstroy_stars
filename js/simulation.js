@@ -158,6 +158,7 @@ class Simulation {
     if (!this.botFire || !actor.alive || actor.superCharge < 100) return;
     const enemy = bot.selectEnemy(this.world);
     const kind = actor.config.super.kind;
+    if (bot.recovering && !['heal', 'shield'].includes(kind)) return;
     if (kind === 'heal') {
       const needsHeal = this.actors.some(ally => ally.alive && ally.team === actor.team &&
         ally.health <= ally.maxHealth - 250 && bot.distance(ally.center, actor.center) <= actor.config.super.radius);
