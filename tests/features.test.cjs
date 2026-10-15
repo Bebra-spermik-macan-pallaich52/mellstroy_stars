@@ -124,7 +124,7 @@ test('map instances isolate destroyed pieces, health, spawn objects, and nav ver
   const a = createMap('arena'), b = createMap('arena');
   a.walls[1].health = 0; a.walls.splice(1, 1); a.teamSpawns[0][0].x = 500; a.navVersion++;
   assert.equal(b.walls.length, arena.walls.length); assert.equal(b.walls[1].health, 600);
-  assert.equal(b.teamSpawns[0][0].x, 120); assert.equal(b.navVersion, 0);
+  assert.equal(b.teamSpawns[0][0].x, 72); assert.equal(b.navVersion, 0);
   assert.equal(Object.isFrozen(arena.walls[1]), true);
 });
 
@@ -192,7 +192,11 @@ test('random pickups use reproducible seeds, free positions, a count cap, and bo
   for (let i = 0; i < 10; i++) { a.spawnPowerup(); b.spawnPowerup(); }
   assert.equal(JSON.stringify(a.powerups), JSON.stringify(b.powerups)); assert.equal(a.powerups.length, 3);
   for (const item of a.powerups) {
-    assert.ok(!a.map.walls.some(wall => overlaps({ x: item.x - item.radius, y: item.y - item.radius, width: item.radius * 2, height: item.radius * 2 }, wall)));
+    assert.ok(!a.map.walls.some(wall => {
+      const dx = item.x - Math.max(wall.x, Math.min(item.x, wall.x + wall.width));
+      const dy = item.y - Math.max(wall.y, Math.min(item.y, wall.y + wall.height));
+      return dx * dx + dy * dy <= item.radius * item.radius;
+    }));
     item.remaining = 0.01;
   }
   a.updatePowerups(0.02); assert.equal(a.powerups.length, 0);

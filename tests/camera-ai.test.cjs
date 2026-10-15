@@ -31,24 +31,24 @@ test('camera transforms are reversible and offscreen entities can be culled',()=
 test('mouse aim includes CSS scaling, borders and fractional camera movement',()=>{
  const canvas={width:960,height:640,clientWidth:480,clientHeight:320,clientLeft:2,clientTop:2,addEventListener(){},getBoundingClientRect(){return{left:100,top:50};}};
  const input=new Input({addEventListener(){}},canvas);input.camera=new Camera();input.camera.x=700.25;input.camera.y=300.5;
- input.mouse={inside:true,clientX:342,clientY:212};const aim=input.aim();close(aim.x,1180.25);close(aim.y,620.5);
- input.mouse.clientX=0;assert.equal(input.aim(),null);
+ input.mouse={hasPosition:true,clientX:342,clientY:212};const aim=input.aim();close(aim.x,1180.25);close(aim.y,620.5);
+ input.mouse.clientX=0;close(input.aim().x,496.25);
 });
 test('mouse aim keeps subpixel layout sizes after responsive scaling',()=>{
  const rect={left:100,top:50,width:693.3333,height:462.2222};
  const canvas={width:960,height:640,clientWidth:693,clientHeight:462,clientLeft:0,clientTop:0,addEventListener(){},getBoundingClientRect(){return rect;}};
  const input=new Input({addEventListener(){}},canvas);input.camera=new Camera();input.camera.x=400.5;input.camera.y=200.25;
- input.mouse={inside:true,clientX:rect.left+rect.width*.25,clientY:rect.top+rect.height*.7};
+ input.mouse={hasPosition:true,clientX:rect.left+rect.width*.25,clientY:rect.top+rect.height*.7};
  const point=input.aim();close(point.x,640.5);close(point.y,648.25);
 });
-test('expanded maps have distinct sizes, multiple destructible routes and clear central zones',()=>{
+test('compact maps have distinct sizes, multiple destructible routes and clear central zones',()=>{
  assert.equal(new Set(mapCatalog.map(m=>`${m.width}x${m.height}`)).size,3);
- for(const item of mapCatalog){const map=createMap(item.id);assert(map.width*map.height>=960*640*4);assert(map.walls.length>=18);
+ for(const item of mapCatalog){const map=createMap(item.id);assert(map.width>=960 && map.height>=640 && map.width*map.height<1920*1280);assert(map.walls.length>=18);
   assert(!map.walls.some(wall=>overlaps(wall,map.captureZone)));assert(map.roads.length>=3);
   for(const wall of map.walls){assert(wall.x>=0&&wall.y>=0&&wall.x+wall.width<=map.width&&wall.y+wall.height<=map.height);}
  }
 });
-test('all large-map spawns have a walkable route to the objective with the full hitbox',()=>{
+test('all compact-map spawns have a walkable route to the objective with the full hitbox',()=>{
  for(const definition of mapCatalog){const map=createMap(definition.id);for(const spawn of map.teamSpawns.flat()){
    const actor=new Player(spawn,getCharacterConfig(0)),bot=new Bot(actor,0);assert(bot.planTo(map.resourcePoint,map),`${map.id}: route from ${spawn.x},${spawn.y}`);
    let previous=actor.center;for(const point of bot.path){assert(bot.clearSegment(previous,point,bot.navigation));previous=point;}

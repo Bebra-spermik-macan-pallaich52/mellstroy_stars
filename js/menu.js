@@ -214,7 +214,7 @@ class MenuController {
   }
 
   paintMapPreview(canvas, mapId) {
-    const map = createMap(mapId), ctx = canvas.getContext('2d');
+    const map = createMap(mapId, this.byId('mode').value), ctx = canvas.getContext('2d');
     const colors = { arena: ['#d8b579', '#975d3c'], courtyard: ['#98a679', '#455f4d'], crossroads: ['#b4a09c', '#685168'] }[map.id];
     ctx.fillStyle = '#ded9cc'; ctx.fillRect(0, 0, canvas.width, canvas.height);
     const scale = Math.min((canvas.width - 24) / map.width, (canvas.height - 14) / map.height);
@@ -257,7 +257,8 @@ class MenuController {
       const diagram = document.createElement('canvas'); diagram.width = 360; diagram.height = 160; this.paintMapPreview(diagram, map.id);
       const badge = this.badge(index, 1); badge.classList.add('map-badge'); preview.append(diagram, badge);
       const name = document.createElement('strong'); name.textContent = map.name;
-      const caption = document.createElement('small'); caption.textContent = `${map.width} × ${map.height} · ${['рыночные улицы', 'садовые дворики', 'переулки'][index]}`;
+      const size = createMap(map.id, this.byId('mode').value);
+      const caption = document.createElement('small'); caption.textContent = `${size.width} × ${size.height} · ${['рыночные улицы', 'садовые дворики', 'переулки'][index]}`;
       button.append(preview, name, caption);
       button.addEventListener('click', () => { this.byId('map').value = map.id; this.updateChoices(); this.byId('map-cards').querySelector(`[data-map="${map.id}"]`).focus({ preventScroll: true }); });
       maps.append(button);

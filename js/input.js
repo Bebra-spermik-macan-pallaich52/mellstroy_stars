@@ -7,7 +7,8 @@ class Input {
     this.actions = new Set();
     this.canvas = canvas;
     this.camera = null;
-    this.mouse = { clientX: 0, clientY: 0, inside: false, firing: false };
+    this.enabled = true;
+    this.mouse = { clientX: 0, clientY: 0, hasPosition: false, firing: false };
     target.addEventListener('keydown', event => {
       if (!this.codes.has(event.code) || /INPUT|TEXTAREA|SELECT/.test(event.target.tagName) || event.target.isContentEditable) return;
       event.preventDefault();
@@ -22,17 +23,19 @@ class Input {
       const rememberPointer = event => {
         this.mouse.clientX = event.clientX;
         this.mouse.clientY = event.clientY;
-        this.mouse.inside = true;
+        this.mouse.hasPosition = true;
       };
-      canvas.addEventListener('pointermove', rememberPointer);
-      canvas.addEventListener('pointerdown', event => {
-        if (event.button !== 0 || !event.isPrimary) return;
+      // Window coordinates remain useful beyond the canvas: do not clamp the aim.
+      target.addEventListener('pointermove', rememberPointer);
+      target.addEventListener('pointerdown', event => {
+        if (!this.enabled || event.button !== 0 || !event.isPrimary) return;
+        if (event.target.closest?.('button, a, input, textarea, select, [role=dialog], [contenteditable=true]')) return;
         event.preventDefault(); canvas.focus({ preventScroll: true });
         rememberPointer(event); this.mouse.firing = true;
+        // Capture keeps drags/releases delivered even past the viewport edge.
+        if (canvas.setPointerCapture) canvas.setPointerCapture(event.pointerId);
       });
-      canvas.addEventListener('pointerleave', () => {
-        this.mouse.inside = false; this.mouse.firing = false;
-      });
+      canvas.addEventListener('lostpointercapture', () => { this.mouse.firing = false; });
       target.addEventListener('pointerup', event => { if (event.button === 0) this.mouse.firing = false; });
       target.addEventListener('pointercancel', () => { this.mouse.firing = false; });
     }
@@ -48,7 +51,7 @@ class Input {
     return length ? { x: x / length, y: y / length } : { x: 0, y: 0 };
   }
   aim() {
-    if (!this.canvas || !this.mouse.inside) return null;
+    if (!this.canvas || !this.mouse.hasPosition) return null;
     const rect = this.canvas.getBoundingClientRect();
     if (!this.canvas.clientWidth || !this.canvas.clientHeight) return null;
     // CSS border is excluded from the playable world, including after resizing.
@@ -57,7 +60,7 @@ class Input {
     const displayHeight = rect.height ? rect.height - this.canvas.clientTop * 2 : this.canvas.clientHeight;
     const x = (this.mouse.clientX - rect.left - this.canvas.clientLeft) * this.canvas.width / displayWidth;
     const y = (this.mouse.clientY - rect.top - this.canvas.clientTop) * this.canvas.height / displayHeight;
-    if (x < 0 || y < 0 || x > this.canvas.width || y > this.canvas.height) return null;
+    if (!Number.isFinite(x) || !Number.isFinite(y)) return null;
     return this.camera ? this.camera.screenToWorld({ x, y }) : { x, y };
   }
 }

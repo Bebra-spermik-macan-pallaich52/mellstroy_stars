@@ -1,9 +1,9 @@
 'use strict';
 
 const mapCatalog = [
-  { id: 'arena', name: 'Песчаный двор', width: 1920, height: 1280, description: 'Рыночные ряды, открытая площадь и два обхода по краям.' },
-  { id: 'courtyard', name: 'Двор коттеджа', width: 2240, height: 1600, description: 'Садовые дворики, извилистые проходы и четыре входа в центр.' },
-  { id: 'crossroads', name: 'Перекрёсток', width: 2560, height: 1600, description: 'Длинные улицы, тесные переулки и несколько путей для обхода.' }
+  { id: 'arena', name: 'Песчаный двор', width: 1440, height: 960, description: 'Рыночные ряды, открытая площадь и два обхода по краям.' },
+  { id: 'courtyard', name: 'Двор коттеджа', width: 1600, height: 1120, description: 'Садовые дворики, извилистые проходы и четыре входа в центр.' },
+  { id: 'crossroads', name: 'Перекрёсток', width: 1728, height: 1080, description: 'Короткие улицы, тесные переулки и несколько путей для обхода.' }
 ];
 
 function mapWall(x, y, width, height, destructible = false) {
@@ -83,19 +83,26 @@ function drawMap(ctx, camera = null) {
   }
 }
 
-function createMap(id = 'arena') {
+// Layout coordinates use the original design grid; scale all geometry together.
+const mapDesignSizes = { arena: [1920, 1280], courtyard: [2240, 1600], crossroads: [2560, 1600] };
+const teamfightMapSizes = { arena: [1152, 768], courtyard: [1280, 896], crossroads: [1384, 864] };
+
+function createMap(id = 'arena', modeId = 'donations') {
   const knownId = Object.prototype.hasOwnProperty.call(mapLayouts, id) ? id : 'arena';
   const definition = mapCatalog.find(map => map.id === knownId);
-  const { width, height } = definition;
+  const [width, height] = modeId === 'teamfight' ? teamfightMapSizes[knownId] : [definition.width, definition.height];
+  const [designWidth, designHeight] = mapDesignSizes[knownId];
+  const scaleX = width / designWidth, scaleY = height / designHeight;
   const center = { x: width / 2, y: height / 2 };
-  const spawns = [center.y - 32, 120, height - 184];
+  const spawnX = modeId === 'teamfight' ? 56 : 72;
+  const spawns = [center.y - 32, 80, height - 144];
   return {
-    id: knownId, width, height, spawn: { x: 120, y: center.y - 32 }, navVersion: 0,
-    teamSpawns: [spawns.map(y => ({ x: 120, y })), spawns.map(y => ({ x: width - 168, y }))],
+    id: knownId, width, height, spawn: { x: spawnX, y: center.y - 32 }, navVersion: 0,
+    teamSpawns: [spawns.map(y => ({ x: spawnX, y })), spawns.map(y => ({ x: width - spawnX - 48, y }))],
     resourcePoint: center,
-    captureZone: { x: center.x - 140, y: center.y - 110, width: 280, height: 220 },
-    roads: mapRoads[knownId].map(path => path.map(([x, y]) => ({ x, y }))),
-    walls: mapLayouts[knownId].map((wall, index) => ({ ...wall, id: `wall-${index}`,
+    captureZone: { x: center.x - 140 * scaleX, y: center.y - 110 * scaleY, width: 280 * scaleX, height: 220 * scaleY },
+    roads: mapRoads[knownId].map(path => path.map(([x, y]) => ({ x: x * scaleX, y: y * scaleY }))),
+    walls: mapLayouts[knownId].map((wall, index) => ({ ...wall, x: wall.x * scaleX, y: wall.y * scaleY, width: wall.width * scaleX, height: wall.height * scaleY, id: `wall-${index}`,
       ...(wall.destructible ? { health: 600, maxHealth: 600 } : {}) })),
     draw: drawMap
   };

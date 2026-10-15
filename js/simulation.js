@@ -4,7 +4,7 @@
 class Simulation {
   constructor({ modeId = 'donations', mapId = 'arena', characterIndex = 0, characterIndices,
     humanSlots = [0], botFire = true, enhancements = true, seed = 1, modeOverrides = {} } = {}) {
-    this.map = createMap(mapId); this.mapId = this.map.id; this.modeId = modeId;
+    this.map = createMap(mapId, modeId); this.mapId = this.map.id; this.modeId = modeId;
     this.elapsed = 0; this.botFire = botFire; this.enhancements = enhancements;
     this.randomState = (Number.isFinite(seed) ? seed : 1) >>> 0;
     this.events = []; this.projectiles = []; this.pendingShots = []; this.powerups = [];

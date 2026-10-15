@@ -29,7 +29,8 @@ class MapArt {
   }
 
   ground(map) {
-    if (this.grounds.has(map.id)) return this.grounds.get(map.id);
+    const key = `${map.id}:${map.width}x${map.height}`;
+    if (this.grounds.has(key)) return this.grounds.get(key);
     const theme = this.themes[map.id];
     const canvas = document.createElement('canvas'); canvas.width = map.width; canvas.height = map.height;
     const ctx = canvas.getContext('2d');
@@ -65,7 +66,7 @@ class MapArt {
     ctx.globalAlpha = 0.28; ctx.strokeStyle = theme.edge; ctx.lineWidth = 7;
     ctx.strokeRect(3.5, 3.5, map.width - 7, map.height - 7);
     ctx.globalAlpha = 1;
-    this.grounds.set(map.id, canvas); return canvas;
+    this.grounds.set(key, canvas); return canvas;
   }
 
   woodPattern(ctx) {

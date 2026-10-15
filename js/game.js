@@ -8,6 +8,7 @@ class Game {
     this.audio = audio;
     this.profile = profile;
     this.input = new Input(window, canvas);
+    this.input.enabled = false;
     this.camera = new Camera(canvas.width, canvas.height);
     this.input.camera = this.camera;
     this.ui = new UI();
@@ -75,6 +76,7 @@ class Game {
     this.finishedProcessed = false;
     this.reward = null;
     this.active = true;
+    this.input.enabled = true;
     this.paused = false;
     this.message = this.modeId === 'donations' ? 'Собирайте донаты вместе с союзниками.'
       : this.modeId === 'cottage' ? 'Займите коттедж и удерживайте контроль.' : 'Побеждайте противников. Каждая победа даёт очко команде.';
@@ -91,6 +93,7 @@ class Game {
   pause(paused = !this.paused) {
     if (!this.active || this.manager?.state === 'finished') return;
     this.paused = Boolean(paused);
+    this.input.enabled = !this.paused;
     this.input.clear();
     this.lastTime = null;
     if (this.paused) this.audio?.pause();
@@ -100,6 +103,7 @@ class Game {
 
   leaveMatch() {
     this.active = false;
+    this.input.enabled = false;
     this.paused = false;
     this.input.clear();
     this.effects.clear();
@@ -120,7 +124,7 @@ class Game {
     };
     const wasAlive = this.player.alive;
     this.sim.step(dt, { 0: { x: direction.x, y: direction.y, aim,
-      fire: this.input.mouse.firing && Boolean(this.input.aim()), super: this.input.consumeAction('super') } });
+      fire: this.input.mouse.firing, super: this.input.consumeAction('super') } });
     for (const event of this.sim.drainEvents()) {
       this.effects.emit(event);
       this.audio?.handle(event, { localTeam: this.player.team });
@@ -139,6 +143,7 @@ class Game {
     }
     if (this.manager.state === 'finished' && !this.finishedProcessed) {
       this.finishedProcessed = true;
+      this.input.enabled = false;
       this.input.clear();
       this.reward = this.onFinish?.(this.manager.result, {
         matchId: this.matchId, characterIndex: this.player.characterIndex, modeId: this.modeId,
@@ -213,6 +218,30 @@ class Game {
     this.ctx.fillStyle = '#fff0cf'; this.ctx.fillText(label, x, y + 26); this.ctx.restore();
   }
 
+  drawAttackArea() {
+    const actor = this.player, attack = actor.config.attack, ctx = this.ctx;
+    const range = attack.range, halfWidth = Math.max(10, attack.radius * 2);
+    const spread = attack.kind === 'scatter' ? (Math.max(1, attack.count || 1) - 1) * attack.spread / 2 : 0;
+    const aim = this.input.aim(), center = actor.center;
+    const angle = aim ? Math.atan2(aim.y - center.y, aim.x - center.x) : Math.atan2(actor.aimDirection.y, actor.aimDirection.x);
+    ctx.save(); ctx.translate(center.x, center.y); ctx.rotate(angle);
+    ctx.fillStyle = actor.ammo > 0 ? 'rgba(255,250,224,.25)' : 'rgba(255,250,224,.12)';
+    ctx.strokeStyle = 'rgba(255,252,236,.8)'; ctx.lineWidth = 2;
+    ctx.beginPath();
+    if (spread > 0) {
+      // Filled fan covers the outer pellets; its curved tip follows the range.
+      const edgeAngle = spread + Math.asin(halfWidth / range);
+      ctx.moveTo(0, -halfWidth);
+      ctx.lineTo(Math.cos(edgeAngle) * range, -Math.sin(edgeAngle) * range);
+      ctx.arc(0, 0, range, -edgeAngle, edgeAngle);
+      ctx.lineTo(0, halfWidth); ctx.closePath();
+    } else {
+      // A continuous lane, capped at the projectile's maximum travel distance.
+      ctx.roundRect(0, -halfWidth, range, halfWidth * 2, halfWidth);
+    }
+    ctx.fill(); ctx.stroke(); ctx.restore();
+  }
+
   draw() {
     if (!this.sim || !this.active) return;
     this.ctx.save();
@@ -222,10 +251,7 @@ class Game {
     this.manager.mode.draw(this.ctx);
     this.drawPowerups(); this.drawSpawnMarker();
     if (this.manager.state === 'playing' && this.player.alive && this.input.aim()) {
-      const from = this.player.center, direction = this.player.aimDirection;
-      this.ctx.save(); this.ctx.strokeStyle = 'rgba(45,105,140,0.7)'; this.ctx.setLineDash([5, 5]);
-      this.ctx.beginPath(); this.ctx.moveTo(from.x, from.y);
-      this.ctx.lineTo(from.x + direction.x * 85, from.y + direction.y * 85); this.ctx.stroke(); this.ctx.restore();
+      this.drawAttackArea();
     }
     const visibleActors = this.actors.filter(actor => this.camera.visible(actor));
     for (const actor of visibleActors.sort((a, b) => a.y - b.y)) {
