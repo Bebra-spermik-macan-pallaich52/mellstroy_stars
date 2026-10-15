@@ -23,12 +23,12 @@
     <section id="main-menu" class="main-menu" aria-labelledby="game-title">
       <header class="menu-header">
         <a href="#" class="wordmark" id="home-link" aria-label="Меллстрой Старс, главное меню"><h1 id="game-title">МЕЛЛСТРОЙ<span>СТАРС</span></h1></a>
-        <button id="open-profile" class="profile-badge" aria-label="Мой прогресс"><svg aria-hidden="true"><use href="#i-medal"/></svg><span><strong id="profile-name">Игрок</strong><small id="profile-level">Ур. 1</small></span></button>
+        <button id="open-profile" class="profile-badge" aria-label="Путь бойца и награды"><svg aria-hidden="true"><use href="#i-medal"/></svg><span><strong id="profile-name">Игрок</strong><small id="profile-level">Ур. 1</small></span></button>
         <div class="wallet"><span class="coin-chip"><svg aria-hidden="true"><use href="#i-coin"/></svg><strong id="profile-coins">0</strong></span><button id="open-settings" class="icon-button" aria-label="Настройки"><svg aria-hidden="true"><use href="#i-gear"/></svg></button></div>
       </header>
 
       <section id="lobby-screen" class="menu-screen lobby-screen" aria-label="Лобби">
-        <div class="lobby-stamp" aria-hidden="true">Локальная арена<br><b>3 на 3</b></div>
+        <button id="open-road" class="lobby-goal"><span id="lobby-goal-level" class="goal-kicker">Путь бойца · уровень 2</span><strong id="lobby-goal-name">Котость</strong><span id="lobby-goal-detail">Ещё 300 опыта →</span><progress id="lobby-goal-progress" max="300" value="0" aria-label="Опыт до ближайшей награды"></progress></button>
         <nav class="side-rail left-rail" aria-label="Разделы игры">
           <button id="open-roster" class="rail-button fighters-button"><span><svg aria-hidden="true"><use href="#i-fighters"/></svg></span>Бойцы<small id="lobby-roster-count">1 / 5</small></button>
           <button id="open-arenas" class="rail-button arenas-button"><span><svg aria-hidden="true"><use href="#i-arena"/></svg></span>Арены</button>
@@ -50,7 +50,7 @@
       <section id="roster-screen" class="menu-screen collection-screen" aria-labelledby="roster-title" hidden>
         <header class="screen-heading"><button class="back-button" data-back aria-label="Назад в лобби"><svg aria-hidden="true"><use href="#i-back"/></svg></button><div><span class="eyebrow">Пять разных характеров</span><h2 id="roster-title">Бойцы <span id="roster-count">1 / 5 открыто</span></h2></div></header>
         <div id="character-cards" class="character-cards"></div>
-        <p class="screen-footnote">Открывай бойцов за монеты, заработанные в матчах.</p>
+        <p class="screen-footnote">Получай бойцов на пути уровней или открывай раньше за монеты из матчей.</p>
       </section>
 
       <section id="events-screen" class="menu-screen events-screen" aria-labelledby="events-title" hidden>
@@ -63,8 +63,9 @@
       </section>
 
       <section id="progress-screen" class="menu-screen progress-screen" aria-labelledby="progress-title" hidden>
-        <header class="screen-heading"><button class="back-button" data-back aria-label="Назад в лобби"><svg aria-hidden="true"><use href="#i-back"/></svg></button><div><span class="eyebrow">Сохранено на этом устройстве</span><h2 id="progress-title">Твой прогресс</h2></div></header>
-        <div class="progress-banner"><svg aria-hidden="true"><use href="#i-medal"/></svg><div><h3>Опыт и награды</h3><span id="profile-xp">0 / 300 опыта</span></div></div>
+        <header class="screen-heading"><button class="back-button" data-back aria-label="Назад в лобби"><svg aria-hidden="true"><use href="#i-back"/></svg></button><div><span class="eyebrow">Сохранено на этом устройстве</span><h2 id="progress-title">Путь бойца</h2></div></header>
+        <div class="progress-banner"><svg aria-hidden="true"><use href="#i-medal"/></svg><div><h3 id="road-level-title">Уровень 1</h3><span id="profile-xp">0 / 300 опыта</span><progress id="profile-xp-bar" max="300" value="0" aria-label="Опыт до следующего уровня"></progress></div></div>
+        <section class="road-section" aria-labelledby="road-title"><div class="road-heading"><div><h3 id="road-title" tabindex="-1">Следующая награда</h3><p id="road-target" class="muted"></p></div><button id="claim-road-all" class="primary-button" hidden>Забрать доступное</button></div><p class="road-explanation">Опыт за каждый завершённый матч: победа +120, ничья +80, поражение +50. Уровень — каждые 300 опыта.</p><p id="road-feedback" class="road-feedback" role="status"></p><ol id="reward-road" class="reward-road" aria-label="Награды за уровни"></ol><div class="road-navigation"><button id="road-prev" class="quiet-button">← Раньше</button><span id="road-page"></span><button id="road-current" class="quiet-button">К цели</button><button id="road-next" class="quiet-button">Дальше →</button></div><p class="road-explanation">Уже купил бойца? На его этапе получишь монеты в размере цены открытия. После 10-го уровня каждый следующий приносит 100 монет.</p></section>
         <div class="profile-metrics"><span>Матчи <strong id="profile-matches">0</strong></span><span>Победы <strong id="profile-wins">0</strong></span><span>Поражения <strong id="profile-losses">0</strong></span><span>Ничьи <strong id="profile-draws">0</strong></span><span>Побеждено <strong id="profile-kills">0</strong></span></div>
         <h3>Последние матчи</h3><ol id="match-history" class="match-history"></ol><p class="screen-footnote">Прогресс сохраняется в этом браузере.</p>
       </section>
@@ -78,7 +79,7 @@
       <section class="scoreboard" aria-label="Счёт команд и время матча"><div class="team green"><span>Твоя команда</span><strong id="score-0">0</strong></div><div class="match-time"><time id="timer">03:00</time><span id="goal">Цель: 15 донатов</span></div><div class="team red"><strong id="score-1">0</strong><span>Соперники</span></div></section>
       <div class="arena-shell">
         <canvas id="game" width="960" height="640" tabindex="0" aria-label="Арена. WASD — движение; мышь — прицел; левая кнопка — атака; Q — суперспособность; Escape — пауза."></canvas>
-        <section id="result" class="result-overlay" role="dialog" aria-modal="true" aria-labelledby="result-title" aria-describedby="result-detail" hidden><div class="result-card"><span class="eyebrow">Матч завершён</span><div class="result-emblem" aria-hidden="true">✦</div><h2 id="result-title">Победа!</h2><p id="result-detail"></p><p id="result-reward" class="reward-line"></p><div class="dialog-actions"><button id="result-restart" class="primary-button">Ещё матч</button><button id="result-menu" class="quiet-button">Главное меню</button></div></div></section>
+        <section id="result" class="result-overlay" role="dialog" aria-modal="true" aria-labelledby="result-title" aria-describedby="result-detail" hidden><div class="result-card"><span class="eyebrow">Матч завершён</span><div class="result-emblem" aria-hidden="true">✦</div><h2 id="result-title">Победа!</h2><p id="result-detail"></p><p id="result-reward" class="reward-line"></p><div class="result-progression"><strong id="result-level"></strong><progress id="result-xp-bar" max="300" value="0" aria-label="Опыт до следующего уровня"></progress><p id="result-next-reward"></p><button id="result-road" class="quiet-button">Посмотреть путь</button></div><div class="dialog-actions"><button id="result-restart" class="primary-button">Ещё матч</button><button id="result-menu" class="quiet-button">Главное меню</button></div></div></section>
       </div>
       <section class="hud" aria-label="Состояние игрока и режима"><div class="metric health-metric"><div class="metric-title"><label for="health">Здоровье</label><span id="health-text">1000 / 1000</span></div><progress id="health" max="1000" value="1000"></progress></div><div class="metric ammo-metric"><div class="metric-title"><span>Выстрелы</span><span id="ammo-text">3 / 3</span></div><div id="ammo-slots" class="ammo-slots" role="img" aria-label="Боезапас: 3 из 3"></div><span id="reload-text" class="reload-text">Полный запас</span></div><div class="metric super-metric"><div class="metric-title"><label for="super">Супер <kbd>Q</kbd></label><span id="super-text">0%</span></div><progress id="super" max="100" value="0"></progress></div><div id="donations-info" class="metric objective-metric"><span>Твои донаты</span><strong id="carried">0</strong></div><div id="cottage-info" class="metric zone-metric" hidden><div class="metric-title"><label for="zone-progress">Захват</label><span id="zone-text">Зона пуста</span></div><progress id="zone-progress" max="100" value="0"></progress><span id="owner" class="muted">Владелец: нет</span></div></section>
       <footer class="match-footer"><span id="status" role="status">Загрузка…</span><span id="stats">Побеждено: 0 · Смертей: 0</span></footer><p id="message" class="match-message" role="status"></p><p id="rules" class="sr-only"></p>

@@ -120,3 +120,95 @@ test('invalid finish callbacks grant no currency or statistics', () => {
   }
   assert.equal(profile.profile.matches, 0); assert.equal(profile.profile.coins, 0);
 });
+
+test('level road starts with Kotost and alternates fighters with coins', () => {
+  const store = new ProfileStore(storage());
+  assert.equal(store.profile.roadClaimedLevel, 1); assert.equal(store.roadReadyCount, 0);
+  assert.equal(store.nextRoadReward.level, 2); assert.equal(store.nextRoadReward.xp, 300);
+  assert.equal(store.nextRoadReward.characterIndex, 1);
+  assert.deepEqual(Array.from([2,4,6,8], level=>store.roadReward(level).characterIndex), [1,2,3,4]);
+  assert.equal(store.roadReward(3).coins,60); assert.equal(store.roadReward(10).coins,250);
+  assert.equal(store.roadReward(11).coins,100); assert.equal(store.roadReward(500).coins,100);
+  for (const value of [0,1,-1,2.5,NaN,Infinity,'2']) assert.equal(store.roadReward(value),null);
+});
+test('rewards cannot be claimed early, out of order or twice', () => {
+  const store = new ProfileStore(storage());store.profile.xp=299;
+  assert.equal(store.claimRoadReward().ok,false);assert.equal(store.isUnlocked(1),false);
+  store.profile.xp=600;assert.equal(store.claimRoadReward(3).ok,false);
+  assert.equal(store.claimRoadReward().ok,true);assert.equal(store.isUnlocked(1),true);
+  assert.equal(store.profile.selectedCharacter,0);assert.equal(store.profile.coins,0);
+  assert.equal(store.claimRoadReward(2).ok,false);assert.equal(store.claimRoadReward().coins,60);
+  assert.equal(store.claimRoadReward().ok,false);assert.equal(store.profile.coins,60);
+});
+test('match rewards announce a level crossing without auto-claiming the road', () => {
+  const store=new ProfileStore(storage());
+  for(let i=0;i<3;i++){
+    const reward=store.recordMatch(result(0),match('road-'+i,{kills:0}));
+    assert.equal(reward.levelBefore,1);assert.equal(reward.levelAfter,i===2?2:1);
+  }
+  assert.equal(store.profile.xp,360);assert.equal(store.roadReadyCount,1);
+  assert.equal(store.isUnlocked(1),false);store.claimRoadReward();
+  assert.equal(store.profile.coins,135);assert.equal(store.isUnlocked(1),true);
+});
+test('loss experience also reaches a road goal and does not reduce progress', () => {
+  const store=new ProfileStore(storage());
+  for(let i=0;i<6;i++)store.recordMatch(result(1),match('loss-road-'+i,{kills:0}));
+  assert.equal(store.level,2);assert.equal(store.profile.xp,300);assert.equal(store.claimRoadReward().ok,true);
+});
+test('claiming an already purchased fighter compensates its actual price', () => {
+  const store=new ProfileStore(storage());store.profile.coins=100;
+  assert.equal(store.unlockCharacter(1).ok,true);assert.equal(store.profile.coins,20);
+  store.profile.xp=300;const reward=store.claimRoadReward();
+  assert.equal(reward.coins,80);assert.equal(reward.characters.length,0);assert.equal(reward.compensations[0],'Котость');
+  assert.equal(store.profile.coins,100);assert.equal(store.profile.unlocked.filter(i=>i===1).length,1);
+});
+test('road claims survive reload without duplicate currency or fighters', () => {
+  const memory=storage(),store=new ProfileStore(memory);store.profile.xp=600;store.claimAllRoadRewards();
+  const reloaded=new ProfileStore(memory);assert.equal(reloaded.profile.roadClaimedLevel,3);
+  assert.equal(reloaded.isUnlocked(1),true);assert.equal(reloaded.profile.coins,60);
+  assert.equal(reloaded.claimAllRoadRewards().ok,false);assert.equal(reloaded.claimRoadReward(2).ok,false);
+  assert.equal(reloaded.profile.coins,60);
+});
+test('old version-one saves retain XP, coins, purchased ownership and earn earlier rewards', () => {
+  const memory=storage(),raw=new ProfileStore(memory).defaults();delete raw.profile.roadClaimedLevel;
+  raw.profile.xp=900;raw.profile.coins=37;raw.profile.unlocked=[0,1];raw.profile.selectedCharacter=1;
+  raw.profile.matches=8;raw.settings.nickname='Старый игрок';
+  memory.setItem('mellstroy-stars.profile.v1',JSON.stringify(raw));const store=new ProfileStore(memory);
+  assert.equal(store.level,4);assert.equal(store.profile.coins,37);assert.equal(store.profile.matches,8);
+  assert.equal(store.profile.selectedCharacter,1);assert.equal(store.settings.nickname,'Старый игрок');
+  const claim=store.claimAllRoadRewards();assert.equal(claim.coins,140);assert.equal(claim.characters[0],2);
+  assert.equal(store.profile.coins,177);assert.equal(store.profile.xp,900);assert.equal(store.profile.selectedCharacter,1);
+});
+test('batch claims grant exactly the same rewards as ordered individual claims', () => {
+  const one=new ProfileStore(storage()),batch=new ProfileStore(storage());
+  one.profile.xp=batch.profile.xp=3600;
+  for(let level=2;level<=13;level++)assert.equal(one.claimRoadReward(level).ok,true);
+  const claimed=batch.claimAllRoadRewards();assert.equal(claimed.count,12);assert.equal(claimed.coins,1060);
+  assert.equal(batch.profile.coins,one.profile.coins);
+  assert.deepEqual(Array.from(batch.profile.unlocked),Array.from(one.profile.unlocked));
+  assert.equal(batch.profile.roadClaimedLevel,one.profile.roadClaimedLevel);
+});
+test('all existing fighters on an old high-level profile receive compensation without duplicates', () => {
+  const store=new ProfileStore(storage());store.profile.xp=2700;store.profile.unlocked=[0,1,2,3,4];
+  const claim=store.claimAllRoadRewards();assert.equal(claim.coins,1440);
+  assert.equal(claim.compensations.length,4);assert.equal(claim.characters.length,0);assert.equal(store.profile.unlocked.length,5);
+});
+test('reward road remains bounded work for high-level saves and continues beyond level ten', () => {
+  const store=new ProfileStore(storage());store.profile.xp=299999700;
+  const claim=store.claimAllRoadRewards();assert.equal(claim.count,999999);
+  assert.equal(claim.coins,760+(1000000-10)*100);assert.equal(store.profile.roadClaimedLevel,1000000);
+  assert.equal(store.nextRoadReward.level,1000001);assert.equal(store.nextRoadReward.coins,100);
+});
+test('damaged claim markers are clamped to reached levels and claimed fighters stay owned', () => {
+  for(const value of [-5,999,'4',2.5]){
+    const memory=storage(),raw=new ProfileStore(memory).defaults();raw.profile.xp=900;raw.profile.roadClaimedLevel=value;
+    memory.setItem('mellstroy-stars.profile.v1',JSON.stringify(raw));const store=new ProfileStore(memory);
+    assert.equal(store.profile.roadClaimedLevel,value===999?4:1);
+    if(value===999){assert(store.isUnlocked(1));assert(store.isUnlocked(2));}
+  }
+});
+test('road rewards are available in memory when localStorage is blocked', () => {
+  const store=new ProfileStore(null);store.profile.xp=600;
+  assert.equal(store.claimAllRoadRewards().coins,60);assert.equal(store.isUnlocked(1),true);
+  assert.equal(store.storageAvailable,false);assert.equal(store.claimAllRoadRewards().ok,false);
+});

@@ -15,6 +15,7 @@ class UI {
     this.zoneText = byId('zone-text'); this.owner = byId('owner');
     this.rules = byId('rules'); this.result = byId('result');
     this.resultTitle = byId('result-title'); this.resultDetail = byId('result-detail');
+    this.resultLevel = byId('result-level'); this.resultXp = byId('result-xp-bar'); this.resultNext = byId('result-next-reward'); this.resultRoad = byId('result-road');
     this.resultRestart = byId('result-restart'); this.resultReward = byId('result-reward');
   }
   text(element, value) { const text = String(value ?? ''); if (element && element.textContent !== text) element.textContent = text; }
@@ -80,6 +81,15 @@ class UI {
       this.result.dataset.outcome = result.winner === null ? 'draw' : result.winner === player.team ? 'win' : 'loss';
       this.text(this.resultDetail, `${result.reason === 'goal' ? 'Цель режима достигнута' : 'Время вышло'}. Счёт ${this.score(result.scores[0])} : ${this.score(result.scores[1])}.`);
       if (game.reward) this.text(this.resultReward, `+${game.reward.coins} монет · +${game.reward.xp} опыта`);
+      if (game.profile) {
+        const store = game.profile, target = store.nextRoadReward;
+        const name = target.kind === 'character' && store.isUnlocked(target.characterIndex) ? `${target.compensation} монет` : target.name;
+        const leveled = game.reward && game.reward.levelAfter > game.reward.levelBefore;
+        this.text(this.resultLevel, leveled ? `Новый уровень: ${store.level}!` : `Уровень ${store.level} · ${store.levelProgress} / ${store.xpPerLevel} опыта`);
+        this.resultXp.max = store.xpPerLevel; this.resultXp.value = store.levelProgress;
+        this.text(this.resultNext, store.roadReadyCount ? `Можно забрать: ${name}${store.roadReadyCount > 1 ? ` и ещё ${store.roadReadyCount - 1} наград` : ''}.` : `${name} на уровне ${target.level} · ещё ${target.xp - store.profile.xp} опыта.`);
+        this.text(this.resultRoad, store.roadReadyCount ? 'Забрать награду →' : 'Посмотреть путь →');
+      }
       if (this.result.hidden) { this.result.hidden = false; this.resultRestart.focus({ preventScroll: true }); }
     } else { this.result.hidden = true; this.text(this.resultReward, ''); }
   }

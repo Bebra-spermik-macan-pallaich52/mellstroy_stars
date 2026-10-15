@@ -43,6 +43,12 @@ class MenuController {
     on('open-events', 'click', () => this.openScreen('events'));
     on('open-arenas', 'click', () => this.openScreen('events'));
     on('open-profile', 'click', () => this.openScreen('progress'));
+    on('open-road', 'click', () => this.openScreen('progress'));
+    on('result-road', 'click', () => { this.show(); this.openScreen('progress'); });
+    on('claim-road-all', 'click', () => this.claimRoad(true));
+    on('road-current', 'click', () => { this.roadStart = Math.max(2, this.profile.profile.roadClaimedLevel); this.renderRoad(); });
+    on('road-prev', 'click', () => { this.roadStart = Math.max(2, this.roadStart - 8); this.renderRoad(); });
+    on('road-next', 'click', () => { this.roadStart += 8; this.renderRoad(); });
     on('confirm-event', 'click', () => this.openScreen('lobby'));
     document.querySelectorAll('[data-back]').forEach(button => button.addEventListener('click', () => this.openScreen('lobby')));
     on('pause-settings', 'click', () => this.showSettings('pause'));
@@ -101,9 +107,10 @@ class MenuController {
 
   renderProfile() {
     const data = this.profile.profile;
-    const fields = { 'profile-name': this.profile.settings.nickname, 'profile-coins': data.coins, 'profile-level': `Ур. ${this.profile.level}`, 'profile-xp': `${data.xp % 300} / 300 опыта`, 'profile-matches': data.matches, 'profile-wins': data.wins, 'profile-losses': data.losses, 'profile-draws': data.draws, 'profile-kills': data.kills, 'roster-count': `${data.unlocked.length} / ${this.definitions.length} открыто` };
+    const fields = { 'profile-name': this.profile.settings.nickname, 'profile-coins': data.coins, 'profile-level': `Ур. ${this.profile.level}`, 'profile-xp': `${this.profile.levelProgress} / ${this.profile.xpPerLevel} опыта`, 'profile-matches': data.matches, 'profile-wins': data.wins, 'profile-losses': data.losses, 'profile-draws': data.draws, 'profile-kills': data.kills, 'roster-count': `${data.unlocked.length} / ${this.definitions.length} открыто` };
     for (const [id, value] of Object.entries(fields)) this.byId(id).textContent = value;
     this.byId('lobby-roster-count').textContent = `${data.unlocked.length} / ${this.definitions.length}`;
+    this.renderRoad();
     const history = this.byId('match-history'); history.replaceChildren();
     for (const match of this.profile.history.slice(-5).reverse()) {
       const row = document.createElement('li');
@@ -117,8 +124,75 @@ class MenuController {
     }
   }
 
+  rewardName(reward) {
+    return reward.kind === 'character' && this.profile.isUnlocked(reward.characterIndex)
+      ? `${reward.compensation} монет` : reward.name;
+  }
+
+  renderRoad() {
+    const store = this.profile, target = store.nextRoadReward;
+    const remaining = Math.max(0, target.xp - store.profile.xp), ready = store.roadReadyCount;
+    const name = this.rewardName(target);
+    this.byId('road-level-title').textContent = `Уровень ${store.level}`;
+    this.byId('profile-xp-bar').max = store.xpPerLevel;
+    this.byId('profile-xp-bar').value = store.levelProgress;
+    this.byId('road-title').textContent = ready ? 'Награды доступны' : 'Следующая награда';
+    this.byId('road-target').textContent = ready ? `${name} за уровень ${target.level} уже можно забрать.` : `${name} · уровень ${target.level} · ещё ${remaining} опыта.`;
+    this.byId('lobby-goal-level').textContent = `Путь бойца · уровень ${target.level}`;
+    this.byId('lobby-goal-name').textContent = name;
+    this.byId('lobby-goal-detail').textContent = ready ? `Забрать награду${ready > 1 ? ` · ${ready}` : ''} →` : `Ещё ${remaining} опыта →`;
+    this.byId('open-road').classList.toggle('reward-ready', ready > 0);
+    this.byId('lobby-goal-progress').max = store.xpPerLevel;
+    this.byId('lobby-goal-progress').value = ready ? store.xpPerLevel : store.levelProgress;
+    this.byId('claim-road-all').hidden = ready < 2;
+    this.byId('claim-road-all').textContent = `Забрать доступное · ${ready}`;
+    const holder = this.byId('reward-road'); holder.replaceChildren(); holder.scrollLeft = 0;
+    const start = this.roadStart || Math.max(2, store.profile.roadClaimedLevel);
+    this.roadStart = start;
+    for (let level = start; level < start + 8; level++) {
+      const reward = store.roadReward(level), claimed = level <= store.profile.roadClaimedLevel;
+      if (!reward) break;
+      const available = level <= store.level && !claimed, next = level === target.level;
+      const step = document.createElement('li'); step.className = `road-step${claimed ? ' claimed' : ''}${available ? ' available' : ''}${next ? ' next' : ''}`;
+      const number = document.createElement('span'); number.className = 'road-level'; number.textContent = level;
+      const card = document.createElement('div'); card.className = 'road-reward';
+      const art = reward.kind === 'character' ? document.createElement('canvas') : this.icon('coin');
+      art.classList.add('road-art'); art.setAttribute('aria-hidden', 'true');
+      if (reward.kind === 'character') { art.width = 160; art.height = 130; this.paintPortrait(art, reward.characterIndex); }
+      const title = document.createElement('strong'); title.textContent = claimed ? reward.name : this.rewardName(reward);
+      const detail = document.createElement('small'); detail.textContent = reward.kind === 'character' && store.isUnlocked(reward.characterIndex) && !claimed
+        ? `Вместо бойца ${reward.name}` : reward.kind === 'character' ? 'Новый боец' : 'На открытие бойцов';
+      const requirement = document.createElement('span'); requirement.className = 'road-requirement'; requirement.textContent = `${reward.xp} опыта`;
+      const action = document.createElement('button'); action.type = 'button'; action.className = available && next ? 'primary-button road-claim' : 'quiet-button';
+      if (claimed && reward.kind === 'character') {
+        action.textContent = 'Выбрать бойца'; action.addEventListener('click', () => { this.selectCharacter(reward.characterIndex); this.openScreen('lobby'); });
+      } else {
+        action.disabled = !(available && next);
+        action.textContent = claimed ? 'Получено ✓' : available && next ? 'Забрать' : available ? `Сначала ур. ${target.level}` : `На уровне ${level}`;
+        action.addEventListener('click', () => this.claimRoad(false));
+      }
+      card.append(art, title, detail, requirement, action); step.append(number, card); holder.append(step);
+    }
+    this.byId('road-prev').disabled = start <= 2;
+    this.byId('road-page').textContent = `Уровни ${start}–${start + 7}`;
+  }
+
+  claimRoad(all) {
+    const reward = all ? this.profile.claimAllRoadRewards() : this.profile.claimRoadReward();
+    if (!reward.ok) { this.byId('road-feedback').textContent = reward.message; return; }
+    const parts = [];
+    if (reward.coins) parts.push(`+${reward.coins} монет`);
+    if (reward.characters.length) parts.push(`${reward.characters.length === 1 ? 'Открыт боец' : 'Открыты бойцы'}: ${reward.characters.map(index => this.definitions[index].name).join(', ')}`);
+    if (reward.compensations.length) parts.push(`Компенсация за уже открытых бойцов: ${reward.compensations.join(', ')}`);
+    this.roadStart = Math.max(2, this.profile.profile.roadClaimedLevel);
+    this.renderProfile(); this.renderCharacters();
+    this.byId('road-feedback').textContent = parts.join('. ') + (this.profile.storageAvailable ? '.' : '. ' + this.profile.storageMessage);
+    this.byId('road-title').focus({ preventScroll: true });
+  }
+
   openScreen(screen) {
     this.currentScreen = screen;
+    if (screen === 'progress') { this.byId('road-feedback').textContent = ''; this.roadStart = Math.max(2, this.profile.profile.roadClaimedLevel); this.renderRoad(); }
     this.byId('menu-message').textContent = this.profile.storageMessage || '';
     for (const name of ['lobby', 'roster', 'events', 'progress']) this.byId(`${name}-screen`).hidden = name !== screen;
     this.byId('main-menu').dataset.screen = screen;
@@ -223,7 +297,7 @@ class MenuController {
       pick.append(role, portrait, name, marker);
       pick.addEventListener('click', () => {
         if (unlocked) { this.selectCharacter(index); this.openScreen('lobby'); }
-        else this.byId('menu-message').textContent = `${definition.name}: открывается за ${definition.unlockCost} монет. Завершай матчи, чтобы получать награды.`;
+        else this.byId('menu-message').textContent = `${definition.name}: открывается за ${definition.unlockCost} монет. Получи на пути уровней или открой раньше за монеты из матчей.`;
       });
       card.append(pick);
       const unlock = document.createElement('button'); unlock.className = 'character-unlock'; unlock.type = 'button'; unlock.textContent = unlocked ? `${definition.maxHealth} HP · ${definition.attack.count > 1 ? definition.attack.count + '×' : ''}${definition.attack.damage} урона` : `Открыть · ${definition.unlockCost} монет`;

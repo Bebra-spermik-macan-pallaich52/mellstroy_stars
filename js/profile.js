@@ -1,5 +1,13 @@
 'use strict';
 
+// Add future fighters or coin milestones here; other levels use repeatCoins.
+const progressionConfig = {
+  xpPerLevel: 300, repeatCoins: 100,
+  rewards: { 2: { characterIndex: 1 }, 3: { coins: 60 }, 4: { characterIndex: 2 },
+    5: { coins: 100 }, 6: { characterIndex: 3 }, 7: { coins: 150 },
+    8: { characterIndex: 4 }, 9: { coins: 200 }, 10: { coins: 250 } }
+};
+
 // Only local progress is saved. Match state and input never enter localStorage.
 class ProfileStore {
   constructor(storage) {
@@ -16,7 +24,7 @@ class ProfileStore {
     return {
       version: 1,
       settings: { sound: true, music: false, volume: 0.45, reducedMotion: false, nickname: 'Игрок', botFire: true, enhancements: true },
-      profile: { coins: 0, xp: 0, selectedCharacter: 0, unlocked: [0], matches: 0, wins: 0, losses: 0, draws: 0, kills: 0, deaths: 0, characters: {} },
+      profile: { coins: 0, xp: 0, selectedCharacter: 0, unlocked: [0], matches: 0, wins: 0, losses: 0, draws: 0, kills: 0, deaths: 0, characters: {}, roadClaimedLevel: 1 },
       history: [], completed: []
     };
   }
@@ -24,7 +32,48 @@ class ProfileStore {
   get settings() { return this.data.settings; }
   get profile() { return this.data.profile; }
   get history() { return this.data.history; }
-  get level() { return 1 + Math.floor(this.profile.xp / 300); }
+  get xpPerLevel() { return progressionConfig.xpPerLevel; }
+  get levelProgress() { return this.profile.xp % this.xpPerLevel; }
+  get level() { return 1 + Math.floor(this.profile.xp / this.xpPerLevel); }
+  // Rewards after level 10 remain available: the road never ends with a dead screen.
+  roadReward(level) {
+    if (!Number.isSafeInteger(level) || level < 2) return null;
+    const characterIndex = progressionConfig.rewards[level]?.characterIndex;
+    if (characterIndex !== undefined) {
+      const definition = this.definitions()[characterIndex];
+      return { level, xp: (level - 1) * this.xpPerLevel, kind: 'character', characterIndex,
+        name: definition?.name || ['Артур', 'Котость', 'Меллстрой Жирность', 'Тёмный Друн', 'Фог'][characterIndex],
+        compensation: definition?.unlockCost ?? [0, 80, 140, 200, 260][characterIndex] };
+    }
+    const coins = progressionConfig.rewards[level]?.coins ?? progressionConfig.repeatCoins;
+    return { level, xp: (level - 1) * this.xpPerLevel, kind: 'coins', coins, name: `${coins} монет` };
+  }
+  get nextRoadReward() { return this.roadReward(this.profile.roadClaimedLevel + 1); }
+  get roadReadyCount() { return Math.max(0, this.level - this.profile.roadClaimedLevel); }
+  claimRoadReward(level = this.profile.roadClaimedLevel + 1) {
+    if (level !== this.profile.roadClaimedLevel + 1 || level > this.level) return { ok: false, message: 'Награда ещё недоступна или уже получена.' };
+    return this.claimRoadThrough(level);
+  }
+  claimAllRoadRewards() { return this.claimRoadThrough(this.level); }
+  claimRoadThrough(level) {
+    const first = this.profile.roadClaimedLevel + 1;
+    if (!Number.isSafeInteger(level) || level < first || level > this.level) return { ok: false, message: 'Нет доступных наград.' };
+    // Constant work even for an old high-level save; never iterate over every level.
+    let coins = (level - first + 1) * progressionConfig.repeatCoins;
+    const characters = [], compensations = [];
+    for (const key of Object.keys(progressionConfig.rewards)) {
+      const current = Number(key);
+      if (current < first || current > level) continue;
+      const reward = this.roadReward(current); coins -= progressionConfig.repeatCoins;
+      if (reward.kind === 'coins') coins += reward.coins;
+      else if (this.isUnlocked(reward.characterIndex)) { coins += reward.compensation; compensations.push(reward.name); }
+      else { this.profile.unlocked.push(reward.characterIndex); characters.push(reward.characterIndex); }
+    }
+    this.profile.coins = Math.min(Number.MAX_SAFE_INTEGER, this.profile.coins + coins);
+    this.profile.roadClaimedLevel = level;
+    this.save();
+    return { ok: true, coins, characters, compensations, count: level - first + 1 };
+  }
   definitions() {
     if (typeof characterDefinitions !== 'undefined') return characterDefinitions;
     return typeof characterDefs !== 'undefined' ? characterDefs : [];
@@ -37,6 +86,14 @@ class ProfileStore {
     const clean = this.defaults(), source = raw.profile;
     for (const key of ['coins', 'xp', 'matches', 'wins', 'losses', 'draws', 'kills', 'deaths']) clean.profile[key] = this.counter(source[key]);
     clean.profile.unlocked = [...new Set([0, ...(Array.isArray(source.unlocked) ? source.unlocked.filter(index => this.validCharacter(index)) : [])])];
+    const reachedLevel = 1 + Math.floor(clean.profile.xp / this.xpPerLevel);
+    clean.profile.roadClaimedLevel = Number.isSafeInteger(source.roadClaimedLevel)
+      ? Math.max(1, Math.min(reachedLevel, source.roadClaimedLevel)) : 1;
+    // A claimed fighter remains owned even if a damaged ownership list omitted it.
+    for (const [level, reward] of Object.entries(progressionConfig.rewards)) {
+      const index = reward.characterIndex;
+      if (index !== undefined && Number(level) <= clean.profile.roadClaimedLevel && !clean.profile.unlocked.includes(index)) clean.profile.unlocked.push(index);
+    }
     clean.profile.selectedCharacter = clean.profile.unlocked.includes(source.selectedCharacter) ? source.selectedCharacter : 0;
     if (source.characters && typeof source.characters === 'object') {
       for (let i = 0; i < (this.definitions().length || 5); i++) {
@@ -121,7 +178,7 @@ class ProfileStore {
     const xp = { win: 120, draw: 80, loss: 50 }[outcome];
     const characterIndex = this.validCharacter(context.characterIndex) ? context.characterIndex : 0;
     const reward = { matchId: context.matchId, outcome, coins, xp, kills, deaths, characterIndex, modeId: ['donations', 'cottage', 'teamfight'].includes(context.modeId) ? context.modeId : 'donations' };
-    const profile = this.profile;
+    const profile = this.profile, levelBefore = this.level;
     profile.coins += coins; profile.xp += xp; profile.matches++;
     profile[outcome === 'win' ? 'wins' : outcome === 'loss' ? 'losses' : 'draws']++;
     profile.kills += kills; profile.deaths += deaths;
@@ -130,6 +187,6 @@ class ProfileStore {
     this.data.history.push(reward); this.data.history = this.data.history.slice(-20);
     this.data.completed.push(context.matchId); this.data.completed = this.data.completed.slice(-100);
     this.save();
-    return reward;
+    return { ...reward, levelBefore, levelAfter: this.level };
   }
 }
