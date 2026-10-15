@@ -21,7 +21,7 @@ class Player {
     this.direction = 'down'; this.moving = false;
     this.cooldownRemaining = 0; this.respawnRemaining = 0;
     this.ammo = this.maxAmmo; this.reloadElapsed = 0;
-    this.superCharge = charge; this.hitFlash = 0;
+    this.superCharge = charge; this.hitFlash = 0; this.superGainFlash = 0; this.superGainAmount = 0;
     this.quietTime = 0; this.passiveHealing = false;
     this.buffs = {};
     this.aimDirection = { x: this.team === 0 ? 1 : -1, y: 0 };
@@ -31,6 +31,8 @@ class Player {
   updateTimers(dt) {
     if (!Number.isFinite(dt) || dt < 0) return false;
     this.hitFlash = Math.max(0, this.hitFlash - dt);
+    this.superGainFlash = Math.max(0, this.superGainFlash - dt);
+    if (!this.superGainFlash) this.superGainAmount = 0;
     this.cooldownRemaining = Math.max(0, this.cooldownRemaining - dt);
     for (const [kind, buff] of Object.entries(this.buffs)) {
       if (kind === 'regen' && this.alive) this.heal(buff.rate * Math.min(dt, buff.remaining));
@@ -112,7 +114,10 @@ class Player {
   interruptRecovery() { this.quietTime = 0; this.passiveHealing = false; }
   chargeSuper(actualDamage) {
     if (!this.alive || !Number.isFinite(actualDamage) || actualDamage <= 0) return;
+    const before = this.superCharge;
     this.superCharge = Math.min(100, this.superCharge + actualDamage / this.config.super.damageRequired * 100);
+    const gained = this.superCharge - before;
+    if (gained > 0) { this.superGainAmount += gained; this.superGainFlash = 0.8; }
   }
   heal(amount) {
     if (!this.alive || !Number.isFinite(amount) || amount <= 0) return 0;
@@ -126,7 +131,7 @@ class Player {
     if (settings.kind === 'heavy' || settings.kind === 'fan') {
       if (!this.aimAt(target)) return false;
     }
-    this.superCharge = 0; this.interruptRecovery();
+    this.superCharge = 0; this.superGainFlash = 0; this.superGainAmount = 0; this.interruptRecovery();
     const center = this.center;
     if (settings.kind === 'heavy') {
       world.addProjectile(new Projectile(this, this.aimDirection, settings));
@@ -163,21 +168,32 @@ class Player {
     const ready = this.superCharge >= 100, center = this.center;
     ctx.save(); ctx.translate(center.x, this.y + this.height - 3); ctx.scale(1, 0.42);
     const phase = ready && !reducedMotion ? time * 0.9 : 0;
-    ctx.lineWidth = ready ? 5 : 3;
+    ctx.lineWidth = local ? 8 : 5;
+    const radius = local ? 38 : 34;
     const active = local ? Math.max(0, Math.min(1, this.superCharge / 100)) : 1;
     for (let i = 0; i < 8; i++) {
       const angle = phase + i * Math.PI / 4, length = Math.PI / 4 - 0.16;
-      ctx.strokeStyle = 'rgba(28,36,24,.28)'; ctx.beginPath(); ctx.arc(0, 0, 34, angle, angle + length); ctx.stroke();
+      ctx.strokeStyle = local ? '#313126' : 'rgba(28,36,24,.28)'; ctx.beginPath(); ctx.arc(0, 0, radius, angle, angle + length); ctx.stroke();
       const filled = Math.max(0, Math.min(1, active * 8 - i));
       if (!filled) continue;
-      ctx.strokeStyle = local ? (ready ? '#ffd94f' : '#d7bc66') : this.team === localTeam ? '#64d8f4' : '#ff645c';
-      ctx.beginPath(); ctx.arc(0, 0, 34, angle, angle + length * filled); ctx.stroke();
+      ctx.strokeStyle = local ? '#ffe52b' : this.team === localTeam ? '#64d8f4' : '#ff645c';
+      ctx.shadowColor = local ? '#fff16a' : 'transparent'; ctx.shadowBlur = local ? (this.superGainFlash > 0 ? 16 : 7) : 0;
+      ctx.beginPath(); ctx.arc(0, 0, radius, angle, angle + length * filled); ctx.stroke();
+      ctx.shadowBlur = 0;
     }
     ctx.restore();
     if (local) {
-      ctx.save(); ctx.font = 'bold 10px sans-serif'; ctx.textAlign = 'center'; ctx.lineWidth = 3; ctx.strokeStyle = '#293328';
+      ctx.save(); ctx.font = 'bold 14px sans-serif'; ctx.textAlign = 'center';
+      ctx.fillStyle = '#252c24'; ctx.fillRect(center.x - 55, this.y + this.height + 12, 110, 25);
+      ctx.fillStyle = ready ? '#ffe52b' : '#fff2a1'; ctx.fillRect(center.x - 53, this.y + this.height + 14, 106, 21);
       const text = ready ? 'Q · СУПЕР' : `Q · ${Math.floor(this.superCharge)}%`;
-      ctx.strokeText(text, center.x, this.y + this.height + 24); ctx.fillStyle = ready ? '#ffe889' : '#f4edcf'; ctx.fillText(text, center.x, this.y + this.height + 24); ctx.restore();
+      ctx.fillStyle = '#292c20'; ctx.fillText(text, center.x, this.y + this.height + 29);
+      if (this.superGainFlash > 0) {
+        ctx.font = 'bold 14px sans-serif'; ctx.lineWidth = 3; ctx.strokeStyle = '#283126';
+        const gain = `+${Math.round(this.superGainAmount)}%`;
+        ctx.strokeText(gain, center.x + 78, this.y + this.height + 29); ctx.fillStyle = '#fff76b'; ctx.fillText(gain, center.x + 78, this.y + this.height + 29);
+      }
+      ctx.restore();
     }
   }
   drawVitals(ctx, { local = this.isHuman, localTeam = 0, nickname = '', view = null } = {}) {

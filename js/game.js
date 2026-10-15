@@ -168,6 +168,19 @@ class Game {
     this.ctx.strokeText('Точка возрождения', x, y - 34); this.ctx.fillStyle = '#c8ffb2'; this.ctx.fillText('Точка возрождения', x, y - 34); this.ctx.restore();
   }
 
+  drawCarriedBadge() {
+    const actor = this.player, held = this.manager.mode.carried.get(actor) || 0;
+    const right = actor.center.x + 52;
+    const x = right + 66 <= this.camera.x + this.camera.width - 4 ? right : actor.center.x - 118;
+    const y = Math.max(actor.y, this.camera.y + 60) - 32;
+    this.ctx.save(); this.ctx.fillStyle = '#303025'; this.ctx.fillRect(x - 2, y - 2, 70, 30);
+    this.ctx.fillStyle = '#ffe14e'; this.ctx.fillRect(x, y, 66, 26);
+    this.ctx.beginPath(); this.ctx.arc(x + 13, y + 13, 8, 0, Math.PI * 2); this.ctx.fillStyle = '#ffc326'; this.ctx.fill();
+    this.ctx.strokeStyle = '#8c5f12'; this.ctx.lineWidth = 2; this.ctx.stroke();
+    this.ctx.font = 'bold 12px sans-serif'; this.ctx.textAlign = 'center'; this.ctx.fillStyle = '#6a4911'; this.ctx.fillText('$', x + 13, y + 17);
+    this.ctx.font = 'bold 19px sans-serif'; this.ctx.fillStyle = '#27291e'; this.ctx.fillText(String(held), x + 44, y + 20, 34); this.ctx.restore();
+  }
+
   drawPowerups() {
     const icons = { heal: '+', damage: '↑', shield: '◇' };
     for (const pickup of this.sim.powerups || []) {
@@ -218,19 +231,14 @@ class Game {
     for (const actor of visibleActors.sort((a, b) => a.y - b.y)) {
       actor.draw(this.ctx, false, { local: actor === this.player, localTeam: this.player.team,
         time: this.sim.elapsed, reducedMotion: this.profile?.settings.reducedMotion });
-      if (actor === this.player && actor.alive && this.modeId === 'donations') {
-        const held = this.manager.mode.carried.get(actor) || 0;
-        if (held) {
-          this.ctx.fillStyle = '#ffd479'; this.ctx.font = '12px system-ui'; this.ctx.textAlign = 'center';
-          this.ctx.fillText(`${held} дон.`, actor.center.x, actor.y + actor.height + 42);
-        }
-      }
+
     }
     for (const shot of this.projectiles) shot.draw(this.ctx);
     this.effects.draw(this.ctx);
     // World-attached labels render last; never reveal another actor's ammo or partial super.
     for (const actor of visibleActors.filter(actor => actor !== this.player)) actor.drawVitals(this.ctx, { local: false, localTeam: this.player.team, view: this.camera });
     if (this.camera.visible(this.player)) this.player.drawVitals(this.ctx, { local: true, localTeam: this.player.team, nickname: this.profile?.settings.nickname, view: this.camera });
+    if (this.player.alive && this.modeId === 'donations') this.drawCarriedBadge();
     this.ctx.restore();
     this.drawObjectiveHint();
     this.ui.render(this, this.paused || document.hidden || !document.hasFocus());

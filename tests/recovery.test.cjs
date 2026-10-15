@@ -77,3 +77,16 @@ test('attached vitals remain inside the visible world at top and side borders',(
  for(const call of ctx.calls.filter(c=>c.method==='fillRect')){assert(call.args[0]>=0);assert(call.args[1]>=0);assert(call.args[0]+call.args[2]<=960);}
  assert(ctx.calls.find(c=>c.method==='fillText'&&c.args[0]==='Очень длинный никнейм').args[2]>=13);
 });
+test('super gain feedback shows actual capped increase, accumulates hits and expires',()=>{
+ const a=actor(0);a.chargeSuper(200);a.chargeSuper(100);close(a.superGainAmount,30);assert(a.superGainFlash>0);
+ a.updateTimers(.81);assert.equal(a.superGainFlash,0);assert.equal(a.superGainAmount,0);
+ a.superCharge=95;a.chargeSuper(200);close(a.superGainAmount,5);assert.equal(a.superCharge,100);a.chargeSuper(100);close(a.superGainAmount,5);
+ a.reset();assert.equal(a.superGainAmount,0);assert.equal(a.superGainFlash,0);
+});
+test('bright partial super fill and numeric plate remain private to the local player',()=>{
+ const a=actor(0);a.chargeSuper(200);const ctx=pen();a.drawSuperIndicator(ctx,{local:true});
+ assert(ctx.calls.some(c=>c.method==='arc'&&c.stroke==='#ffe52b'));
+ assert(ctx.calls.some(c=>c.method==='fillText'&&c.args[0]==='Q · 20%'));
+ assert(ctx.calls.some(c=>c.method==='fillText'&&c.args[0]==='+20%'));
+ const other=pen();a.drawSuperIndicator(other,{local:false});assert.equal(other.calls.length,0);
+});
