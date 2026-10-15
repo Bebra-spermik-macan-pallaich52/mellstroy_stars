@@ -16,7 +16,7 @@ class VisualEffects {
     if (!event || !Number.isFinite(event.x) || !Number.isFinite(event.y)) return false;
     const types = ['shot', 'hit', 'impact', 'death', 'respawn', 'pickup', 'ability', 'wallDestroyed', 'blast', 'ricochet'];
     if (!types.includes(event.type)) return false;
-    const signatureColor = { arthur: '#f5ca63', kotost: '#a0ba80', mellstroy_fat: '#e49a58', dark_drun: '#ac91bc', fog: '#b9d4c4' }[event.characterId];
+    const signatureColor = { arthur: '#f5ca63', kotost: '#a0ba80', mellstroy_fat: '#e49a58', dark_drun: '#ac91bc', fog: '#b9d4c4', chekunets: '#aee3df', hare: '#f4b15b', mytost: '#8ce0f4' }[event.characterId];
     const color = signatureColor || { shot: '#fff4bc', hit: '#ff967b', impact: '#b4c6d1', death: '#eb8197',
       respawn: '#84e6ca', pickup: '#ffd479', ability: '#b6a0ff', wallDestroyed: '#c69b72', blast: '#e49a58', ricochet: '#b9d4c4' }[event.type];
     const radius = Number.isFinite(event.radius) && event.radius > 0 ? Math.min(240, event.radius) : { shot: 8, hit: 16, impact: 9, death: 30, respawn: 30, pickup: 17, ability: 52, wallDestroyed: 24, blast: 90, ricochet: 13 }[event.type];
@@ -31,7 +31,7 @@ class VisualEffects {
       this._add({ kind: 'signature', signature: event.style, x: event.x, y: event.y,
         angle: Math.atan2(event.dy || 0, event.dx || 1), radius: 22, color, age: 0, life: 0.18 });
     }
-    if (event.type === 'blast') this._add({ kind: 'signature', signature: 'nova', x: event.x, y: event.y, radius, color, age: 0, life: 0.42 });
+    if (event.type === 'blast') this._add({ kind: 'signature', signature: event.characterId === 'mytost' ? 'wave' : 'nova', x: event.x, y: event.y, radius, color, age: 0, life: 0.42 });
     const count = { shot: 0, hit: 5, impact: 3, death: 7, respawn: 4, pickup: 5, ability: 9, wallDestroyed: 10, blast: 10, ricochet: 4 }[event.type];
     for (let i = 0; i < count; i++) {
       const angle = (Math.PI * 2 * i / count) + Math.random() * 0.45;
@@ -66,7 +66,13 @@ class VisualEffects {
       ctx.translate(item.x, item.y);
       const radius = item.radius * (0.25 + progress * 0.75);
       ctx.strokeStyle = item.color; ctx.fillStyle = item.color; ctx.lineWidth = 3;
-      if (item.signature === 'heal') {
+      if (item.signature === 'shatter') {
+        for (let i=0;i<8;i++) { const angle=i*Math.PI/4; ctx.save(); ctx.rotate(angle); ctx.beginPath(); ctx.moveTo(radius,0); ctx.lineTo(radius-12,-5); ctx.lineTo(radius-7,7); ctx.closePath(); ctx.stroke(); ctx.restore(); }
+      } else if (item.signature === 'restock') {
+        for (let i=0;i<3;i++) { ctx.save(); ctx.rotate(i*Math.PI*2/3); ctx.beginPath(); ctx.moveTo(radius,0); ctx.lineTo(radius-20,-7); ctx.lineTo(radius-20,7); ctx.closePath(); ctx.fill(); ctx.restore(); }
+      } else if (item.signature === 'wave') {
+        for (let i=0;i<7;i++) { const angle=i*Math.PI*2/7; ctx.beginPath(); ctx.arc(Math.cos(angle)*radius*.65,Math.sin(angle)*radius*.65,8+progress*7,0,Math.PI*2); ctx.stroke(); }
+      } else if (item.signature === 'heal') {
         for (let i = 0; i < 6; i++) {
           const angle = i * Math.PI / 3, x = Math.cos(angle) * radius * 0.65, y = Math.sin(angle) * radius * 0.65;
           ctx.fillRect(x - 3, y - 9, 6, 18); ctx.fillRect(x - 9, y - 3, 18, 6);

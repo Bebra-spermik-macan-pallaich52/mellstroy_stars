@@ -46,8 +46,8 @@ class MenuController {
     on('open-road', 'click', () => this.openScreen('progress'));
     on('result-road', 'click', () => { this.show(); this.openScreen('progress'); });
     on('claim-road-all', 'click', () => this.claimRoad(true));
-    on('road-current', 'click', () => { this.roadStart = Math.max(2, this.profile.profile.roadClaimedLevel); this.renderRoad(); });
-    on('road-prev', 'click', () => { this.roadStart = Math.max(2, this.roadStart - 8); this.renderRoad(); });
+    on('road-current', 'click', () => { this.roadStart = Math.max(1, this.profile.profile.roadClaimedLevel); this.renderRoad(); });
+    on('road-prev', 'click', () => { this.roadStart = Math.max(1, this.roadStart - 8); this.renderRoad(); });
     on('road-next', 'click', () => { this.roadStart += 8; this.renderRoad(); });
     on('confirm-event', 'click', () => this.openScreen('lobby'));
     document.querySelectorAll('[data-back]').forEach(button => button.addEventListener('click', () => this.openScreen('lobby')));
@@ -147,7 +147,7 @@ class MenuController {
     this.byId('claim-road-all').hidden = ready < 2;
     this.byId('claim-road-all').textContent = `Забрать доступное · ${ready}`;
     const holder = this.byId('reward-road'); holder.replaceChildren(); holder.scrollLeft = 0;
-    const start = this.roadStart || Math.max(2, store.profile.roadClaimedLevel);
+    const start = this.roadStart || Math.max(1, store.profile.roadClaimedLevel);
     this.roadStart = start;
     for (let level = start; level < start + 8; level++) {
       const reward = store.roadReward(level), claimed = level <= store.profile.roadClaimedLevel;
@@ -173,7 +173,7 @@ class MenuController {
       }
       card.append(art, title, detail, requirement, action); step.append(number, card); holder.append(step);
     }
-    this.byId('road-prev').disabled = start <= 2;
+    this.byId('road-prev').disabled = start <= 1;
     this.byId('road-page').textContent = `Уровни ${start}–${start + 7}`;
   }
 
@@ -184,7 +184,7 @@ class MenuController {
     if (reward.coins) parts.push(`+${reward.coins} монет`);
     if (reward.characters.length) parts.push(`${reward.characters.length === 1 ? 'Открыт боец' : 'Открыты бойцы'}: ${reward.characters.map(index => this.definitions[index].name).join(', ')}`);
     if (reward.compensations.length) parts.push(`Компенсация за уже открытых бойцов: ${reward.compensations.join(', ')}`);
-    this.roadStart = Math.max(2, this.profile.profile.roadClaimedLevel);
+    this.roadStart = Math.max(1, this.profile.profile.roadClaimedLevel);
     this.renderProfile(); this.renderCharacters();
     this.byId('road-feedback').textContent = parts.join('. ') + (this.profile.storageAvailable ? '.' : '. ' + this.profile.storageMessage);
     this.byId('road-title').focus({ preventScroll: true });
@@ -192,7 +192,7 @@ class MenuController {
 
   openScreen(screen) {
     this.currentScreen = screen;
-    if (screen === 'progress') { this.byId('road-feedback').textContent = ''; this.roadStart = Math.max(2, this.profile.profile.roadClaimedLevel); this.renderRoad(); }
+    if (screen === 'progress') { this.byId('road-feedback').textContent = ''; this.roadStart = Math.max(1, this.profile.profile.roadClaimedLevel); this.renderRoad(); }
     this.byId('menu-message').textContent = this.profile.storageMessage || '';
     for (const name of ['lobby', 'roster', 'events', 'progress']) this.byId(`${name}-screen`).hidden = name !== screen;
     this.byId('main-menu').dataset.screen = screen;
@@ -286,10 +286,11 @@ class MenuController {
     const holder = this.byId('character-cards'); holder.replaceChildren();
     const roles = ['Стрелок', 'Поддержка', 'Танк', 'Защитник', 'Штурмовик'];
     this.definitions.forEach((definition, index) => {
+      if (index === 0 || index === 5) { const heading = document.createElement('h3'); heading.className = 'collection-section-title'; heading.textContent = index === 0 ? 'Бойцы пути прогресса' : 'Бойцы за монеты'; holder.append(heading); }
       const unlocked = this.profile.isUnlocked(index), selected = this.profile.profile.selectedCharacter === index;
       const card = document.createElement('article'); card.className = `character-card fighter-${index}${selected ? ' selected' : ''}${unlocked ? '' : ' locked'}`;
       const pick = document.createElement('button'); pick.type = 'button'; pick.className = 'character-pick'; pick.setAttribute('aria-label', `${definition.name}${unlocked ? ', выбрать персонажа' : ', ещё не открыт'}`); pick.setAttribute('aria-pressed', String(selected));
-      const role = document.createElement('span'); role.className = 'fighter-role'; role.textContent = roles[index];
+      const role = document.createElement('span'); role.className = 'fighter-role'; role.textContent = definition.role || roles[index];
       const portrait = document.createElement('canvas'); portrait.width = 300; portrait.height = 240; portrait.className = 'character-portrait'; portrait.setAttribute('aria-hidden', 'true');
       this.paintPortrait(portrait, index);
       const name = document.createElement('strong'); name.className = 'character-name'; name.textContent = definition.name;
@@ -297,12 +298,13 @@ class MenuController {
       pick.append(role, portrait, name, marker);
       pick.addEventListener('click', () => {
         if (unlocked) { this.selectCharacter(index); this.openScreen('lobby'); }
-        else this.byId('menu-message').textContent = `${definition.name}: открывается за ${definition.unlockCost} монет. Получи на пути уровней или открой раньше за монеты из матчей.`;
+        else this.byId('menu-message').textContent = definition.acquisition === 'coins' ? `${definition.name}: только за ${definition.unlockCost} монет из матчей и пути прогресса.` : `${definition.name}: только на пути прогресса, уровень ${definition.roadLevel}.`;
       });
       card.append(pick);
-      const unlock = document.createElement('button'); unlock.className = 'character-unlock'; unlock.type = 'button'; unlock.textContent = unlocked ? `${definition.maxHealth} HP · ${definition.attack.count > 1 ? definition.attack.count + '×' : ''}${definition.attack.damage} урона` : `Открыть · ${definition.unlockCost} монет`;
+      const unlock = document.createElement('button'); unlock.className = 'character-unlock'; unlock.type = 'button'; unlock.textContent = unlocked ? `${definition.maxHealth} HP · ${definition.attack.count > 1 ? definition.attack.count + '×' : ''}${definition.attack.damage} урона` : definition.acquisition === 'coins' ? `Купить · ${definition.unlockCost} монет` : `Путь · уровень ${definition.roadLevel}`;
       if (unlocked) { unlock.disabled = true; unlock.tabIndex = -1; }
       else unlock.addEventListener('click', () => {
+        if (definition.acquisition !== 'coins') { this.openScreen('progress'); return; }
         const result = this.profile.unlockCharacter(index);
         this.byId('menu-message').textContent = result.message || '';
         this.renderProfile(); this.renderCharacters();
@@ -315,7 +317,7 @@ class MenuController {
     this.byId('character').value = selected;
     const definition = this.definitions[selected] || this.definitions[0];
     this.byId('character-name').textContent = definition.name;
-    this.byId('character-name').parentElement.classList.toggle('long-name', definition.name.length > 15);
+    this.byId('character-name').parentElement.classList.toggle('long-name', definition.name.length > 12);
     this.byId('character-description').textContent = `${definition.maxHealth} здоровья / ${definition.attack.name}: ${definition.attack.count > 1 ? definition.attack.count + '×' : ''}${definition.attack.damage} урона`;
     this.byId('character-super').textContent = definition.description;
     this.byId('character-ammo').textContent = `${definition.attack.ammo} заряда · +1 за ${String(definition.attack.reload).replace('.', ',')} с`;

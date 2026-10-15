@@ -30,7 +30,7 @@
       <section id="lobby-screen" class="menu-screen lobby-screen" aria-label="Лобби">
         <button id="open-road" class="lobby-goal"><span id="lobby-goal-level" class="goal-kicker">Путь бойца · уровень 2</span><strong id="lobby-goal-name">Котость</strong><span id="lobby-goal-detail">Ещё 300 опыта →</span><progress id="lobby-goal-progress" max="300" value="0" aria-label="Опыт до ближайшей награды"></progress></button>
         <nav class="side-rail left-rail" aria-label="Разделы игры">
-          <button id="open-roster" class="rail-button fighters-button"><span><svg aria-hidden="true"><use href="#i-fighters"/></svg></span>Бойцы<small id="lobby-roster-count">1 / 5</small></button>
+          <button id="open-roster" class="rail-button fighters-button"><span><svg aria-hidden="true"><use href="#i-fighters"/></svg></span>Бойцы<small id="lobby-roster-count">1 / 8</small></button>
           <button id="open-arenas" class="rail-button arenas-button"><span><svg aria-hidden="true"><use href="#i-arena"/></svg></span>Арены</button>
         </nav>
         <div class="hero-stage">
@@ -48,9 +48,9 @@
       </section>
 
       <section id="roster-screen" class="menu-screen collection-screen" aria-labelledby="roster-title" hidden>
-        <header class="screen-heading"><button class="back-button" data-back aria-label="Назад в лобби"><svg aria-hidden="true"><use href="#i-back"/></svg></button><div><span class="eyebrow">Пять разных характеров</span><h2 id="roster-title">Бойцы <span id="roster-count">1 / 5 открыто</span></h2></div></header>
+        <header class="screen-heading"><button class="back-button" data-back aria-label="Назад в лобби"><svg aria-hidden="true"><use href="#i-back"/></svg></button><div><span class="eyebrow">Восемь разных характеров</span><h2 id="roster-title">Бойцы <span id="roster-count">1 / 8 открыто</span></h2></div></header>
         <div id="character-cards" class="character-cards"></div>
-        <p class="screen-footnote">Получай бойцов на пути уровней или открывай раньше за монеты из матчей.</p>
+        <p class="screen-footnote">Первые пять бойцов — на пути прогресса. Чекунец, Заяц-бурмалдаец и Мелстрой-мытость — только за монеты.</p>
       </section>
 
       <section id="events-screen" class="menu-screen events-screen" aria-labelledby="events-title" hidden>
@@ -65,7 +65,7 @@
       <section id="progress-screen" class="menu-screen progress-screen" aria-labelledby="progress-title" hidden>
         <header class="screen-heading"><button class="back-button" data-back aria-label="Назад в лобби"><svg aria-hidden="true"><use href="#i-back"/></svg></button><div><span class="eyebrow">Сохранено на этом устройстве</span><h2 id="progress-title">Путь бойца</h2></div></header>
         <div class="progress-banner"><svg aria-hidden="true"><use href="#i-medal"/></svg><div><h3 id="road-level-title">Уровень 1</h3><span id="profile-xp">0 / 300 опыта</span><progress id="profile-xp-bar" max="300" value="0" aria-label="Опыт до следующего уровня"></progress></div></div>
-        <section class="road-section" aria-labelledby="road-title"><div class="road-heading"><div><h3 id="road-title" tabindex="-1">Следующая награда</h3><p id="road-target" class="muted"></p></div><button id="claim-road-all" class="primary-button" hidden>Забрать доступное</button></div><p class="road-explanation">Опыт за каждый завершённый матч: победа +120, ничья +80, поражение +50. Уровень — каждые 300 опыта.</p><p id="road-feedback" class="road-feedback" role="status"></p><ol id="reward-road" class="reward-road" aria-label="Награды за уровни"></ol><div class="road-navigation"><button id="road-prev" class="quiet-button">← Раньше</button><span id="road-page"></span><button id="road-current" class="quiet-button">К цели</button><button id="road-next" class="quiet-button">Дальше →</button></div><p class="road-explanation">Уже купил бойца? На его этапе получишь монеты в размере цены открытия. После 10-го уровня каждый следующий приносит 100 монет.</p></section>
+        <section class="road-section" aria-labelledby="road-title"><div class="road-heading"><div><h3 id="road-title" tabindex="-1">Следующая награда</h3><p id="road-target" class="muted"></p></div><button id="claim-road-all" class="primary-button" hidden>Забрать доступное</button></div><p class="road-explanation">Опыт за каждый завершённый матч: победа +120, ничья +80, поражение +50. Уровень — каждые 300 опыта.</p><p id="road-feedback" class="road-feedback" role="status"></p><ol id="reward-road" class="reward-road" aria-label="Награды за уровни"></ol><div class="road-navigation"><button id="road-prev" class="quiet-button">← Раньше</button><span id="road-page"></span><button id="road-current" class="quiet-button">К цели</button><button id="road-next" class="quiet-button">Дальше →</button></div><p class="road-explanation">Боец уже был открыт в старом сохранении? На его этапе получишь компенсацию монетами. После 10-го уровня каждый следующий приносит 100 монет.</p></section>
         <div class="profile-metrics"><span>Матчи <strong id="profile-matches">0</strong></span><span>Победы <strong id="profile-wins">0</strong></span><span>Поражения <strong id="profile-losses">0</strong></span><span>Ничьи <strong id="profile-draws">0</strong></span><span>Побеждено <strong id="profile-kills">0</strong></span></div>
         <h3>Последние матчи</h3><ol id="match-history" class="match-history"></ol><p class="screen-footnote">Прогресс сохраняется в этом браузере.</p>
       </section>

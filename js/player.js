@@ -69,7 +69,7 @@ class Player {
     const oldX = this.x, oldY = this.y;
     if (velocity.x || velocity.y) this.direction = Math.abs(velocity.x) > Math.abs(velocity.y)
       ? (velocity.x > 0 ? 'right' : 'left') : (velocity.y > 0 ? 'down' : 'up');
-    moveWithCollisions(this, velocity.x * this.config.speed * dt, velocity.y * this.config.speed * dt, map);
+    moveWithCollisions(this, velocity.x * this.config.speed * (this.buffs.slow?.factor ?? 1) * dt, velocity.y * this.config.speed * (this.buffs.slow?.factor ?? 1) * dt, map);
     this.moving = Math.hypot(this.x - oldX, this.y - oldY) > 0.00001;
     this.animator.update(this.direction, this.moving, dt);
   }
@@ -91,7 +91,7 @@ class Player {
       const offset = attack.kind === 'scatter' ? (index - (count - 1) / 2) * attack.spread : 0;
       shots.push(new Projectile(this, { x: Math.cos(angle + offset), y: Math.sin(angle + offset) }, {
         ...attack, delay: attack.kind === 'burst' ? index * attack.interval : 0,
-        damage: attack.damage * (this.buffs.damage?.multiplier ?? 1)
+        damage: attack.damage * Math.max(this.buffs.damage?.multiplier ?? 1, this.buffs.restock?.multiplier ?? 1)
       }));
     }
     if (shots.length > 1) shots[0].companions = shots.slice(1);
@@ -128,19 +128,22 @@ class Player {
   useSuper(target, world) {
     if (!this.alive || this.superCharge < 100 || !this.config.super.kind || !world) return false;
     const settings = this.config.super;
-    if (settings.kind === 'heavy' || settings.kind === 'fan') {
+    if (['heavy', 'fan', 'wave'].includes(settings.kind)) {
       if (!this.aimAt(target)) return false;
     }
     this.superCharge = 0; this.superGainFlash = 0; this.superGainAmount = 0; this.interruptRecovery();
     const center = this.center;
     if (settings.kind === 'heavy') {
       world.addProjectile(new Projectile(this, this.aimDirection, settings));
-    } else if (settings.kind === 'fan') {
+    } else if (settings.kind === 'fan' || settings.kind === 'wave' || settings.kind === 'shatter') {
       const angle = Math.atan2(this.aimDirection.y, this.aimDirection.x);
       for (let i = 0; i < settings.count; i++) {
-        const current = angle + (i - (settings.count - 1) / 2) * settings.spread;
+        const current = settings.kind === 'shatter' ? i * Math.PI * 2 / settings.count : angle + (i - (settings.count - 1) / 2) * settings.spread;
         world.addProjectile(new Projectile(this, { x: Math.cos(current), y: Math.sin(current) }, settings));
       }
+    } else if (settings.kind === 'restock') {
+      this.ammo = this.maxAmmo; this.reloadElapsed = 0;
+      this.buffs.restock = { multiplier: settings.multiplier, remaining: settings.duration };
     } else if (settings.kind === 'heal') {
       for (const actor of world.actors) {
         if (actor.alive && actor.team === this.team && Math.hypot(actor.center.x - center.x, actor.center.y - center.y) <= settings.radius) {
@@ -274,6 +277,13 @@ class Player {
     if (this.buffs.regen) {
       ctx.strokeStyle = '#85ac78'; ctx.lineWidth = 2; ctx.beginPath();
       ctx.ellipse(center.x, this.y + this.height, this.width * 0.7, 12, 0, 0, Math.PI * 2); ctx.stroke(); ctx.lineWidth = 1;
+    }
+    if (this.buffs.slow) {
+      ctx.strokeStyle = '#bcefff'; ctx.lineWidth = 2;
+      for (let i = -1; i <= 1; i++) { ctx.beginPath(); ctx.arc(center.x + i * 14, this.y + this.height - 4, 5, 0, Math.PI * 2); ctx.stroke(); }
+    }
+    if (this.buffs.restock) {
+      ctx.strokeStyle = '#f2a43f'; ctx.lineWidth = 2; ctx.beginPath(); ctx.ellipse(center.x, center.y, this.width * .65, this.height * .6, 0, 0, Math.PI * 2); ctx.stroke();
     }
     if (showLabel) this.drawVitals(ctx, { local: this.isHuman });
   }

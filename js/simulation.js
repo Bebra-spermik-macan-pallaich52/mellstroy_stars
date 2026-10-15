@@ -10,7 +10,8 @@ class Simulation {
     this.events = []; this.projectiles = []; this.pendingShots = []; this.powerups = [];
     this.powerupElapsed = 0; this.powerupId = 0;
     this.humanSlots = new Set(humanSlots.filter(id => Number.isInteger(id) && id >= 0 && id < 6));
-    const choices = characterIndices || [characterIndex, 1, 2, 3, 4, 1];
+    const choices = characterIndices || (characterIndex >= 5
+      ? Array.from({ length: 6 }, (_, i) => (characterIndex + i) % characterDefinitions.length) : [characterIndex, 1, 2, 3, 4, 1]);
     this.actors = this.map.teamSpawns.flatMap((spawns, team) => spawns.map((spawn, offset) => {
       const id = team * 3 + offset;
       const choice = Number.isInteger(choices[id]) && choices[id] >= 0 && choices[id] < characterDefinitions.length ? choices[id] : 0;
@@ -163,6 +164,10 @@ class Simulation {
       const needsHeal = this.actors.some(ally => ally.alive && ally.team === actor.team &&
         ally.health <= ally.maxHealth - 250 && bot.distance(ally.center, actor.center) <= actor.config.super.radius);
       if (needsHeal) actor.useSuper(actor.center, this.world);
+    } else if (kind === 'restock') {
+      if (enemy && actor.ammo <= 1) actor.useSuper(actor.center, this.world);
+    } else if (kind === 'shatter') {
+      if (enemy && bot.distance(enemy.center, actor.center) <= actor.config.super.range * .8) actor.useSuper(actor.center, this.world);
     } else if (kind === 'nova') {
       if (enemy && bot.distance(enemy.center, actor.center) <= actor.config.super.radius) actor.useSuper(enemy.center, this.world);
     } else if (enemy && (kind !== 'shield' || bot.underFire > 0 || bot.distance(enemy.center, actor.center) < actor.config.attack.range * 0.85)) {
@@ -213,7 +218,13 @@ class Simulation {
         const hit = projectile.update(delta, this.map, this.actors);
         if (projectile.blastRadius > 0 && !projectile.active) this.explode(projectile);
         else {
-          for (const entry of hit?.hits || (hit?.target ? [hit] : [])) this.dealDamage(entry.owner, entry.target, entry.damage);
+          for (const entry of hit?.hits || (hit?.target ? [hit] : [])) {
+            const damage = this.dealDamage(entry.owner, entry.target, entry.damage);
+            if (damage > 0 && entry.target.alive && entry.slow) {
+              const old = entry.target.buffs.slow;
+              entry.target.buffs.slow = { factor: Math.min(old?.factor ?? 1, entry.slow.factor), remaining: Math.max(old?.remaining ?? 0, entry.slow.duration) };
+            }
+          }
           if (hit?.wall) this.damageWall(hit.wall, projectile.damage, projectile.owner);
         }
         for (const point of projectile.ricochets) this.emit({ type: 'ricochet', ...point, characterId: projectile.characterId, team: projectile.owner.team });

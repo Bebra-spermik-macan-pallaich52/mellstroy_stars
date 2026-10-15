@@ -52,7 +52,7 @@ class Game {
 
   attachImages() {
     for (const actor of this.actors) {
-      actor.image = this.images[actor.characterIndex] || this.photo;
+      actor.image = this.images[actor.characterIndex] || (characterImages[actor.characterIndex]?.photo === false ? null : this.photo);
       actor.photoFallback = !this.images[actor.characterIndex];
     }
   }

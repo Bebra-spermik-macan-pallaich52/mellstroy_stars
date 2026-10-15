@@ -3,7 +3,7 @@
 // Add future fighters or coin milestones here; other levels use repeatCoins.
 const progressionConfig = {
   xpPerLevel: 300, repeatCoins: 100,
-  rewards: { 2: { characterIndex: 1 }, 3: { coins: 60 }, 4: { characterIndex: 2 },
+  rewards: { 1: { characterIndex: 0 }, 2: { characterIndex: 1 }, 3: { coins: 60 }, 4: { characterIndex: 2 },
     5: { coins: 100 }, 6: { characterIndex: 3 }, 7: { coins: 150 },
     8: { characterIndex: 4 }, 9: { coins: 200 }, 10: { coins: 250 } }
 };
@@ -37,7 +37,7 @@ class ProfileStore {
   get level() { return 1 + Math.floor(this.profile.xp / this.xpPerLevel); }
   // Rewards after level 10 remain available: the road never ends with a dead screen.
   roadReward(level) {
-    if (!Number.isSafeInteger(level) || level < 2) return null;
+    if (!Number.isSafeInteger(level) || level < 1) return null;
     const characterIndex = progressionConfig.rewards[level]?.characterIndex;
     if (characterIndex !== undefined) {
       const definition = this.definitions()[characterIndex];
@@ -158,6 +158,7 @@ class ProfileStore {
   unlockCharacter(index) {
     if (!this.validCharacter(index)) return { ok: false, message: 'Персонаж не найден.' };
     if (this.isUnlocked(index)) return { ok: true, message: 'Персонаж уже открыт.' };
+    if (this.definitions()[index]?.acquisition !== 'coins') return { ok: false, message: 'Этот боец доступен только на пути прогресса.' };
     const cost = this.definitions()[index]?.unlockCost ?? [0, 80, 140, 200, 260][index];
     if (!Number.isSafeInteger(cost) || cost < 0) return { ok: false, message: 'Персонаж пока недоступен.' };
     if (this.profile.coins < cost) return { ok: false, message: `Не хватает ${cost - this.profile.coins} монет. Завершайте матчи для наград.` };

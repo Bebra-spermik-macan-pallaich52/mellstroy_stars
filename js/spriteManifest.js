@@ -3,7 +3,7 @@
 // Source rectangles measured from the alpha channel of the generated sheets.
 // Rows: down, left, right, up. Four walking phases per row; column 0 is idle.
 // Each figure is drawn at one shared scale and anchored at bottom-center.
-// Rectangles include 4 px of anti-aliasing margin and stay inside their own cell.
+// Rectangles include up to 4 px of anti-aliasing margin around one complete figure.
 const spriteManifest = {
   "arthur": {
     "image": "assets/characters/arthur-walk.png",
@@ -547,6 +547,333 @@ const spriteManifest = {
         "y": 940,
         "width": 166,
         "height": 276
+      }
+    ]
+  },
+  "chekunets": {
+    "image": "assets/characters/chekunets-walk.png",
+    "sheetSize": {
+      "width": 1254,
+      "height": 1254
+    },
+    "frameSize": {
+      "width": 235,
+      "height": 307
+    },
+    "frames": [
+      {
+        "x": 74,
+        "y": 4,
+        "width": 214,
+        "height": 298
+      },
+      {
+        "x": 390,
+        "y": 3,
+        "width": 206,
+        "height": 305
+      },
+      {
+        "x": 678,
+        "y": 3,
+        "width": 204,
+        "height": 306
+      },
+      {
+        "x": 968,
+        "y": 3,
+        "width": 215,
+        "height": 305
+      },
+      {
+        "x": 104,
+        "y": 312,
+        "width": 157,
+        "height": 306
+      },
+      {
+        "x": 383,
+        "y": 310,
+        "width": 212,
+        "height": 306
+      },
+      {
+        "x": 705,
+        "y": 312,
+        "width": 182,
+        "height": 305
+      },
+      {
+        "x": 983,
+        "y": 312,
+        "width": 187,
+        "height": 305
+      },
+      {
+        "x": 85,
+        "y": 618,
+        "width": 172,
+        "height": 304
+      },
+      {
+        "x": 383,
+        "y": 615,
+        "width": 202,
+        "height": 306
+      },
+      {
+        "x": 689,
+        "y": 616,
+        "width": 187,
+        "height": 306
+      },
+      {
+        "x": 993,
+        "y": 619,
+        "width": 181,
+        "height": 303
+      },
+      {
+        "x": 61,
+        "y": 920,
+        "width": 226,
+        "height": 297
+      },
+      {
+        "x": 374,
+        "y": 920,
+        "width": 212,
+        "height": 307
+      },
+      {
+        "x": 662,
+        "y": 921,
+        "width": 224,
+        "height": 305
+      },
+      {
+        "x": 959,
+        "y": 922,
+        "width": 235,
+        "height": 304
+      }
+    ]
+  },
+  "hare": {
+    "image": "assets/characters/hare-walk.png",
+    "sheetSize": {
+      "width": 1254,
+      "height": 1254
+    },
+    "frameSize": {
+      "width": 271,
+      "height": 301
+    },
+    "frames": [
+      {
+        "x": 75,
+        "y": 7,
+        "width": 255,
+        "height": 298
+      },
+      {
+        "x": 360,
+        "y": 8,
+        "width": 253,
+        "height": 298
+      },
+      {
+        "x": 640,
+        "y": 7,
+        "width": 257,
+        "height": 300
+      },
+      {
+        "x": 928,
+        "y": 6,
+        "width": 255,
+        "height": 301
+      },
+      {
+        "x": 90,
+        "y": 316,
+        "width": 252,
+        "height": 297
+      },
+      {
+        "x": 369,
+        "y": 317,
+        "width": 252,
+        "height": 299
+      },
+      {
+        "x": 637,
+        "y": 317,
+        "width": 267,
+        "height": 297
+      },
+      {
+        "x": 928,
+        "y": 314,
+        "width": 268,
+        "height": 300
+      },
+      {
+        "x": 56,
+        "y": 621,
+        "width": 257,
+        "height": 292
+      },
+      {
+        "x": 348,
+        "y": 624,
+        "width": 257,
+        "height": 288
+      },
+      {
+        "x": 630,
+        "y": 623,
+        "width": 264,
+        "height": 291
+      },
+      {
+        "x": 914,
+        "y": 623,
+        "width": 271,
+        "height": 291
+      },
+      {
+        "x": 66,
+        "y": 920,
+        "width": 268,
+        "height": 295
+      },
+      {
+        "x": 358,
+        "y": 920,
+        "width": 266,
+        "height": 293
+      },
+      {
+        "x": 633,
+        "y": 920,
+        "width": 271,
+        "height": 301
+      },
+      {
+        "x": 925,
+        "y": 919,
+        "width": 266,
+        "height": 298
+      }
+    ]
+  },
+  "mytost": {
+    "image": "assets/characters/mytost-walk.png",
+    "sheetSize": {
+      "width": 1254,
+      "height": 1254
+    },
+    "frameSize": {
+      "width": 251,
+      "height": 296
+    },
+    "frames": [
+      {
+        "x": 40,
+        "y": 17,
+        "width": 236,
+        "height": 291
+      },
+      {
+        "x": 349,
+        "y": 17,
+        "width": 249,
+        "height": 291
+      },
+      {
+        "x": 665,
+        "y": 16,
+        "width": 242,
+        "height": 294
+      },
+      {
+        "x": 974,
+        "y": 16,
+        "width": 244,
+        "height": 296
+      },
+      {
+        "x": 44,
+        "y": 326,
+        "width": 227,
+        "height": 285
+      },
+      {
+        "x": 352,
+        "y": 324,
+        "width": 236,
+        "height": 285
+      },
+      {
+        "x": 671,
+        "y": 324,
+        "width": 228,
+        "height": 287
+      },
+      {
+        "x": 989,
+        "y": 325,
+        "width": 226,
+        "height": 286
+      },
+      {
+        "x": 43,
+        "y": 626,
+        "width": 221,
+        "height": 284
+      },
+      {
+        "x": 354,
+        "y": 626,
+        "width": 233,
+        "height": 284
+      },
+      {
+        "x": 670,
+        "y": 626,
+        "width": 228,
+        "height": 285
+      },
+      {
+        "x": 982,
+        "y": 626,
+        "width": 230,
+        "height": 284
+      },
+      {
+        "x": 37,
+        "y": 922,
+        "width": 243,
+        "height": 292
+      },
+      {
+        "x": 348,
+        "y": 920,
+        "width": 248,
+        "height": 295
+      },
+      {
+        "x": 659,
+        "y": 920,
+        "width": 251,
+        "height": 296
+      },
+      {
+        "x": 975,
+        "y": 920,
+        "width": 246,
+        "height": 296
       }
     ]
   }

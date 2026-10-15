@@ -9,9 +9,9 @@ function run(sim,seconds){for(let elapsed=0;elapsed<seconds-1e-9;elapsed+=.01)si
 function fire(sim,target){sim.addProjectile(sim.actors[0].attack(target));}
 
 test('all five normal attacks have independent mechanics and visual styles',()=>{
- assert.equal(new Set(characterDefinitions.map(c=>c.attack.kind)).size,5);
- assert.equal(new Set(characterDefinitions.map(c=>c.attack.style)).size,5);
- assert.equal(new Set(characterDefinitions.map(c=>c.super.kind)).size,5);
+ assert.equal(new Set(characterDefinitions.slice(0,5).map(c=>c.attack.kind)).size,5);
+ assert.equal(new Set(characterDefinitions.slice(0,5).map(c=>c.attack.style)).size,5);
+ assert.equal(new Set(characterDefinitions.slice(0,5).map(c=>c.super.kind)).size,5);
 });
 test('Arthur precision attack is a single fast propeller shot',()=>{const sim=make();fire(sim,{x:600,y:132});assert.equal(sim.projectiles.length,1);assert.equal(sim.pendingShots.length,0);assert.equal(sim.projectiles[0].style,'propeller');assert.equal(sim.projectiles[0].damage,200);});
 test('Kotost fires three simultaneous claws with a symmetric spread and one cooldown',()=>{
@@ -79,7 +79,7 @@ test('Kotost super heals immediately and regenerates only its affected live alli
  assert.equal(actor.health,actor.maxHealth-350);run(sim,3.5);close(actor.health,actor.maxHealth-170);close(ally.health,ally.maxHealth-170);assert.equal(enemy.health,enemy.maxHealth-800);assert.equal(actor.buffs.regen,undefined);assert.equal(actor.superCharge,0);
 });
 test('partial and full super charge survive death and respawn for every character',()=>{
- for(let index=0;index<5;index++)for(const charge of [0,42.5,100]){const sim=make(index),actor=sim.actors[0],life=actor.lifeId;actor.superCharge=charge;actor.takeDamage(99999);assert.equal(actor.superCharge,charge);assert.equal(actor.useSuper({x:700,y:132},sim.world),false);actor.updateTimers(3.01);assert.equal(actor.superCharge,charge);assert.equal(actor.health,actor.maxHealth);assert.equal(actor.lifeId,life+1);}
+ for(let index=0;index<characterDefinitions.length;index++)for(const charge of [0,42.5,100]){const sim=make(index),actor=sim.actors[0],life=actor.lifeId;actor.superCharge=charge;actor.takeDamage(99999);assert.equal(actor.superCharge,charge);assert.equal(actor.useSuper({x:700,y:132},sim.world),false);actor.updateTimers(3.01);assert.equal(actor.superCharge,charge);assert.equal(actor.health,actor.maxHealth);assert.equal(actor.lifeId,life+1);}
 });
 test('death does not restore a spent super; explicit reset and new matches start with zero',()=>{
  const sim=make(3),actor=sim.actors[0];actor.superCharge=100;actor.useSuper(actor.center,sim.world);actor.takeDamage(99999);actor.updateTimers(3.1);assert.equal(actor.superCharge,0);assert.equal(actor.buffs.superShield,undefined);

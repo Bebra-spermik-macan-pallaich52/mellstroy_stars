@@ -71,7 +71,8 @@ class AudioManager {
         kotost: [[340, 200, 0.09, 'triangle', 0.065]],
         mellstroy_fat: [[155, 75, 0.12, 'triangle', 0.09]],
         dark_drun: [[190, 110, 0.11, 'sine', 0.1]],
-        fog: [[1100, 600, 0.045, 'sine', 0.07]]
+        fog: [[1100, 600, 0.045, 'sine', 0.07]],
+        chekunets: [[1550, 950, .065, 'sine', .06]], hare: [[540, 290, .07, 'triangle', .065]], mytost: [[480, 780, .09, 'sine', .07]]
       }[event.characterId] || notes;
     }
     if (event.type === 'ability') {
@@ -80,7 +81,10 @@ class AudioManager {
         kotost: [[330, 440, 0.2, 'sine', 0.07], [550, 660, 0.24, 'sine', 0.06, 0.12]],
         mellstroy_fat: [[120, 40, 0.3, 'triangle', 0.1]],
         dark_drun: [[160, 240, 0.25, 'sine', 0.08], [320, 240, 0.24, 'sine', 0.05, 0.08]],
-        fog: [[800, 1200, 0.15, 'sine', 0.075], [1200, 900, 0.15, 'sine', 0.05, 0.08]]
+        fog: [[800, 1200, 0.15, 'sine', 0.075], [1200, 900, 0.15, 'sine', 0.05, 0.08]],
+        chekunets: [[1600, 1100, .18, 'sine', .07], [2200, 1500, .16, 'sine', .04, .07]],
+        hare: [[440, 660, .14, 'triangle', .07], [660, 880, .18, 'sine', .06, .12]],
+        mytost: [[300, 720, .25, 'sine', .07], [600, 1000, .2, 'sine', .05, .1]]
       }[event.characterId] || notes;
     }
     if (event.type === 'blast') notes = [[95, 40, 0.18, 'triangle', 0.085]];

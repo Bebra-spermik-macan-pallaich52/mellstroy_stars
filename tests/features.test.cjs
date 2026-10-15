@@ -22,9 +22,9 @@ function run(sim, seconds, command = {}, dt = 1 / 60) {
   for (let elapsed = 0; elapsed < seconds - 1e-9; elapsed += dt) sim.step(Math.min(dt, seconds - elapsed), command);
 }
 
-test('five definitions have independent stats, real powers, and slower shared movement', () => {
-  assert.equal(characterDefinitions.length, 5);
-  assert.equal(new Set(characterDefinitions.map(item => item.super.kind)).size, 5);
+test('eight definitions have independent stats, real powers, and slower shared movement', () => {
+  assert.equal(characterDefinitions.length, 8);
+  assert.equal(new Set(characterDefinitions.map(item => item.super.kind)).size, 8);
   assert.equal(getCharacterConfig(1).maxHealth, 1300); assert.equal(getCharacterConfig(4).speed, 157.5);
   assert.equal(characterConfig.maxHealth, 1000); assert.equal(characterConfig.speed, 150);
   const a = getCharacterConfig(0), b = getCharacterConfig(0); a.attack.damage = 1;

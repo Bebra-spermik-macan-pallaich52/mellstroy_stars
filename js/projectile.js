@@ -12,6 +12,7 @@ class Projectile {
     this.pierceRemaining = Math.max(1, settings.pierce || 1);
     this.bouncesRemaining = Math.max(0, settings.bounces || 0);
     this.blastRadius = settings.blastRadius || 0; this.exploded = false;
+    this.slow = settings.slow ? { ...settings.slow } : null;
     this.delay = settings.delay || 0; this.hitActors = new Set(); this.ricochets = [];
     this.traveled = 0;
     this.active = Number.isFinite(length) && length > 0 && Number.isFinite(this.speed) && this.speed > 0 && Number.isFinite(this.range) && this.range > 0;
@@ -41,7 +42,7 @@ class Projectile {
       let fraction = stop ?? 1;
       for (const { actor, time } of targets) {
         this.hitActors.add(actor); this.pierceRemaining--;
-        hits.push({ target: actor, damage: this.damage, owner: this.owner });
+        hits.push({ target: actor, damage: this.damage, owner: this.owner, ...(this.slow ? { slow: this.slow } : {}) });
         if (this.pierceRemaining === 0) { fraction = time; this.active = false; break; }
       }
       this.x = startX + (endX - startX) * fraction; this.y = startY + (endY - startY) * fraction;
@@ -72,7 +73,7 @@ class Projectile {
 
   draw(ctx) {
     if (!this.active) return;
-    const colors = { bolt: '#f5ca63', propeller: '#f5ca63', lance: '#fff0a2', claw: '#f2c0a2', bomb: '#dc9059', shadow: '#ae91c2', needle: '#a5c9b1', fogfan: '#d4ead3' };
+    const colors = { bolt: '#f5ca63', propeller: '#f5ca63', lance: '#fff0a2', claw: '#f2c0a2', bomb: '#dc9059', shadow: '#ae91c2', needle: '#a5c9b1', fogfan: '#d4ead3', cork: '#cfa674', glass: '#aee3df', carrot: '#f8a437', bubble: '#a4ecfa', water: '#69d7f3' };
     const color = colors[this.style] || colors.bolt;
     ctx.save(); ctx.translate(this.x, this.y); ctx.rotate(Math.atan2(this.direction.y, this.direction.x));
     const tail = this.style === 'lance' ? 42 : this.style === 'shadow' ? 23 : 15;
@@ -80,7 +81,15 @@ class Projectile {
     ctx.beginPath(); ctx.moveTo(-tail, 0); ctx.lineTo(0, 0); ctx.stroke(); ctx.globalAlpha = 1;
     ctx.fillStyle = color; ctx.strokeStyle = '#30212e'; ctx.lineWidth = 1.5;
     ctx.beginPath();
-    if (this.style === 'claw') {
+    if (this.style === 'carrot') {
+      ctx.moveTo(13, 0); ctx.lineTo(-5, -5); ctx.lineTo(-5, 5); ctx.closePath();
+    } else if (this.style === 'glass') {
+      ctx.moveTo(11, 0); ctx.lineTo(-4, -6); ctx.lineTo(-8, 5); ctx.closePath();
+    } else if (this.style === 'cork') {
+      ctx.roundRect(-7, -5, 14, 10, 2);
+    } else if (this.style === 'water') {
+      ctx.moveTo(13, 0); ctx.quadraticCurveTo(-7, -15, -9, 0); ctx.quadraticCurveTo(-7, 15, 13, 0);
+    } else if (this.style === 'claw') {
       ctx.moveTo(9, 0); ctx.quadraticCurveTo(-5, -10, -8, 0); ctx.quadraticCurveTo(-4, 4, 9, 0);
     } else if (this.style === 'needle' || this.style === 'fogfan' || this.style === 'lance') {
       ctx.moveTo(13, 0); ctx.lineTo(-7, -this.radius); ctx.lineTo(-3, 0); ctx.lineTo(-7, this.radius); ctx.closePath();
@@ -90,6 +99,8 @@ class Projectile {
       ctx.ellipse(0, 0, 10, 4, this.traveled / 22, 0, Math.PI * 2);
     } else ctx.arc(0, 0, this.radius, 0, Math.PI * 2);
     ctx.fill(); ctx.stroke();
+    if (this.style === 'carrot') { ctx.strokeStyle = '#679d50'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(-5,0); ctx.lineTo(-12,-6); ctx.moveTo(-5,0); ctx.lineTo(-14,3); ctx.stroke(); }
+    if (this.style === 'bubble') { ctx.strokeStyle = '#edffff'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(0,0,this.radius*.65,-2.7,-.8); ctx.stroke(); }
     if (this.style === 'bomb') { ctx.strokeStyle = '#f8df92'; ctx.beginPath(); ctx.moveTo(0, -7); ctx.lineTo(3, -12); ctx.stroke(); }
     if (this.style === 'shadow') { ctx.strokeStyle = '#fff0cf'; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(0, 0, this.radius * 0.5, -1.5, 1.5); ctx.stroke(); }
     ctx.restore();

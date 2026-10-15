@@ -2088,3 +2088,10 @@ svg.road-art { width:64px; padding:20px 0; color:#8c692b; fill:#e3c472; }
   .objective-metric strong { font-size:30px; }
   .objective-metric>span { font-size:11px; }
 }
+
+.collection-section-title { grid-column:1/-1; margin:4px 0 0; font:700 18px var(--display); color:#58634d; }
+.fighter-5 { --card:#a9bbbf; --accent:#456b84; }
+.fighter-6 { --card:#e5d7d6; --accent:#9e6c77; }
+.fighter-7 { --card:#a2d0d6; --accent:#438b9f; }
+
+@media(max-width:580px) { .hero-stage { bottom:270px; } }

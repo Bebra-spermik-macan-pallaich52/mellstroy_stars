@@ -50,16 +50,15 @@ test('loss and draw pay specified rewards and kill bonus is capped', () => {
   assert.equal(profile.profile.draws, 1); assert.equal(profile.profile.losses, 1); assert.equal(profile.profile.xp, 130);
 });
 
-test('unlocking requires enough coins, deducts once and persists selected ownership', () => {
+test('coin-only unlocking requires enough currency, deducts once and persists ownership', () => {
   const memory = storage(), profile = new ProfileStore(memory);
-  assert.equal(profile.unlockCharacter(1).ok, false); assert.equal(profile.profile.coins, 0);
-  profile.recordMatch(result(0), match('win1', { kills: 0 }));
-  profile.recordMatch(result(0), match('win2', { kills: 0 }));
-  assert.equal(profile.unlockCharacter(1).ok, true); assert.equal(profile.profile.coins, 10);
-  assert.equal(profile.unlockCharacter(1).ok, true); assert.equal(profile.profile.coins, 10);
+  assert.equal(profile.unlockCharacter(5).ok, false); assert.equal(profile.profile.coins, 0);
+  for (let i=0;i<9;i++) profile.recordMatch(result(0), match('shop-win'+i, { kills: 0 }));
+  assert.equal(profile.unlockCharacter(5).ok, true); assert.equal(profile.profile.coins, 5);
+  assert.equal(profile.unlockCharacter(5).ok, true); assert.equal(profile.profile.coins, 5);
   const reloaded = new ProfileStore(memory);
-  assert.equal(reloaded.isUnlocked(1), true); assert.equal(reloaded.profile.selectedCharacter, 1);
-  assert.equal(reloaded.unlockCharacter(-1).ok, false); assert.equal(reloaded.unlockCharacter(7).ok, false);
+  assert.equal(reloaded.isUnlocked(5), true); assert.equal(reloaded.profile.selectedCharacter, 5);
+  assert.equal(reloaded.unlockCharacter(-1).ok, false); assert.equal(reloaded.unlockCharacter(99).ok, false);
 });
 
 test('settings round-trip, clamp volume and keep nickname bounded', () => {
@@ -129,7 +128,8 @@ test('level road starts with Kotost and alternates fighters with coins', () => {
   assert.deepEqual(Array.from([2,4,6,8], level=>store.roadReward(level).characterIndex), [1,2,3,4]);
   assert.equal(store.roadReward(3).coins,60); assert.equal(store.roadReward(10).coins,250);
   assert.equal(store.roadReward(11).coins,100); assert.equal(store.roadReward(500).coins,100);
-  for (const value of [0,1,-1,2.5,NaN,Infinity,'2']) assert.equal(store.roadReward(value),null);
+  assert.equal(store.roadReward(1).characterIndex,0);assert.equal(store.roadReward(1).xp,0);
+  for (const value of [0,-1,2.5,NaN,Infinity,'2']) assert.equal(store.roadReward(value),null);
 });
 test('rewards cannot be claimed early, out of order or twice', () => {
   const store = new ProfileStore(storage());store.profile.xp=299;
@@ -155,13 +155,13 @@ test('loss experience also reaches a road goal and does not reduce progress', ()
   for(let i=0;i<6;i++)store.recordMatch(result(1),match('loss-road-'+i,{kills:0}));
   assert.equal(store.level,2);assert.equal(store.profile.xp,300);assert.equal(store.claimRoadReward().ok,true);
 });
-test('claiming an already purchased fighter compensates its actual price', () => {
-  const store=new ProfileStore(storage());store.profile.coins=100;
-  assert.equal(store.unlockCharacter(1).ok,true);assert.equal(store.profile.coins,20);
-  store.profile.xp=300;const reward=store.claimRoadReward();
+test('a fighter bought before the road-only change retains legacy compensation', () => {
+  const memory=storage(),raw=new ProfileStore(memory).defaults();raw.profile.coins=20;raw.profile.xp=300;raw.profile.unlocked=[0,1];
+  memory.setItem('mellstroy-stars.profile.v1',JSON.stringify(raw));const store=new ProfileStore(memory),reward=store.claimRoadReward();
   assert.equal(reward.coins,80);assert.equal(reward.characters.length,0);assert.equal(reward.compensations[0],'Котость');
   assert.equal(store.profile.coins,100);assert.equal(store.profile.unlocked.filter(i=>i===1).length,1);
 });
+
 test('road claims survive reload without duplicate currency or fighters', () => {
   const memory=storage(),store=new ProfileStore(memory);store.profile.xp=600;store.claimAllRoadRewards();
   const reloaded=new ProfileStore(memory);assert.equal(reloaded.profile.roadClaimedLevel,3);
