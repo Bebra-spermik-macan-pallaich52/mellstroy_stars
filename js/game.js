@@ -12,7 +12,8 @@ class Game {
     this.camera = new Camera(canvas.width, canvas.height);
     this.input.camera = this.camera;
     this.ui = new UI();
-    this.effects = new VisualEffects({ reducedMotion: Boolean(profile?.settings?.reducedMotion) });
+    this.reducedMotion = Boolean(window.matchMedia?.('(prefers-reduced-motion: reduce)').matches);
+    this.effects = new VisualEffects({ reducedMotion: this.reducedMotion });
     this.sim = null;
     this.images = [];
     this.photo = null;
@@ -22,7 +23,7 @@ class Game {
     this.lastTime = null;
     this.stats = { kills: 0, deaths: 0 };
     this.message = '';
-    this.lastOptions = { modeId: 'donations', mapId: 'arena', characterIndex: 0, botFire: true, enhancements: true };
+    this.lastOptions = { modeId: 'donations', mapId: 'arena', characterIndex: 0, botFire: true, enhancements: false };
     this.matchCounter = 0;
     this.tick = this.tick.bind(this);
     window.addEventListener('blur', () => { this.lastTime = null; this.input.clear(); this.audio?.pause(); });
@@ -59,7 +60,7 @@ class Game {
   }
 
   startMatch(options = {}) {
-    this.lastOptions = { ...this.lastOptions, ...options };
+    this.lastOptions = { ...this.lastOptions, ...options, botFire: true, enhancements: false };
     const index = this.lastOptions.characterIndex;
     if (this.profile && !this.profile.isUnlocked(index)) {
       this.message = 'Этот персонаж ещё не открыт.';
@@ -110,11 +111,6 @@ class Game {
     this.lastTime = null;
   }
 
-  setBotFire(enabled) {
-    this.lastOptions.botFire = Boolean(enabled);
-    if (this.sim) this.sim.botFire = Boolean(enabled);
-  }
-
   update(dt) {
     if (!this.sim || !this.active || this.paused || this.manager.state !== 'playing') return;
     const direction = this.input.direction();
@@ -158,7 +154,7 @@ class Game {
       if (this.respawnLife !== this.player.lifeId) {
         this.respawnLife = this.player.lifeId;
         this.camera.flyTo({ x: this.player.spawn.x + this.player.width / 2, y: this.player.spawn.y + this.player.height / 2 },
-          this.map, this.profile?.settings.reducedMotion ? 0 : 1.2);
+          this.map, this.reducedMotion ? 0 : 1.2);
       }
       this.camera.updateFlight(dt);
     } else { this.respawnLife = null; this.camera.update(this.player.center, this.map, dt); }
@@ -256,7 +252,7 @@ class Game {
     const visibleActors = this.actors.filter(actor => this.camera.visible(actor));
     for (const actor of visibleActors.sort((a, b) => a.y - b.y)) {
       actor.draw(this.ctx, false, { local: actor === this.player, localTeam: this.player.team,
-        time: this.sim.elapsed, reducedMotion: this.profile?.settings.reducedMotion });
+        time: this.sim.elapsed, reducedMotion: this.reducedMotion });
 
     }
     for (const shot of this.projectiles) shot.draw(this.ctx);

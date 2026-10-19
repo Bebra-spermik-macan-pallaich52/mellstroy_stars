@@ -1253,11 +1253,6 @@ input[type=range] {
   width:100%;
   accent-color:#bb7541;
 }
-.reduced-motion * {
-  animation:none!important;
-  transition:none!important;
-  scroll-behavior:auto!important;
-}
 @media(prefers-reduced-motion:reduce) {
   * {
     animation:none!important;

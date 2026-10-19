@@ -23,7 +23,7 @@ class ProfileStore {
   defaults() {
     return {
       version: 1,
-      settings: { sound: true, music: false, volume: 0.45, reducedMotion: false, nickname: 'Игрок', botFire: true, enhancements: true },
+      settings: { sound: true, music: false, volume: 0.45, nickname: 'Игрок' },
       profile: { coins: 0, xp: 0, selectedCharacter: 0, unlocked: [0], matches: 0, wins: 0, losses: 0, draws: 0, kills: 0, deaths: 0, characters: {}, roadClaimedLevel: 1 },
       history: [], completed: []
     };
@@ -103,7 +103,7 @@ class ProfileStore {
         for (const key of ['matches', 'wins', 'kills', 'deaths']) clean.profile.characters[i][key] = this.counter(stats[key]);
       }
     }
-    for (const key of ['sound', 'music', 'reducedMotion', 'botFire', 'enhancements']) if (typeof raw.settings[key] === 'boolean') clean.settings[key] = raw.settings[key];
+    for (const key of ['sound', 'music']) if (typeof raw.settings[key] === 'boolean') clean.settings[key] = raw.settings[key];
     if (Number.isFinite(raw.settings.volume)) clean.settings.volume = Math.max(0, Math.min(1, raw.settings.volume));
     if (typeof raw.settings.nickname === 'string') clean.settings.nickname = raw.settings.nickname.trim().slice(0, 24) || 'Игрок';
     clean.completed = Array.isArray(raw.completed) ? [...new Set(raw.completed.filter(id => typeof id === 'string' && id.length <= 100))].slice(-100) : [];
@@ -140,7 +140,7 @@ class ProfileStore {
   }
 
   updateSettings(changes) {
-    for (const key of ['sound', 'music', 'reducedMotion', 'botFire', 'enhancements']) if (typeof changes[key] === 'boolean') this.settings[key] = changes[key];
+    for (const key of ['sound', 'music']) if (typeof changes[key] === 'boolean') this.settings[key] = changes[key];
     if (Number.isFinite(changes.volume)) this.settings.volume = Math.max(0, Math.min(1, changes.volume));
     if (typeof changes.nickname === 'string') this.settings.nickname = changes.nickname.trim().slice(0, 24) || 'Игрок';
     this.save();

@@ -99,9 +99,11 @@ class MapArt {
     if (!this.wallPatterns.has(map.id)) this.wallPatterns.set(map.id, ctx.createPattern(this.tile(theme.tile, 1, 135), 'repeat'));
     for (const wall of map.walls) {
       if (camera && !camera.visible(wall, 20)) continue;
-      ctx.fillStyle = 'rgba(48,33,46,.25)'; ctx.fillRect(wall.x + 6, wall.y + 10, wall.width, wall.height);
-      ctx.fillStyle = wall.destructible ? '#745035' : theme.side; ctx.fillRect(wall.x, wall.y + 7, wall.width, wall.height);
-      ctx.fillStyle = wall.destructible ? this.woodPattern(ctx) : this.wallPatterns.get(map.id); ctx.fillRect(wall.x, wall.y, wall.width, wall.height);
+      // The visible base is the collision rectangle. All bevels stay inside it.
+      ctx.fillStyle = wall.destructible ? '#745035' : theme.side;
+      ctx.fillRect(wall.x, wall.y, wall.width, wall.height);
+      ctx.fillStyle = wall.destructible ? this.woodPattern(ctx) : this.wallPatterns.get(map.id);
+      ctx.fillRect(wall.x + 3, wall.y + 3, wall.width - 6, wall.height - 9);
       ctx.strokeStyle = wall.destructible ? '#523d30' : theme.edge; ctx.lineWidth = 3;
       ctx.strokeRect(wall.x + 1.5, wall.y + 1.5, wall.width - 3, wall.height - 3);
       ctx.strokeStyle = 'rgba(255,238,190,.5)'; ctx.lineWidth = 2;

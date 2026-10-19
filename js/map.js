@@ -10,43 +10,66 @@ function mapWall(x, y, width, height, destructible = false) {
   return { x, y, width, height, ...(destructible ? { destructible: true } : {}) };
 }
 
+// Cover spacing is authored for the smallest (teamfight) version first.
+// Open passages leave at least 80px horizontally or 96px vertically for 48×64 actors.
 const mapLayouts = {
   arena: [
-    mapWall(420, 250, 64, 280), mapWall(700, 220, 260, 56, true),
-    mapWall(1100, 210, 270, 64), mapWall(1460, 270, 64, 260),
-    mapWall(350, 890, 280, 64), mapWall(1380, 950, 240, 64),
-    mapWall(450, 580, 200, 56, true), mapWall(1270, 620, 200, 56, true),
-    mapWall(660, 850, 64, 220), mapWall(1170, 880, 64, 220),
-    mapWall(800, 930, 260, 48, true), mapWall(880, 360, 230, 48, true),
-    mapWall(220, 1100, 160, 56), mapWall(1550, 1110, 140, 56),
-    mapWall(720, 1150, 160, 48), mapWall(1540, 760, 64, 110),
-    mapWall(900, 100, 100, 70), mapWall(210, 200, 120, 56)
+    mapWall(420, 173.367, 64, 258.1),
+    mapWall(695.333, 199.333, 258.667, 50.1, true),
+    mapWall(1087.333, 190.9, 263.333, 58.55),
+    mapWall(1484, 242.783, 58.667, 252.217),
+    mapWall(280.617, 878.15, 260.183, 60.617),
+    mapWall(1393.35, 906.667, 237.033, 40),
+    mapWall(450, 591.467, 200, 40, true),
+    mapWall(1245.367, 655, 192.967, 48.217, true),
+    mapWall(674.117, 791.467, 40, 155.2),
+    mapWall(1210.25, 880, 49.783, 220),
+    mapWall(847.45, 905.633, 229.45, 41.033, true),
+    mapWall(880, 409.433, 230, 40, true),
+    mapWall(220, 1098.767, 160, 47.9),
+    mapWall(1550, 1106.667, 140, 40),
+    mapWall(720, 1106.667, 160, 40),
+    mapWall(1571.667, 664.067, 56.967, 82.6)
   ],
   courtyard: [
-    mapWall(350, 240, 330, 64), mapWall(350, 304, 64, 230),
-    mapWall(830, 240, 220, 64, true), mapWall(1390, 240, 420, 64),
-    mapWall(1746, 304, 64, 220), mapWall(550, 650, 64, 300),
-    mapWall(1620, 660, 64, 250), mapWall(780, 520, 240, 64),
-    mapWall(1260, 510, 200, 64), mapWall(800, 1030, 64, 230),
-    mapWall(1360, 1040, 64, 250), mapWall(960, 1120, 240, 56, true),
-    mapWall(330, 1230, 310, 64), mapWall(330, 1060, 64, 170),
-    mapWall(1630, 1210, 300, 64), mapWall(1866, 1050, 64, 160),
-    mapWall(200, 710, 180, 56, true), mapWall(1870, 740, 170, 56, true),
-    mapWall(1040, 420, 64, 110, true), mapWall(1170, 1320, 220, 64),
-    mapWall(710, 1400, 220, 48), mapWall(1510, 100, 180, 56)
+    mapWall(349.125, 240, 329.998, 64),
+    mapWall(349.125, 304, 63.245, 230),
+    mapWall(830.008, 240, 219.993, 64, true),
+    mapWall(1390.007, 233.696, 420, 62.196),
+    mapWall(1745.993, 295.875, 63.998, 213.554),
+    mapWall(552.388, 650, 63.473, 300),
+    mapWall(1619.993, 680.875, 63.998, 245.357),
+    mapWall(779.993, 520, 239.995, 64),
+    mapWall(1260, 510, 200.008, 64),
+    mapWall(782.898, 1030, 59.115, 230),
+    mapWall(1359.995, 1040, 63.998, 250),
+    mapWall(981.995, 1120, 235.113, 56, true),
+    mapWall(329.998, 1230, 309.995, 64),
+    mapWall(329.998, 1060, 63.998, 170),
+    mapWall(1630.003, 1210, 300.003, 64),
+    mapWall(1866.007, 1050, 63.998, 160),
+    mapWall(200.008, 710, 180.005, 56, true),
+    mapWall(1869.997, 740, 169.995, 56, true)
   ],
   crossroads: [
-    mapWall(420, 230, 250, 190), mapWall(890, 200, 240, 160),
-    mapWall(1450, 240, 260, 180), mapWall(1940, 210, 220, 210),
-    mapWall(450, 1140, 280, 190), mapWall(930, 1190, 190, 220),
-    mapWall(1480, 1170, 260, 170), mapWall(1960, 1140, 220, 230),
-    mapWall(750, 580, 180, 180), mapWall(1670, 840, 200, 180),
-    mapWall(400, 680, 220, 56, true), mapWall(1970, 800, 220, 56, true),
-    mapWall(1100, 510, 64, 100, true), mapWall(1420, 1000, 64, 120, true),
-    mapWall(1260, 240, 56, 160), mapWall(1260, 1250, 56, 170),
-    mapWall(1010, 940, 130, 56), mapWall(1460, 640, 130, 56),
-    mapWall(200, 980, 150, 64), mapWall(2200, 520, 150, 64),
-    mapWall(680, 970, 150, 48, true), mapWall(1790, 560, 160, 48, true)
+    mapWall(419.995, 222.259, 250.007, 187.778),
+    mapWall(890.007, 189.204, 240, 156.907),
+    mapWall(1472.536, 240, 254.983, 180),
+    mapWall(1939.995, 210, 220.005, 210),
+    mapWall(449.998, 1140, 279.991, 190),
+    mapWall(926.89, 1190, 189.114, 220),
+    mapWall(1480.009, 1233.889, 259.995, 155.796),
+    mapWall(1960.009, 1181.778, 220.005, 220.722),
+    mapWall(755.533, 587.815, 175.26, 177.167),
+    mapWall(1651.348, 840.648, 194.664, 163.352),
+    mapWall(390.326, 680, 217.23, 56, true),
+    mapWall(1993.988, 800, 214.677, 56, true),
+    mapWall(1078.77, 523.889, 53.42, 96.907, true),
+    mapWall(1420.005, 950.315, 64, 105.796, true),
+    mapWall(1280.166, 240, 44.393, 160),
+    mapWall(1263.982, 1250, 55.121, 170),
+    mapWall(1009.998, 942.759, 129.998, 55.389),
+    mapWall(1459.995, 614.222, 129.998, 48.63)
   ]
 };
 
@@ -68,9 +91,10 @@ function drawMap(ctx, camera = null) {
     ctx.setLineDash([]);
   });
   for (const wall of this.walls) {
-    ctx.fillStyle = '#0f202c'; ctx.fillRect(wall.x + 5, wall.y + 6, wall.width, wall.height);
     ctx.fillStyle = wall.destructible ? '#a17950' : '#796878'; ctx.fillRect(wall.x, wall.y, wall.width, wall.height);
-    ctx.fillStyle = wall.destructible ? '#c69a6b' : '#b9a18e'; ctx.fillRect(wall.x, wall.y, wall.width, 5);
+    ctx.fillStyle = wall.destructible ? '#c69a6b' : '#b9a18e'; ctx.fillRect(wall.x + 2, wall.y + 2, wall.width - 4, 4);
+    ctx.strokeStyle = '#554451'; ctx.lineWidth = 2;
+    ctx.strokeRect(wall.x + 1, wall.y + 1, wall.width - 2, wall.height - 2);
     if (wall.destructible) {
       ctx.strokeStyle = '#674d38'; ctx.beginPath();
       ctx.moveTo(wall.x + wall.width * 0.4, wall.y + 5); ctx.lineTo(wall.x + wall.width * 0.55, wall.y + wall.height * 0.5);

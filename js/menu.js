@@ -56,10 +56,8 @@ class MenuController {
     on('mode', 'change', () => this.updateChoices());
     on('map', 'change', () => this.updateChoices());
     on('character', 'change', event => this.selectCharacter(Number(event.target.value)));
-    for (const id of ['sound', 'music', 'volume', 'reduced-motion']) on(id, 'input', () => this.saveSettings());
+    for (const id of ['sound', 'music', 'volume']) on(id, 'input', () => this.saveSettings());
     on('nickname', 'change', () => this.saveSettings());
-    on('enemy-fire', 'change', event => { this.game.setBotFire(event.target.checked); this.saveSettings(); });
-    on('enhancements', 'change', () => this.saveSettings());
     // Browser input remains paused while a dialog has focus. Trap Tab inside it.
     document.addEventListener('keydown', event => {
       const settings = this.byId('settings-dialog');
@@ -338,16 +336,11 @@ class MenuController {
     this.byId('sound').checked = settings.sound; this.byId('music').checked = settings.music;
     this.byId('volume').value = Math.round(settings.volume * 100);
     this.byId('volume-value').textContent = `${Math.round(settings.volume * 100)}%`;
-    this.byId('reduced-motion').checked = settings.reducedMotion;
-    this.byId('enemy-fire').checked = settings.botFire;
-    this.byId('enhancements').checked = settings.enhancements;
-    document.body.classList.toggle('reduced-motion', settings.reducedMotion);
   }
 
   saveSettings() {
-    const settings = this.profile.updateSettings({ nickname: this.byId('nickname').value, sound: this.byId('sound').checked, music: this.byId('music').checked, volume: Number(this.byId('volume').value) / 100, reducedMotion: this.byId('reduced-motion').checked, botFire: this.byId('enemy-fire').checked, enhancements: this.byId('enhancements').checked });
+    const settings = this.profile.updateSettings({ nickname: this.byId('nickname').value, sound: this.byId('sound').checked, music: this.byId('music').checked, volume: Number(this.byId('volume').value) / 100 });
     this.audio?.unlock(); this.audio?.setSettings(settings);
-    this.game.effects?.setReducedMotion(settings.reducedMotion);
     this.syncSettings(); this.renderProfile();
     if (this.profile.storageMessage) this.byId('menu-message').textContent = this.profile.storageMessage;
   }
@@ -392,7 +385,7 @@ class MenuController {
 
   startMatch() {
     this.audio?.unlock();
-    const options = { modeId: this.byId('mode').value, mapId: this.byId('map').value, characterIndex: this.profile.profile.selectedCharacter, botFire: this.byId('enemy-fire').checked, enhancements: this.byId('enhancements').checked };
+    const options = { modeId: this.byId('mode').value, mapId: this.byId('map').value, characterIndex: this.profile.profile.selectedCharacter };
     if (!this.game.startMatch(options)) { this.byId('menu-message').textContent = this.game.message || 'Не удалось начать матч.'; return; }
     this.showMatch(options.modeId);
   }
