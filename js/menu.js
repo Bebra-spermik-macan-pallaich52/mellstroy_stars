@@ -210,8 +210,8 @@ class MenuController {
         : `Ещё ${remaining} опыта →`;
     } else {
       this.byId('road-title').textContent = 'Путь пройден';
-      this.byId('road-target').textContent = 'Все награды до 50-го уровня получены.';
-      this.byId('lobby-goal-level').textContent = 'Уровень 50 · максимум';
+      this.byId('road-target').textContent = `Все награды до ${store.maxLevel}-го уровня получены.`;
+      this.byId('lobby-goal-level').textContent = `Уровень ${store.maxLevel} · максимум`;
       this.byId('lobby-goal-name').textContent = 'Путь пройден';
       this.byId('lobby-goal-detail').textContent = 'Все награды получены';
     }

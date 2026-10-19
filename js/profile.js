@@ -1,19 +1,24 @@
 'use strict';
 const progressionConfig = {
   xpPerLevel: 300,
-  maxLevel: 50,
+  maxLevel: 15,
   repeatCoins: 100,
   rewards: {
     1: { characterIndex: 0 },
-    2: { characterIndex: 1 },
-    3: { coins: 60 },
-    4: { characterIndex: 2 },
+    2: { coins: 60 },
+    3: { coins: 80 },
+    4: { characterIndex: 1 },
     5: { coins: 100 },
-    6: { characterIndex: 3 },
+    6: { coins: 120 },
     7: { coins: 150 },
-    8: { characterIndex: 4 },
-    9: { coins: 200 },
-    10: { coins: 250 }
+    8: { characterIndex: 2 },
+    9: { coins: 180 },
+    10: { coins: 200 },
+    11: { characterIndex: 3 },
+    12: { coins: 220 },
+    13: { coins: 250 },
+    14: { coins: 300 },
+    15: { characterIndex: 4 }
   }
 };
 class ProfileStore {

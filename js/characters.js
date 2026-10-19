@@ -69,7 +69,7 @@ const characterDefinitions = [
   {
     id: 'kotost',
     acquisition: 'road',
-    roadLevel: 2,
+    roadLevel: 4,
     name: 'Котость',
     unlockCost: 80,
     description: 'Царапки: три когтя веером. Супер «Мурчание»: лечение и восстановление союзников.',
@@ -94,7 +94,7 @@ const characterDefinitions = [
   {
     id: 'mellstroy_fat',
     acquisition: 'road',
-    roadLevel: 4,
+    roadLevel: 8,
     name: 'Меллстрой Жирность',
     unlockCost: 140,
     description: 'Донатная бомба: взрыв по площади. Супер «Срыв банка»: ударная волна вокруг себя.',
@@ -118,7 +118,7 @@ const characterDefinitions = [
   {
     id: 'dark_drun',
     acquisition: 'road',
-    roadLevel: 6,
+    roadLevel: 11,
     name: 'Тёмный Друн',
     unlockCost: 200,
     description: 'Тёмная сфера: пробивает двух врагов. Супер «Ночная броня»: щит на 5 секунд.',
@@ -142,7 +142,7 @@ const characterDefinitions = [
   {
     id: 'fog',
     acquisition: 'road',
-    roadLevel: 8,
+    roadLevel: 15,
     name: 'Фог',
     unlockCost: 260,
     description: 'Эхо: короткая очередь из двух игл. Супер «Лабиринт»: пять игл с рикошетом.',
