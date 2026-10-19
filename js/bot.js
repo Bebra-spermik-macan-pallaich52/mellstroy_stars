@@ -17,10 +17,7 @@ class Bot {
   constructor(actor, index, config = botConfig) {
     this.actor = actor;
     this.index = index;
-    this.config = {
-      ...botConfig,
-      ...config
-    };
+    this.config = { ...botConfig, ...config };
     this.reset();
   }
   reset() {
@@ -58,10 +55,7 @@ class Bot {
     }
     let shared = botNavigationGraphs.get(map);
     if (!shared || shared.version !== (map.navVersion || 0)) {
-      shared = {
-        version: map.navVersion || 0,
-        entries: []
-      };
+      shared = { version: map.navVersion || 0, entries: [] };
       botNavigationGraphs.set(map, shared);
     }
     const existing = shared.entries.find(
@@ -111,10 +105,7 @@ class Bot {
     for (const wall of walls) {
       for (const x of [wall.x - epsilon, wall.x + wall.width + epsilon]) {
         for (const y of [wall.y - epsilon, wall.y + wall.height + epsilon]) {
-          const point = {
-            x,
-            y
-          };
+          const point = { x, y };
           if (this.freePoint(point, nav)) {
             nav.nodes.push(point);
           }
@@ -128,14 +119,8 @@ class Bot {
           continue;
         }
         const distance = this.distance(nav.nodes[a], nav.nodes[b]);
-        nav.edges[a].push({
-          index: b,
-          distance
-        });
-        nav.edges[b].push({
-          index: a,
-          distance
-        });
+        nav.edges[a].push({ index: b, distance });
+        nav.edges[b].push({ index: a, distance });
       }
     }
     this.navigation = nav;
@@ -180,22 +165,10 @@ class Bot {
     }
     for (const wall of nav.walls) {
       candidates.push(
-        clamp({
-          x: wall.x - 0.01,
-          y: point.y
-        }),
-        clamp({
-          x: wall.x + wall.width + 0.01,
-          y: point.y
-        }),
-        clamp({
-          x: point.x,
-          y: wall.y - 0.01
-        }),
-        clamp({
-          x: point.x,
-          y: wall.y + wall.height + 0.01
-        })
+        clamp({ x: wall.x - 0.01, y: point.y }),
+        clamp({ x: wall.x + wall.width + 0.01, y: point.y }),
+        clamp({ x: point.x, y: wall.y - 0.01 }),
+        clamp({ x: point.x, y: wall.y + wall.height + 0.01 })
       );
     }
     candidates.push(...nav.nodes);
@@ -215,11 +188,7 @@ class Bot {
   }
   findPath(from, goal, nav) {
     if (this.clearSegment(from, goal, nav)) {
-      return [
-        {
-          ...goal
-        }
-      ];
+      return [{ ...goal }];
     }
     const nodes = [...nav.nodes, from, goal];
     const start = nodes.length - 2;
@@ -232,14 +201,8 @@ class Bot {
           continue;
         }
         const distance = this.distance(nodes[endpoint], nodes[index]);
-        edges[endpoint].push({
-          index,
-          distance
-        });
-        edges[index].push({
-          index: endpoint,
-          distance
-        });
+        edges[endpoint].push({ index, distance });
+        edges[index].push({ index: endpoint, distance });
       }
     }
     const distances = nodes.map(() => Infinity);
@@ -264,9 +227,7 @@ class Bot {
       if (current === finish) {
         const path = [];
         for (let index = finish; index !== start; index = previous[index]) {
-          path.unshift({
-            ...nodes[index]
-          });
+          path.unshift({ ...nodes[index] });
         }
         return path;
       }
@@ -326,35 +287,22 @@ class Bot {
       }
       const point = actor.center;
       const previous = this.observations.get(actor);
-      let velocity = {
-        x: 0,
-        y: 0
-      };
+      let velocity = { x: 0, y: 0 };
       if (previous) {
         const delta = this.elapsed - previous.time;
         const x = (point.x - previous.x) / delta;
         const y = (point.y - previous.y) / delta;
         if (Math.hypot(x, y) <= actor.config.speed * 1.1) {
-          velocity = {
-            x,
-            y
-          };
+          velocity = { x, y };
         }
       }
-      this.observations.set(actor, {
-        ...point,
-        time: this.elapsed,
-        velocity
-      });
+      this.observations.set(actor, { ...point, time: this.elapsed, velocity });
     }
   }
   aimTarget(enemy, map) {
     const position = enemy.center;
     const from = this.actor.center;
-    const velocity = this.observations.get(enemy)?.velocity || {
-      x: 0,
-      y: 0
-    };
+    const velocity = this.observations.get(enemy)?.velocity || { x: 0, y: 0 };
     const speed = this.actor.config.attack.speed;
     const dx = position.x - from.x;
     const dy = position.y - from.y;
@@ -373,10 +321,7 @@ class Bot {
       }
     }
     time = Math.min(time, this.actor.config.attack.range / speed, 0.7);
-    const prediction = {
-      x: position.x + velocity.x * time,
-      y: position.y + velocity.y * time
-    };
+    const prediction = { x: position.x + velocity.x * time, y: position.y + velocity.y * time };
     if (this.lineOfFire(from, prediction, map)) {
       return prediction;
     } else {
@@ -411,9 +356,7 @@ class Bot {
       this.state = 'recover';
       if (!exposed(from).length) {
         this.path = [];
-        this.goal = {
-          ...from
-        };
+        this.goal = { ...from };
         return true;
       }
       const nav = this.prepareNavigation(world.map, this.config.obstacleMargin);
@@ -453,9 +396,7 @@ class Bot {
         }
       }
       this.path = [];
-      this.goal = {
-        ...from
-      };
+      this.goal = { ...from };
       return true;
     }
     if (health < 0.72) {
@@ -479,10 +420,7 @@ class Bot {
       const side = this.actor.team === 0 ? -1 : 1;
       if (
         this.planTo(
-          {
-            x: point.x + side * 310,
-            y: point.y + ((this.index % 3) - 1) * 115
-          },
+          { x: point.x + side * 310, y: point.y + ((this.index % 3) - 1) * 115 },
           world.map
         )
       ) {
@@ -501,10 +439,7 @@ class Bot {
     if (
       world.manager.modeId === 'cottage' &&
       !inside &&
-      this.distance(from, {
-        x: zone.x + zone.width / 2,
-        y: zone.y + zone.height / 2
-      }) > 330
+      this.distance(from, { x: zone.x + zone.width / 2, y: zone.y + zone.height / 2 }) > 330
     ) {
       return false;
     }
@@ -596,9 +531,7 @@ class Bot {
       const preferred = this.actor.config.attack.range * 0.6;
       if (visible && distance <= preferred && distance >= 95) {
         this.path = [];
-        this.goal = {
-          ...from
-        };
+        this.goal = { ...from };
         return;
       }
       if (visible && distance < 95) {
@@ -663,17 +596,7 @@ class Bot {
         ) {
           continue;
         }
-        if (
-          !this.lineOfFire(
-            {
-              x: shot.x,
-              y: shot.y
-            },
-            from,
-            world.map,
-            shot.radius
-          )
-        ) {
+        if (!this.lineOfFire({ x: shot.x, y: shot.y }, from, world.map, shot.radius)) {
           continue;
         }
         const vx = shot.direction.x * shot.speed;
@@ -692,15 +615,9 @@ class Bot {
         }
         const side = (from.x - shot.x) * -shot.direction.y + (from.y - shot.y) * shot.direction.x;
         for (const sign of [side >= 0 ? 1 : -1, side >= 0 ? -1 : 1]) {
-          const vector = {
-            x: -shot.direction.y * sign,
-            y: shot.direction.x * sign
-          };
+          const vector = { x: -shot.direction.y * sign, y: shot.direction.x * sign };
           const nav = this.prepareNavigation(world.map, this.config.obstacleMargin);
-          const point = {
-            x: from.x + vector.x * 65,
-            y: from.y + vector.y * 65
-          };
+          const point = { x: from.x + vector.x * 65, y: from.y + vector.y * 65 };
           if (!this.freePoint(point, nav) || !this.clearSegment(from, point, nav)) {
             continue;
           }
@@ -751,10 +668,7 @@ class Bot {
         return direction;
       }
     }
-    return {
-      x,
-      y
-    };
+    return { x, y };
   }
   update(deltaTime, world, allowFire = true) {
     if (this.manager !== world.manager || this.wasAlive !== this.actor.alive) {
@@ -795,10 +709,7 @@ class Bot {
     while (this.path.length && this.distance(from, this.path[0]) <= this.config.waypointTolerance) {
       this.path.shift();
     }
-    let direction = {
-      x: 0,
-      y: 0
-    };
+    let direction = { x: 0, y: 0 };
     if (this.path.length) {
       const point = this.path[0];
       const distance = this.distance(from, point);
@@ -809,13 +720,7 @@ class Bot {
       };
     }
     const steering = this.steer(direction, world, deltaTime);
-    this.actor.update(
-      deltaTime,
-      {
-        direction: () => steering
-      },
-      world.map
-    );
+    this.actor.update(deltaTime, { direction: () => steering }, world.map);
     const moved = this.distance(from, this.actor.center);
     if (this.path.length && moved < this.actor.config.speed * deltaTime * 0.1) {
       this.stuckElapsed += deltaTime;

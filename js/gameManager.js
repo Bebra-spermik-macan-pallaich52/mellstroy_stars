@@ -10,14 +10,8 @@ const matchConfig = Object.freeze({
     itemRadius: 10,
     maxItems: 40
   }),
-  cottage: Object.freeze({
-    goal: 100,
-    captureRate: 20,
-    pointsPerSecond: 5
-  }),
-  teamfight: Object.freeze({
-    goal: 10
-  })
+  cottage: Object.freeze({ goal: 100, captureRate: 20, pointsPerSecond: 5 }),
+  teamfight: Object.freeze({ goal: 10 })
 });
 class GameManager {
   constructor(modeId, map, actors, overrides = {}) {
@@ -28,18 +22,9 @@ class GameManager {
     this.config = {
       ...matchConfig,
       ...overrides,
-      donations: {
-        ...matchConfig.donations,
-        ...overrides.donations
-      },
-      cottage: {
-        ...matchConfig.cottage,
-        ...overrides.cottage
-      },
-      teamfight: {
-        ...matchConfig.teamfight,
-        ...overrides.teamfight
-      }
+      donations: { ...matchConfig.donations, ...overrides.donations },
+      cottage: { ...matchConfig.cottage, ...overrides.cottage },
+      teamfight: { ...matchConfig.teamfight, ...overrides.teamfight }
     };
     this.duration = this.config.duration;
     this.remaining = this.duration;
@@ -66,11 +51,7 @@ class GameManager {
         winner = 1;
       }
     }
-    this.result = {
-      winner,
-      reason,
-      scores
-    };
+    this.result = { winner, reason, scores };
     this.state = 'finished';
   }
   update(deltaTime, actors = this.actors) {

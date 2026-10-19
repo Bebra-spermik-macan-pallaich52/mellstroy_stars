@@ -8,18 +8,9 @@ class MenuController {
     this.definitions =
       typeof characterDefinitions !== 'undefined' ? characterDefinitions : characterDefs;
     this.modes = {
-      donations: {
-        name: 'Сбор донатов',
-        description: 'Собери 15 донатов своей командой.'
-      },
-      cottage: {
-        name: 'Захват коттеджа',
-        description: 'Удерживай коттедж до 100 очков.'
-      },
-      teamfight: {
-        name: 'Командный бой',
-        description: 'Победи соперников 10 раз командой.'
-      }
+      donations: { name: 'Сбор донатов', description: 'Собери 15 донатов своей командой.' },
+      cottage: { name: 'Захват коттеджа', description: 'Удерживай коттедж до 100 очков.' },
+      teamfight: { name: 'Командный бой', description: 'Победи соперников 10 раз командой.' }
     };
     this.settingsSource = 'menu';
     this.portraitLoader = new ImageLoader();
@@ -198,11 +189,7 @@ class MenuController {
       const row = document.createElement('li');
       const outcome = document.createElement('span');
       outcome.className = `history-result ${match.outcome}`;
-      outcome.textContent = {
-        win: 'Победа',
-        draw: 'Ничья',
-        loss: 'Поражение'
-      }[match.outcome];
+      outcome.textContent = { win: 'Победа', draw: 'Ничья', loss: 'Поражение' }[match.outcome];
       const detail = document.createElement('span');
       detail.textContent = `${this.modes[match.modeId]?.name || 'Матч'} · ${this.definitions[match.characterIndex]?.name || 'Артур'}`;
       const reward = document.createElement('span');
@@ -339,9 +326,7 @@ class MenuController {
     this.renderCharacters();
     this.byId('road-feedback').textContent =
       parts.join('. ') + (this.profile.storageAvailable ? '.' : '. ' + this.profile.storageMessage);
-    this.byId('road-title').focus({
-      preventScroll: true
-    });
+    this.byId('road-title').focus({ preventScroll: true });
   }
   openScreen(screen) {
     this.currentScreen = screen;
@@ -356,13 +341,9 @@ class MenuController {
     }
     this.byId('main-menu').dataset.screen = screen;
     if (screen === 'lobby') {
-      this.byId('start-match').focus({
-        preventScroll: true
-      });
+      this.byId('start-match').focus({ preventScroll: true });
     } else {
-      this.byId(`${screen}-screen`).querySelector('[data-back]').focus({
-        preventScroll: true
-      });
+      this.byId(`${screen}-screen`).querySelector('[data-back]').focus({ preventScroll: true });
     }
   }
   icon(name) {
@@ -461,9 +442,9 @@ class MenuController {
       button.addEventListener('click', () => {
         this.byId('mode').value = id;
         this.updateChoices();
-        this.byId('event-cards').querySelector(`[data-mode="${id}"]`).focus({
-          preventScroll: true
-        });
+        this.byId('event-cards')
+          .querySelector(`[data-mode="${id}"]`)
+          .focus({ preventScroll: true });
       });
       holder.append(button);
     }
@@ -494,9 +475,9 @@ class MenuController {
       button.addEventListener('click', () => {
         this.byId('map').value = map.id;
         this.updateChoices();
-        this.byId('map-cards').querySelector(`[data-map="${map.id}"]`).focus({
-          preventScroll: true
-        });
+        this.byId('map-cards')
+          .querySelector(`[data-map="${map.id}"]`)
+          .focus({ preventScroll: true });
       });
       maps.append(button);
     });
@@ -686,9 +667,7 @@ class MenuController {
     this.byId('settings-dialog').hidden = false;
     this.setInert(true);
     this.syncSettings();
-    this.byId('nickname').focus({
-      preventScroll: true
-    });
+    this.byId('nickname').focus({ preventScroll: true });
   }
   closeSettings() {
     this.saveSettings();
@@ -697,9 +676,7 @@ class MenuController {
       this.showPause(true);
     } else {
       this.setInert(false);
-      this.byId('open-settings').focus({
-        preventScroll: true
-      });
+      this.byId('open-settings').focus({ preventScroll: true });
     }
   }
   showPause(paused) {
@@ -707,13 +684,9 @@ class MenuController {
     this.byId('pause-dialog').hidden = !paused;
     this.setInert(paused);
     if (paused) {
-      this.byId('resume-match').focus({
-        preventScroll: true
-      });
+      this.byId('resume-match').focus({ preventScroll: true });
     } else {
-      this.game.canvas.focus({
-        preventScroll: true
-      });
+      this.game.canvas.focus({ preventScroll: true });
     }
   }
   show() {
@@ -730,9 +703,7 @@ class MenuController {
     this.renderCharacters();
     this.openScreen('lobby');
     this.byId('menu-message').textContent = this.profile.storageMessage || '';
-    this.byId('start-match').focus({
-      preventScroll: true
-    });
+    this.byId('start-match').focus({ preventScroll: true });
   }
   startMatch() {
     this.audio?.unlock();
@@ -763,8 +734,6 @@ class MenuController {
     this.byId('result-reward').textContent = '';
     this.byId('match-label').textContent = this.modes[modeId]?.name || 'Матч';
     this.setInert(false);
-    this.game.canvas.focus({
-      preventScroll: true
-    });
+    this.game.canvas.focus({ preventScroll: true });
   }
 }

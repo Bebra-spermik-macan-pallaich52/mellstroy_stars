@@ -100,10 +100,7 @@ class Simulation {
         continue;
       }
       if (shot.delay > 0) {
-        this.pendingShots.push({
-          projectile: shot,
-          remaining: shot.delay
-        });
+        this.pendingShots.push({ projectile: shot, remaining: shot.delay });
       } else {
         this.activateProjectile(shot);
       }
@@ -268,14 +265,7 @@ class Simulation {
       if (!this.freePowerup(x, y, radius)) {
         continue;
       }
-      const item = {
-        id: ++this.powerupId,
-        kind,
-        x,
-        y,
-        radius,
-        remaining: 24
-      };
+      const item = { id: ++this.powerupId, kind, x, y, radius, remaining: 24 };
       this.powerups.push(item);
       return item;
     }
@@ -310,16 +300,10 @@ class Simulation {
         collector.heal(300);
       }
       if (item.kind === 'damage') {
-        collector.buffs.damage = {
-          remaining: 8,
-          multiplier: 1.3
-        };
+        collector.buffs.damage = { remaining: 8, multiplier: 1.3 };
       }
       if (item.kind === 'shield') {
-        collector.buffs.shield = {
-          remaining: 5,
-          reduction: 0.5
-        };
+        collector.buffs.shield = { remaining: 5, reduction: 0.5 };
       }
       this.emit({
         type: 'pickup',
@@ -422,16 +406,7 @@ class Simulation {
           continue;
         }
         const command = commands?.[id] || {};
-        actor.update(
-          delta,
-          {
-            direction: () => ({
-              x: command.x,
-              y: command.y
-            })
-          },
-          this.map
-        );
+        actor.update(delta, { direction: () => ({ x: command.x, y: command.y }) }, this.map);
         const validAim =
           command.aim && Number.isFinite(command.aim.x) && Number.isFinite(command.aim.y);
         const target = validAim
@@ -527,34 +502,5 @@ class Simulation {
         });
       }
     }
-  }
-  drawPowerups(canvasContext) {
-    for (const item of this.powerups) {
-      const colors = {
-        heal: '#80e7a1',
-        damage: '#f5b164',
-        shield: '#90bafa'
-      };
-      canvasContext.fillStyle = colors[item.kind];
-      canvasContext.strokeStyle = '#eaf1fc';
-      canvasContext.lineWidth = 2;
-      canvasContext.beginPath();
-      canvasContext.arc(item.x, item.y, item.radius, 0, Math.PI * 2);
-      canvasContext.fill();
-      canvasContext.stroke();
-      canvasContext.fillStyle = '#17242e';
-      canvasContext.font = 'bold 14px sans-serif';
-      canvasContext.textAlign = 'center';
-      canvasContext.fillText(
-        {
-          heal: '+',
-          damage: '×',
-          shield: '◇'
-        }[item.kind],
-        item.x,
-        item.y + 5
-      );
-    }
-    canvasContext.lineWidth = 1;
   }
 }

@@ -8,15 +8,7 @@ class Projectile {
     this.y = owner.y + owner.height / 2;
     const length = Math.hypot(direction.x, direction.y);
     this.direction =
-      length > 0
-        ? {
-            x: direction.x / length,
-            y: direction.y / length
-          }
-        : {
-            x: 0,
-            y: 0
-          };
+      length > 0 ? { x: direction.x / length, y: direction.y / length } : { x: 0, y: 0 };
     this.speed = settings.speed ?? 560;
     this.damage = settings.damage ?? 25;
     this.range = settings.range ?? 480;
@@ -27,11 +19,7 @@ class Projectile {
     this.bouncesRemaining = Math.max(0, settings.bounces || 0);
     this.blastRadius = settings.blastRadius || 0;
     this.exploded = false;
-    this.slow = settings.slow
-      ? {
-          ...settings.slow
-        }
-      : null;
+    this.slow = settings.slow ? { ...settings.slow } : null;
     this.delay = settings.delay || 0;
     this.hitActors = new Set();
     this.ricochets = [];
@@ -78,10 +66,7 @@ class Projectile {
         }
         const time = segmentRectIntersection(startX, startY, endX, endY, actor, this.radius);
         if (time !== null && (stop === null || time < stop - 1e-10)) {
-          targets.push({
-            actor,
-            time
-          });
+          targets.push({ actor, time });
         }
       }
       targets.sort((a, b) => a.time - b.time);
@@ -93,11 +78,7 @@ class Projectile {
           target: actor,
           damage: this.damage,
           owner: this.owner,
-          ...(this.slow
-            ? {
-                slow: this.slow
-              }
-            : {})
+          ...(this.slow ? { slow: this.slow } : {})
         });
         if (this.pierceRemaining === 0) {
           fraction = time;
@@ -138,10 +119,7 @@ class Projectile {
           this.direction.y *= -1;
         }
         this.bouncesRemaining--;
-        this.ricochets.push({
-          x: this.x,
-          y: this.y
-        });
+        this.ricochets.push({ x: this.x, y: this.y });
         const nudge = Math.min(0.001, remaining);
         this.x += this.direction.x * nudge;
         this.y += this.direction.y * nudge;
@@ -158,24 +136,12 @@ class Projectile {
     if (hits.length) {
       return {
         ...hits[0],
-        ...(hits.length > 1
-          ? {
-              hits
-            }
-          : {}),
-        ...(damagedWall
-          ? {
-              wall: damagedWall
-            }
-          : {})
+        ...(hits.length > 1 ? { hits } : {}),
+        ...(damagedWall ? { wall: damagedWall } : {})
       };
     }
     if (damagedWall) {
-      return {
-        wall: damagedWall,
-        damage: this.damage,
-        owner: this.owner
-      };
+      return { wall: damagedWall, damage: this.damage, owner: this.owner };
     } else {
       return null;
     }

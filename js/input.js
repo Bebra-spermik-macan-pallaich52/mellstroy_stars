@@ -8,12 +8,7 @@ class Input {
     this.canvas = canvas;
     this.camera = null;
     this.enabled = true;
-    this.mouse = {
-      clientX: 0,
-      clientY: 0,
-      hasPosition: false,
-      firing: false
-    };
+    this.mouse = { clientX: 0, clientY: 0, hasPosition: false, firing: false };
     target.addEventListener('keydown', (event) => {
       if (
         !this.codes.has(event.code) ||
@@ -61,9 +56,7 @@ class Input {
           return;
         }
         event.preventDefault();
-        canvas.focus({
-          preventScroll: true
-        });
+        canvas.focus({ preventScroll: true });
         rememberPointer(event);
         this.mouse.firing = true;
         if (canvas.setPointerCapture) {
@@ -141,15 +134,9 @@ class Input {
       return null;
     }
     if (this.camera) {
-      return this.camera.screenToWorld({
-        x,
-        y
-      });
+      return this.camera.screenToWorld({ x, y });
     } else {
-      return {
-        x,
-        y
-      };
+      return { x, y };
     }
   }
 }

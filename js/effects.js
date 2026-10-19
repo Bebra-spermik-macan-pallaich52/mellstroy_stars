@@ -74,15 +74,7 @@ class VisualEffects {
             ricochet: 13
           }[event.type];
     const duration = this.reducedMotion ? 0.14 : event.type === 'ability' ? 0.42 : 0.28;
-    this._add({
-      kind: 'ring',
-      x: event.x,
-      y: event.y,
-      age: 0,
-      life: duration,
-      color,
-      radius
-    });
+    this._add({ kind: 'ring', x: event.x, y: event.y, age: 0, life: duration, color, radius });
     if (this.reducedMotion) {
       return true;
     }

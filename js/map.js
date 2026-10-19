@@ -24,17 +24,7 @@ const mapCatalog = [
   }
 ];
 function mapWall(x, y, width, height, destructible = false) {
-  return {
-    x,
-    y,
-    width,
-    height,
-    ...(destructible
-      ? {
-          destructible: true
-        }
-      : {})
-  };
+  return { x, y, width, height, ...(destructible ? { destructible: true } : {}) };
 }
 const mapLayouts = {
   arena: [
@@ -172,11 +162,9 @@ function drawMap(canvasContext, camera = null) {
   if (typeof mapArt !== 'undefined' && mapArt.draw(canvasContext, this, camera)) {
     return;
   }
-  canvasContext.fillStyle = {
-    arena: '#d8b579',
-    courtyard: '#99a57c',
-    crossroads: '#a89a98'
-  }[this.id];
+  canvasContext.fillStyle = { arena: '#d8b579', courtyard: '#99a57c', crossroads: '#a89a98' }[
+    this.id
+  ];
   canvasContext.fillRect(0, 0, this.width, this.height);
   canvasContext.strokeStyle = '#554451';
   canvasContext.lineWidth = 5;
@@ -213,16 +201,8 @@ function drawMap(canvasContext, camera = null) {
     }
   }
 }
-const mapDesignSizes = {
-  arena: [1920, 1280],
-  courtyard: [2240, 1600],
-  crossroads: [2560, 1600]
-};
-const teamfightMapSizes = {
-  arena: [1152, 768],
-  courtyard: [1280, 896],
-  crossroads: [1384, 864]
-};
+const mapDesignSizes = { arena: [1920, 1280], courtyard: [2240, 1600], crossroads: [2560, 1600] };
+const teamfightMapSizes = { arena: [1152, 768], courtyard: [1280, 896], crossroads: [1384, 864] };
 function createMap(id = 'arena', modeId = 'donations') {
   const knownId = Object.prototype.hasOwnProperty.call(mapLayouts, id) ? id : 'arena';
   const definition = mapCatalog.find((map) => map.id === knownId);
@@ -231,30 +211,18 @@ function createMap(id = 'arena', modeId = 'donations') {
   const [designWidth, designHeight] = mapDesignSizes[knownId];
   const scaleX = width / designWidth;
   const scaleY = height / designHeight;
-  const center = {
-    x: width / 2,
-    y: height / 2
-  };
+  const center = { x: width / 2, y: height / 2 };
   const spawnX = modeId === 'teamfight' ? 56 : 72;
   const spawns = [center.y - 32, 80, height - 144];
   return {
     id: knownId,
     width,
     height,
-    spawn: {
-      x: spawnX,
-      y: center.y - 32
-    },
+    spawn: { x: spawnX, y: center.y - 32 },
     navVersion: 0,
     teamSpawns: [
-      spawns.map((y) => ({
-        x: spawnX,
-        y
-      })),
-      spawns.map((y) => ({
-        x: width - spawnX - 48,
-        y
-      }))
+      spawns.map((y) => ({ x: spawnX, y })),
+      spawns.map((y) => ({ x: width - spawnX - 48, y }))
     ],
     resourcePoint: center,
     captureZone: {
@@ -264,10 +232,7 @@ function createMap(id = 'arena', modeId = 'donations') {
       height: 220 * scaleY
     },
     roads: mapRoads[knownId].map((path) =>
-      path.map(([x, y]) => ({
-        x: x * scaleX,
-        y: y * scaleY
-      }))
+      path.map(([x, y]) => ({ x: x * scaleX, y: y * scaleY }))
     ),
     walls: mapLayouts[knownId].map((wall, index) => ({
       ...wall,
@@ -276,12 +241,7 @@ function createMap(id = 'arena', modeId = 'donations') {
       width: wall.width * scaleX,
       height: wall.height * scaleY,
       id: `wall-${index}`,
-      ...(wall.destructible
-        ? {
-            health: 600,
-            maxHealth: 600
-          }
-        : {})
+      ...(wall.destructible ? { health: 600, maxHealth: 600 } : {})
     })),
     draw: drawMap
   };

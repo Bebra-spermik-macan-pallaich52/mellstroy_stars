@@ -35,16 +35,7 @@ class DonationsMode {
     ) {
       return false;
     }
-    return !this.map.walls.some((wall) =>
-      this.touchesActor(
-        {
-          x,
-          y,
-          radius
-        },
-        wall
-      )
-    );
+    return !this.map.walls.some((wall) => this.touchesActor({ x, y, radius }, wall));
   }
   findPosition(point, index, radius) {
     for (let attempt = 0; attempt < 65; attempt++) {
@@ -55,10 +46,7 @@ class DonationsMode {
       const x = point.x + Math.cos(angle) * distance;
       const y = point.y + Math.sin(angle) * distance;
       if (this.freePosition(x, y, radius)) {
-        return {
-          x,
-          y
-        };
+        return { x, y };
       }
     }
     return null;
@@ -87,11 +75,7 @@ class DonationsMode {
           this.config.itemRadius
         );
         if (position) {
-          this.items.push({
-            ...position,
-            radius: this.config.itemRadius,
-            value: 1
-          });
+          this.items.push({ ...position, radius: this.config.itemRadius, value: 1 });
         }
       }
     }
@@ -116,18 +100,10 @@ class DonationsMode {
     const held = this.carried.get(actor) || 0;
     const lost = Math.min(held, Math.max(0, Math.ceil(held * this.config.lossFraction)));
     this.carried.set(actor, held - lost);
-    const center = actor.center || {
-      x: actor.x + actor.width / 2,
-      y: actor.y + actor.height / 2
-    };
+    const center = actor.center || { x: actor.x + actor.width / 2, y: actor.y + actor.height / 2 };
     for (let i = 0; i < lost; i++) {
       const position = this.findPosition(center, i, this.config.itemRadius) || center;
-      this.items.push({
-        x: position.x,
-        y: position.y,
-        radius: this.config.itemRadius,
-        value: 1
-      });
+      this.items.push({ x: position.x, y: position.y, radius: this.config.itemRadius, value: 1 });
     }
     this.recountScores();
   }

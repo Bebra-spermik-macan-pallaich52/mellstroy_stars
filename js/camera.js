@@ -36,15 +36,7 @@ class Camera {
       this.flight = null;
       return;
     }
-    this.flight = {
-      from: {
-        x: this.x,
-        y: this.y
-      },
-      to,
-      elapsed: 0,
-      duration
-    };
+    this.flight = { from: { x: this.x, y: this.y }, to, elapsed: 0, duration };
   }
   updateFlight(deltaTime) {
     if (!this.flight) {
@@ -68,16 +60,10 @@ class Camera {
     return true;
   }
   screenToWorld(point) {
-    return {
-      x: point.x + this.x,
-      y: point.y + this.y
-    };
+    return { x: point.x + this.x, y: point.y + this.y };
   }
   worldToScreen(point) {
-    return {
-      x: point.x - this.x,
-      y: point.y - this.y
-    };
+    return { x: point.x - this.x, y: point.y - this.y };
   }
   visible(rect, padding = 100) {
     return (

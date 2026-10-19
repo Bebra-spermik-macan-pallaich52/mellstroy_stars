@@ -72,16 +72,11 @@ class UI {
     this.super.value = player.superCharge;
     if (this.ammoSlots.children.length !== player.maxAmmo) {
       this.ammoSlots.replaceChildren(
-        ...Array.from(
-          {
-            length: player.maxAmmo
-          },
-          () => {
-            const slot = document.createElement('span');
-            slot.className = 'ammo-slot';
-            return slot;
-          }
-        )
+        ...Array.from({ length: player.maxAmmo }, () => {
+          const slot = document.createElement('span');
+          slot.className = 'ammo-slot';
+          return slot;
+        })
       );
     }
     [...this.ammoSlots.children].forEach((slot, index) => {
@@ -225,9 +220,7 @@ class UI {
       }
       if (this.result.hidden) {
         this.result.hidden = false;
-        this.resultRestart.focus({
-          preventScroll: true
-        });
+        this.resultRestart.focus({ preventScroll: true });
       }
     } else {
       this.result.hidden = true;

@@ -11,9 +11,7 @@ class Game {
     this.input.camera = this.camera;
     this.ui = new UI();
     this.reducedMotion = Boolean(window.matchMedia?.('(prefers-reduced-motion: reduce)').matches);
-    this.effects = new VisualEffects({
-      reducedMotion: this.reducedMotion
-    });
+    this.effects = new VisualEffects({ reducedMotion: this.reducedMotion });
     this.sim = null;
     this.images = [];
     this.photo = null;
@@ -21,10 +19,7 @@ class Game {
     this.paused = false;
     this.running = false;
     this.lastTime = null;
-    this.stats = {
-      kills: 0,
-      deaths: 0
-    };
+    this.stats = { kills: 0, deaths: 0 };
     this.message = '';
     this.lastOptions = {
       modeId: 'donations',
@@ -101,12 +96,7 @@ class Game {
     }
   }
   startMatch(options = {}) {
-    this.lastOptions = {
-      ...this.lastOptions,
-      ...options,
-      botFire: true,
-      enhancements: false
-    };
+    this.lastOptions = { ...this.lastOptions, ...options, botFire: true, enhancements: false };
     const index = this.lastOptions.characterIndex;
     if (this.profile && !this.profile.isUnlocked(index)) {
       this.message = 'Этот персонаж ещё не открыт.';
@@ -115,20 +105,14 @@ class Game {
     const seed = Number.isFinite(this.lastOptions.seed)
       ? this.lastOptions.seed
       : Math.floor(Math.random() * 0x100000000);
-    this.sim = new Simulation({
-      ...this.lastOptions,
-      seed
-    });
+    this.sim = new Simulation({ ...this.lastOptions, seed });
     for (const bot of this.bots) {
       bot.prepareNavigation(this.map, bot.config.obstacleMargin);
     }
     this.attachImages();
     this.camera.update(this.player.center, this.map, 0, true);
     this.respawnLife = null;
-    this.stats = {
-      kills: 0,
-      deaths: 0
-    };
+    this.stats = { kills: 0, deaths: 0 };
     this.matchId = `${Date.now()}-${++this.matchCounter}-${Math.random().toString(36).slice(2)}`;
     this.finishedProcessed = false;
     this.reward = null;
@@ -144,9 +128,7 @@ class Game {
     this.effects.clear();
     this.input.clear();
     this.lastTime = null;
-    this.canvas.focus({
-      preventScroll: true
-    });
+    this.canvas.focus({ preventScroll: true });
     this.audio?.unlock();
     return true;
   }
@@ -164,9 +146,7 @@ class Game {
     if (this.paused) {
       this.audio?.pause();
     } else {
-      this.canvas.focus({
-        preventScroll: true
-      });
+      this.canvas.focus({ preventScroll: true });
       this.audio?.resume?.();
     }
     this.onPauseRequested?.(this.paused);
@@ -200,9 +180,7 @@ class Game {
     });
     for (const event of this.sim.drainEvents()) {
       this.effects.emit(event);
-      this.audio?.handle(event, {
-        localTeam: this.player.team
-      });
+      this.audio?.handle(event, { localTeam: this.player.team });
       if (event.type === 'death') {
         if (event.actorId === this.player.id) {
           this.stats.deaths++;
@@ -311,11 +289,7 @@ class Game {
     this.ctx.restore();
   }
   drawPowerups() {
-    const icons = {
-      heal: '+',
-      damage: '↑',
-      shield: '◇'
-    };
+    const icons = { heal: '+', damage: '↑', shield: '◇' };
     for (const pickup of this.sim.powerups || []) {
       this.ctx.save();
       this.ctx.fillStyle = pickup.kind === 'heal' || pickup.type === 'heal' ? '#73e3c0' : '#ffd479';
@@ -441,11 +415,7 @@ class Game {
     }
     this.effects.draw(this.ctx);
     for (const actor of visibleActors.filter((actor) => actor !== this.player)) {
-      actor.drawVitals(this.ctx, {
-        local: false,
-        localTeam: this.player.team,
-        view: this.camera
-      });
+      actor.drawVitals(this.ctx, { local: false, localTeam: this.player.team, view: this.camera });
     }
     if (this.camera.visible(this.player)) {
       this.player.drawVitals(this.ctx, {

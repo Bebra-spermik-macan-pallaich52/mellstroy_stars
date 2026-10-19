@@ -3,36 +3,16 @@ const progressionConfig = {
   xpPerLevel: 300,
   repeatCoins: 100,
   rewards: {
-    1: {
-      characterIndex: 0
-    },
-    2: {
-      characterIndex: 1
-    },
-    3: {
-      coins: 60
-    },
-    4: {
-      characterIndex: 2
-    },
-    5: {
-      coins: 100
-    },
-    6: {
-      characterIndex: 3
-    },
-    7: {
-      coins: 150
-    },
-    8: {
-      characterIndex: 4
-    },
-    9: {
-      coins: 200
-    },
-    10: {
-      coins: 250
-    }
+    1: { characterIndex: 0 },
+    2: { characterIndex: 1 },
+    3: { coins: 60 },
+    4: { characterIndex: 2 },
+    5: { coins: 100 },
+    6: { characterIndex: 3 },
+    7: { coins: 150 },
+    8: { characterIndex: 4 },
+    9: { coins: 200 },
+    10: { coins: 250 }
   }
 };
 class ProfileStore {
@@ -51,12 +31,7 @@ class ProfileStore {
   defaults() {
     return {
       version: 1,
-      settings: {
-        sound: true,
-        music: false,
-        volume: 0.45,
-        nickname: 'Игрок'
-      },
+      settings: { sound: true, music: false, volume: 0.45, nickname: 'Игрок' },
       profile: {
         coins: 0,
         xp: 0,
@@ -128,10 +103,7 @@ class ProfileStore {
   }
   claimRoadReward(level = this.profile.roadClaimedLevel + 1) {
     if (level !== this.profile.roadClaimedLevel + 1 || level > this.level) {
-      return {
-        ok: false,
-        message: 'Награда ещё недоступна или уже получена.'
-      };
+      return { ok: false, message: 'Награда ещё недоступна или уже получена.' };
     }
     return this.claimRoadThrough(level);
   }
@@ -141,10 +113,7 @@ class ProfileStore {
   claimRoadThrough(level) {
     const first = this.profile.roadClaimedLevel + 1;
     if (!Number.isSafeInteger(level) || level < first || level > this.level) {
-      return {
-        ok: false,
-        message: 'Нет доступных наград.'
-      };
+      return { ok: false, message: 'Нет доступных наград.' };
     }
     let coins = (level - first + 1) * progressionConfig.repeatCoins;
     const characters = [];
@@ -169,13 +138,7 @@ class ProfileStore {
     this.profile.coins = Math.min(Number.MAX_SAFE_INTEGER, this.profile.coins + coins);
     this.profile.roadClaimedLevel = level;
     this.save();
-    return {
-      ok: true,
-      coins,
-      characters,
-      compensations,
-      count: level - first + 1
-    };
+    return { ok: true, coins, characters, compensations, count: level - first + 1 };
   }
   definitions() {
     if (typeof characterDefinitions !== 'undefined') {
@@ -349,29 +312,17 @@ class ProfileStore {
   }
   unlockCharacter(index) {
     if (!this.validCharacter(index)) {
-      return {
-        ok: false,
-        message: 'Персонаж не найден.'
-      };
+      return { ok: false, message: 'Персонаж не найден.' };
     }
     if (this.isUnlocked(index)) {
-      return {
-        ok: true,
-        message: 'Персонаж уже открыт.'
-      };
+      return { ok: true, message: 'Персонаж уже открыт.' };
     }
     if (this.definitions()[index]?.acquisition !== 'coins') {
-      return {
-        ok: false,
-        message: 'Этот боец доступен только на пути прогресса.'
-      };
+      return { ok: false, message: 'Этот боец доступен только на пути прогресса.' };
     }
     const cost = this.definitions()[index]?.unlockCost ?? [0, 80, 140, 200, 260][index];
     if (!Number.isSafeInteger(cost) || cost < 0) {
-      return {
-        ok: false,
-        message: 'Персонаж пока недоступен.'
-      };
+      return { ok: false, message: 'Персонаж пока недоступен.' };
     }
     if (this.profile.coins < cost) {
       return {
@@ -383,10 +334,7 @@ class ProfileStore {
     this.profile.unlocked.push(index);
     this.profile.selectedCharacter = index;
     this.save();
-    return {
-      ok: true,
-      message: 'Персонаж открыт!'
-    };
+    return { ok: true, message: 'Персонаж открыт!' };
   }
   recordMatch(result, context) {
     if (
@@ -408,18 +356,8 @@ class ProfileStore {
       result.winner === null ? 'draw' : result.winner === context.team ? 'win' : 'loss';
     const kills = this.counter(context.kills);
     const deaths = this.counter(context.deaths);
-    const coins =
-      {
-        win: 45,
-        draw: 25,
-        loss: 15
-      }[outcome] +
-      Math.min(kills, 10) * 2;
-    const xp = {
-      win: 120,
-      draw: 80,
-      loss: 50
-    }[outcome];
+    const coins = { win: 45, draw: 25, loss: 15 }[outcome] + Math.min(kills, 10) * 2;
+    const xp = { win: 120, draw: 80, loss: 50 }[outcome];
     const characterIndex = this.validCharacter(context.characterIndex) ? context.characterIndex : 0;
     const reward = {
       matchId: context.matchId,
@@ -456,10 +394,6 @@ class ProfileStore {
     this.data.completed.push(context.matchId);
     this.data.completed = this.data.completed.slice(-100);
     this.save();
-    return {
-      ...reward,
-      levelBefore,
-      levelAfter: this.level
-    };
+    return { ...reward, levelBefore, levelAfter: this.level };
   }
 }

@@ -1,11 +1,7 @@
 'use strict';
 class AudioManager {
   constructor(settings = {}) {
-    this.settings = {
-      sound: true,
-      music: false,
-      volume: 0.35
-    };
+    this.settings = { sound: true, music: false, volume: 0.35 };
     this.context = null;
     this.master = null;
     this.paused = false;
@@ -190,14 +186,9 @@ class AudioManager {
     }
     const now = this.context.currentTime;
     const spacing =
-      {
-        shot: 0.055,
-        hit: 0.055,
-        impact: 0.1,
-        pickup: 0.07,
-        ability: 0.15,
-        finish: 0.5
-      }[event.type] ?? 0.12;
+      { shot: 0.055, hit: 0.055, impact: 0.1, pickup: 0.07, ability: 0.15, finish: 0.5 }[
+        event.type
+      ] ?? 0.12;
     if (now - (this.lastCue.get(event.type) ?? -Infinity) < spacing) {
       return false;
     }
@@ -231,11 +222,7 @@ class AudioManager {
       envelope.gain.exponentialRampToValueAtTime(0.0001, start + duration);
       oscillator.connect(envelope);
       envelope.connect(this.master);
-      const voice = {
-        oscillator,
-        envelope,
-        music
-      };
+      const voice = { oscillator, envelope, music };
       this.voices.add(voice);
       oscillator.onended = () => {
         this.voices.delete(voice);

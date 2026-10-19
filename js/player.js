@@ -1,9 +1,7 @@
 'use strict';
 class Player {
   constructor(spawn, config = characterConfig, options = {}) {
-    this.spawn = {
-      ...spawn
-    };
+    this.spawn = { ...spawn };
     this.config = config;
     this.width = config.width;
     this.height = config.height;
@@ -26,10 +24,7 @@ class Player {
     }
   }
   get center() {
-    return {
-      x: this.x + this.width / 2,
-      y: this.y + this.height / 2
-    };
+    return { x: this.x + this.width / 2, y: this.y + this.height / 2 };
   }
   reset({ preserveSuper = false } = {}) {
     const charge = preserveSuper ? this.superCharge || 0 : 0;
@@ -51,10 +46,7 @@ class Player {
     this.quietTime = 0;
     this.passiveHealing = false;
     this.buffs = {};
-    this.aimDirection = {
-      x: this.team === 0 ? 1 : -1,
-      y: 0
-    };
+    this.aimDirection = { x: this.team === 0 ? 1 : -1, y: 0 };
     this.animator.update(this.direction, false, 0);
   }
   updateTimers(deltaTime) {
@@ -97,9 +89,7 @@ class Player {
     }
     this.respawnRemaining = Math.max(0, this.respawnRemaining - deltaTime);
     if (this.respawnRemaining === 0) {
-      this.reset({
-        preserveSuper: true
-      });
+      this.reset({ preserveSuper: true });
       return true;
     }
     return false;
@@ -154,10 +144,7 @@ class Player {
     if (length < 0.00001) {
       return false;
     }
-    this.aimDirection = {
-      x: dx / length,
-      y: dy / length
-    };
+    this.aimDirection = { x: dx / length, y: dy / length };
     return true;
   }
   attack(target) {
@@ -176,10 +163,7 @@ class Player {
       shots.push(
         new Projectile(
           this,
-          {
-            x: Math.cos(angle + offset),
-            y: Math.sin(angle + offset)
-          },
+          { x: Math.cos(angle + offset), y: Math.sin(angle + offset) },
           {
             ...attack,
             delay: attack.kind === 'burst' ? index * attack.interval : 0,
@@ -268,23 +252,13 @@ class Player {
             ? (i * Math.PI * 2) / settings.count
             : angle + (i - (settings.count - 1) / 2) * settings.spread;
         world.addProjectile(
-          new Projectile(
-            this,
-            {
-              x: Math.cos(current),
-              y: Math.sin(current)
-            },
-            settings
-          )
+          new Projectile(this, { x: Math.cos(current), y: Math.sin(current) }, settings)
         );
       }
     } else if (settings.kind === 'restock') {
       this.ammo = this.maxAmmo;
       this.reloadElapsed = 0;
-      this.buffs.restock = {
-        multiplier: settings.multiplier,
-        remaining: settings.duration
-      };
+      this.buffs.restock = { multiplier: settings.multiplier, remaining: settings.duration };
     } else if (settings.kind === 'heal') {
       for (const actor of world.actors) {
         if (
@@ -294,10 +268,7 @@ class Player {
         ) {
           actor.heal(settings.heal);
           if (settings.regen) {
-            actor.buffs.regen = {
-              remaining: settings.duration,
-              rate: settings.regen
-            };
+            actor.buffs.regen = { remaining: settings.duration, rate: settings.regen };
           }
         }
       }
@@ -322,10 +293,7 @@ class Player {
         }
       }
     } else if (settings.kind === 'shield') {
-      this.buffs.superShield = {
-        remaining: settings.duration,
-        reduction: settings.reduction
-      };
+      this.buffs.superShield = { remaining: settings.duration, reduction: settings.reduction };
     }
     world.emit({
       type: 'ability',
@@ -617,9 +585,7 @@ class Player {
       canvasContext.stroke();
     }
     if (showLabel) {
-      this.drawVitals(canvasContext, {
-        local: this.isHuman
-      });
+      this.drawVitals(canvasContext, { local: this.isHuman });
     }
   }
 }

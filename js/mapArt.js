@@ -6,27 +6,9 @@ class MapArt {
     this.wallPatterns = new Map();
     this.wood = null;
     this.themes = {
-      arena: {
-        tile: 0,
-        ground: '#d8b579',
-        side: '#925039',
-        edge: '#56372e',
-        path: '#f3d6a0'
-      },
-      courtyard: {
-        tile: 1,
-        ground: '#99a57c',
-        side: '#465e4c',
-        edge: '#304d40',
-        path: '#d5c9a0'
-      },
-      crossroads: {
-        tile: 2,
-        ground: '#a89a98',
-        side: '#5e485c',
-        edge: '#453446',
-        path: '#c6b5a7'
-      }
+      arena: { tile: 0, ground: '#d8b579', side: '#925039', edge: '#56372e', path: '#f3d6a0' },
+      courtyard: { tile: 1, ground: '#99a57c', side: '#465e4c', edge: '#304d40', path: '#d5c9a0' },
+      crossroads: { tile: 2, ground: '#a89a98', side: '#5e485c', edge: '#453446', path: '#c6b5a7' }
     };
   }
   async load(loader) {

@@ -1,52 +1,13 @@
 'use strict';
 const characterImages = [
-  {
-    name: 'Артур',
-    x: 0,
-    y: 130,
-    width: 424,
-    height: 500
-  },
-  {
-    name: 'Котость',
-    x: 430,
-    y: 150,
-    width: 465,
-    height: 480
-  },
-  {
-    name: 'Меллстрой Жирность',
-    x: 900,
-    y: 230,
-    width: 484,
-    height: 390
-  },
-  {
-    name: 'Тёмный Друн',
-    x: 1385,
-    y: 65,
-    width: 385,
-    height: 605
-  },
-  {
-    name: 'Фог',
-    x: 1870,
-    y: 130,
-    width: 270,
-    height: 515
-  },
-  {
-    name: 'Чекунец',
-    photo: false
-  },
-  {
-    name: 'Заяц-бурмалдаец',
-    photo: false
-  },
-  {
-    name: 'Мелстрой-мытость',
-    photo: false
-  }
+  { name: 'Артур', x: 0, y: 130, width: 424, height: 500 },
+  { name: 'Котость', x: 430, y: 150, width: 465, height: 480 },
+  { name: 'Меллстрой Жирность', x: 900, y: 230, width: 484, height: 390 },
+  { name: 'Тёмный Друн', x: 1385, y: 65, width: 385, height: 605 },
+  { name: 'Фог', x: 1870, y: 130, width: 270, height: 515 },
+  { name: 'Чекунец', photo: false },
+  { name: 'Заяц-бурмалдаец', photo: false },
+  { name: 'Мелстрой-мытость', photo: false }
 ];
 const characterConfig = {
   speed: 150,
@@ -54,48 +15,25 @@ const characterConfig = {
   height: 64,
   maxHealth: 1000,
   respawnDelay: 3,
-  attack: {
-    damage: 200,
-    speed: 620,
-    range: 420,
-    cooldown: 0.45,
-    radius: 5,
-    ammo: 3,
-    reload: 1.5
-  },
-  recovery: {
-    delay: 3,
-    rate: 0.13
-  },
-  super: {
-    damageRequired: 1000
-  },
-  animation: {
-    fps: 8
-  },
+  attack: { damage: 200, speed: 620, range: 420, cooldown: 0.45, radius: 5, ammo: 3, reload: 1.5 },
+  recovery: { delay: 3, rate: 0.13 },
+  super: { damageRequired: 1000 },
+  animation: { fps: 8 },
   image: 'assets/characters/characters.png'
 };
 function walkingAnimation(size = 128) {
   const animations = {};
   ['down', 'left', 'right', 'up'].forEach((direction, row) => {
-    const frames = Array.from(
-      {
-        length: 4
-      },
-      (_, column) => ({
-        x: column * size,
-        y: row * size,
-        width: size,
-        height: size
-      })
-    );
+    const frames = Array.from({ length: 4 }, (_, column) => ({
+      x: column * size,
+      y: row * size,
+      width: size,
+      height: size
+    }));
     animations[`walk_${direction}`] = frames;
     animations[`idle_${direction}`] = [frames[0]];
   });
-  return {
-    fps: 8,
-    animations
-  };
+  return { fps: 8, animations };
 }
 const characterDefinitions = [
   {
@@ -151,14 +89,7 @@ const characterDefinitions = [
       cooldown: 0.55,
       radius: 5
     },
-    super: {
-      kind: 'heal',
-      name: 'Мурчание',
-      heal: 450,
-      radius: 180,
-      regen: 60,
-      duration: 3
-    }
+    super: { kind: 'heal', name: 'Мурчание', heal: 450, radius: 180, regen: 60, duration: 3 }
   },
   {
     id: 'mellstroy_fat',
@@ -182,12 +113,7 @@ const characterDefinitions = [
       radius: 8,
       blastRadius: 90
     },
-    super: {
-      kind: 'nova',
-      name: 'Срыв банка',
-      damage: 400,
-      radius: 170
-    }
+    super: { kind: 'nova', name: 'Срыв банка', damage: 400, radius: 170 }
   },
   {
     id: 'dark_drun',
@@ -211,12 +137,7 @@ const characterDefinitions = [
       cooldown: 0.42,
       radius: 7
     },
-    super: {
-      kind: 'shield',
-      name: 'Ночная броня',
-      reduction: 0.6,
-      duration: 5
-    }
+    super: { kind: 'shield', name: 'Ночная броня', reduction: 0.6, duration: 5 }
   },
   {
     id: 'fog',
@@ -313,12 +234,7 @@ const characterDefinitions = [
       cooldown: 0.55,
       radius: 5
     },
-    super: {
-      kind: 'restock',
-      name: 'Морковный запас',
-      multiplier: 1.4,
-      duration: 4
-    }
+    super: { kind: 'restock', name: 'Морковный запас', multiplier: 1.4, duration: 4 }
   },
   {
     id: 'mytost',
@@ -354,10 +270,7 @@ const characterDefinitions = [
       speed: 560,
       range: 440,
       radius: 7,
-      slow: {
-        factor: 0.6,
-        duration: 2
-      }
+      slow: { factor: 0.6, duration: 2 }
     }
   }
 ];
@@ -369,14 +282,8 @@ function getCharacterConfig(index = 0) {
   return {
     ...characterConfig,
     ...definition,
-    attack: {
-      ...characterConfig.attack,
-      ...definition.attack
-    },
-    super: {
-      ...characterConfig.super,
-      ...definition.super
-    },
+    attack: { ...characterConfig.attack, ...definition.attack },
+    super: { ...characterConfig.super, ...definition.super },
     animation: walkingAnimation(),
     image: `assets/characters/${definition.id}-walk.png`
   };
