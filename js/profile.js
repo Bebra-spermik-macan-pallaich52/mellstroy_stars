@@ -1,6 +1,7 @@
 'use strict';
 const progressionConfig = {
   xpPerLevel: 300,
+  maxLevel: 50,
   repeatCoins: 100,
   rewards: {
     1: { characterIndex: 0 },
@@ -62,14 +63,23 @@ class ProfileStore {
   get xpPerLevel() {
     return progressionConfig.xpPerLevel;
   }
+  get maxLevel() {
+    return progressionConfig.maxLevel;
+  }
+  get maxXp() {
+    return (this.maxLevel - 1) * this.xpPerLevel;
+  }
   get levelProgress() {
+    if (this.level === this.maxLevel) {
+      return this.xpPerLevel;
+    }
     return this.profile.xp % this.xpPerLevel;
   }
   get level() {
-    return 1 + Math.floor(this.profile.xp / this.xpPerLevel);
+    return Math.min(this.maxLevel, 1 + Math.floor(this.profile.xp / this.xpPerLevel));
   }
   roadReward(level) {
-    if (!Number.isSafeInteger(level) || level < 1) {
+    if (!Number.isSafeInteger(level) || level < 1 || level > this.maxLevel) {
       return null;
     }
     const characterIndex = progressionConfig.rewards[level]?.characterIndex;
@@ -166,7 +176,7 @@ class ProfileStore {
     }
     const clean = this.defaults();
     const source = raw.profile;
-    for (const key of ['coins', 'xp', 'matches', 'wins', 'losses', 'draws', 'kills', 'deaths']) {
+    for (const key of ['coins', 'xp']) {
       clean.profile[key] = this.counter(source[key]);
     }
     clean.profile.unlocked = [
@@ -177,7 +187,11 @@ class ProfileStore {
           : [])
       ])
     ];
-    const reachedLevel = 1 + Math.floor(clean.profile.xp / this.xpPerLevel);
+    clean.profile.xp = Math.min(clean.profile.xp, this.maxXp);
+    const reachedLevel = Math.min(
+      this.maxLevel,
+      1 + Math.floor(clean.profile.xp / this.xpPerLevel)
+    );
     clean.profile.roadClaimedLevel = Number.isSafeInteger(source.roadClaimedLevel)
       ? Math.max(1, Math.min(reachedLevel, source.roadClaimedLevel))
       : 1;
@@ -194,18 +208,6 @@ class ProfileStore {
     clean.profile.selectedCharacter = clean.profile.unlocked.includes(source.selectedCharacter)
       ? source.selectedCharacter
       : 0;
-    if (source.characters && typeof source.characters === 'object') {
-      for (let i = 0; i < (this.definitions().length || 5); i++) {
-        const stats = source.characters[i];
-        if (!stats || typeof stats !== 'object') {
-          continue;
-        }
-        clean.profile.characters[i] = {};
-        for (const key of ['matches', 'wins', 'kills', 'deaths']) {
-          clean.profile.characters[i][key] = this.counter(stats[key]);
-        }
-      }
-    }
     for (const key of ['sound', 'music']) {
       if (typeof raw.settings[key] === 'boolean') {
         clean.settings[key] = raw.settings[key];
@@ -222,28 +224,6 @@ class ProfileStore {
           ...new Set(raw.completed.filter((id) => typeof id === 'string' && id.length <= 100))
         ].slice(-100)
       : [];
-    clean.history = Array.isArray(raw.history)
-      ? raw.history
-          .filter(
-            (entry) =>
-              entry &&
-              typeof entry.matchId === 'string' &&
-              ['win', 'loss', 'draw'].includes(entry.outcome)
-          )
-          .slice(-20)
-          .map((entry) => ({
-            matchId: entry.matchId.slice(0, 100),
-            outcome: entry.outcome,
-            modeId: ['donations', 'cottage', 'teamfight'].includes(entry.modeId)
-              ? entry.modeId
-              : 'donations',
-            characterIndex: this.validCharacter(entry.characterIndex) ? entry.characterIndex : 0,
-            kills: this.counter(entry.kills),
-            deaths: this.counter(entry.deaths),
-            coins: this.counter(entry.coins),
-            xp: this.counter(entry.xp)
-          }))
-      : [];
     return clean;
   }
   load() {
@@ -255,6 +235,7 @@ class ProfileStore {
       const saved = this.storage.getItem(this.key);
       if (saved) {
         this.data = this.sanitize(JSON.parse(saved));
+        this.save();
       }
     } catch (error) {
       this.data = this.defaults();
@@ -276,7 +257,14 @@ class ProfileStore {
       return false;
     }
     try {
-      this.storage.setItem(this.key, JSON.stringify(this.data));
+      const { coins, xp, selectedCharacter, unlocked, roadClaimedLevel } = this.profile;
+      const saved = {
+        version: this.data.version,
+        settings: this.settings,
+        profile: { coins, xp, selectedCharacter, unlocked, roadClaimedLevel },
+        completed: this.data.completed
+      };
+      this.storage.setItem(this.key, JSON.stringify(saved));
       this.storageAvailable = true;
       return true;
     } catch (_) {
@@ -357,7 +345,10 @@ class ProfileStore {
     const kills = this.counter(context.kills);
     const deaths = this.counter(context.deaths);
     const coins = { win: 45, draw: 25, loss: 15 }[outcome] + Math.min(kills, 10) * 2;
-    const xp = { win: 120, draw: 80, loss: 50 }[outcome];
+    const xp = Math.min(
+      { win: 120, draw: 80, loss: 50 }[outcome],
+      Math.max(0, this.maxXp - this.profile.xp)
+    );
     const characterIndex = this.validCharacter(context.characterIndex) ? context.characterIndex : 0;
     const reward = {
       matchId: context.matchId,
@@ -374,7 +365,7 @@ class ProfileStore {
     const profile = this.profile;
     const levelBefore = this.level;
     profile.coins += coins;
-    profile.xp += xp;
+    profile.xp = Math.min(this.maxXp, profile.xp + xp);
     profile.matches++;
     profile[outcome === 'win' ? 'wins' : outcome === 'loss' ? 'losses' : 'draws']++;
     profile.kills += kills;

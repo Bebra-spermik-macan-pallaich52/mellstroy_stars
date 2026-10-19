@@ -169,12 +169,10 @@ class MenuController {
       'profile-name': this.profile.settings.nickname,
       'profile-coins': data.coins,
       'profile-level': `Ур. ${this.profile.level}`,
-      'profile-xp': `${this.profile.levelProgress} / ${this.profile.xpPerLevel} опыта`,
-      'profile-matches': data.matches,
-      'profile-wins': data.wins,
-      'profile-losses': data.losses,
-      'profile-draws': data.draws,
-      'profile-kills': data.kills,
+      'profile-xp':
+        this.profile.level === this.profile.maxLevel
+          ? 'Максимальный уровень'
+          : `${this.profile.levelProgress} / ${this.profile.xpPerLevel} опыта`,
       'roster-count': `${data.unlocked.length} / ${this.definitions.length} открыто`
     };
     for (const [id, value] of Object.entries(fields)) {
@@ -183,27 +181,6 @@ class MenuController {
     this.byId('lobby-roster-count').textContent =
       `${data.unlocked.length} / ${this.definitions.length}`;
     this.renderRoad();
-    const history = this.byId('match-history');
-    history.replaceChildren();
-    for (const match of this.profile.history.slice(-5).reverse()) {
-      const row = document.createElement('li');
-      const outcome = document.createElement('span');
-      outcome.className = `history-result ${match.outcome}`;
-      outcome.textContent = { win: 'Победа', draw: 'Ничья', loss: 'Поражение' }[match.outcome];
-      const detail = document.createElement('span');
-      detail.textContent = `${this.modes[match.modeId]?.name || 'Матч'} · ${this.definitions[match.characterIndex]?.name || 'Артур'}`;
-      const reward = document.createElement('span');
-      reward.className = 'history-reward';
-      reward.textContent = `+${match.coins} ◆`;
-      row.append(outcome, detail, reward);
-      history.append(row);
-    }
-    if (!this.profile.history.length) {
-      const empty = document.createElement('li');
-      empty.className = 'muted';
-      empty.textContent = 'Первый матч ещё впереди.';
-      history.append(empty);
-    }
   }
   rewardName(reward) {
     if (reward.kind === 'character' && this.profile.isUnlocked(reward.characterIndex)) {
@@ -215,21 +192,29 @@ class MenuController {
   renderRoad() {
     const store = this.profile;
     const target = store.nextRoadReward;
-    const remaining = Math.max(0, target.xp - store.profile.xp);
+    const remaining = target ? Math.max(0, target.xp - store.profile.xp) : 0;
     const ready = store.roadReadyCount;
-    const name = this.rewardName(target);
+    const name = target ? this.rewardName(target) : 'Путь пройден';
     this.byId('road-level-title').textContent = `Уровень ${store.level}`;
     this.byId('profile-xp-bar').max = store.xpPerLevel;
     this.byId('profile-xp-bar').value = store.levelProgress;
-    this.byId('road-title').textContent = ready ? 'Награды доступны' : 'Следующая награда';
-    this.byId('road-target').textContent = ready
-      ? `${name} за уровень ${target.level} уже можно забрать.`
-      : `${name} · уровень ${target.level} · ещё ${remaining} опыта.`;
-    this.byId('lobby-goal-level').textContent = `Путь бойца · уровень ${target.level}`;
-    this.byId('lobby-goal-name').textContent = name;
-    this.byId('lobby-goal-detail').textContent = ready
-      ? `Забрать награду${ready > 1 ? ` · ${ready}` : ''} →`
-      : `Ещё ${remaining} опыта →`;
+    if (target) {
+      this.byId('road-title').textContent = ready ? 'Награды доступны' : 'Следующая награда';
+      this.byId('road-target').textContent = ready
+        ? `${name} за уровень ${target.level} уже можно забрать.`
+        : `${name} · уровень ${target.level} · ещё ${remaining} опыта.`;
+      this.byId('lobby-goal-level').textContent = `Путь бойца · уровень ${target.level}`;
+      this.byId('lobby-goal-name').textContent = name;
+      this.byId('lobby-goal-detail').textContent = ready
+        ? `Забрать награду${ready > 1 ? ` · ${ready}` : ''} →`
+        : `Ещё ${remaining} опыта →`;
+    } else {
+      this.byId('road-title').textContent = 'Путь пройден';
+      this.byId('road-target').textContent = 'Все награды до 50-го уровня получены.';
+      this.byId('lobby-goal-level').textContent = 'Уровень 50 · максимум';
+      this.byId('lobby-goal-name').textContent = 'Путь пройден';
+      this.byId('lobby-goal-detail').textContent = 'Все награды получены';
+    }
     this.byId('open-road').classList.toggle('reward-ready', ready > 0);
     this.byId('lobby-goal-progress').max = store.xpPerLevel;
     this.byId('lobby-goal-progress').value = ready ? store.xpPerLevel : store.levelProgress;
@@ -238,7 +223,10 @@ class MenuController {
     const holder = this.byId('reward-road');
     holder.replaceChildren();
     holder.scrollLeft = 0;
-    const start = this.roadStart || Math.max(1, store.profile.roadClaimedLevel);
+    const start = Math.min(
+      this.roadStart || Math.max(1, store.profile.roadClaimedLevel),
+      store.maxLevel - 1
+    );
     this.roadStart = start;
     for (let level = start; level < start + 8; level++) {
       const reward = store.roadReward(level);
@@ -247,7 +235,7 @@ class MenuController {
         break;
       }
       const available = level <= store.level && !claimed;
-      const next = level === target.level;
+      const next = level === target?.level;
       const step = document.createElement('li');
       step.className = `road-step${claimed ? ' claimed' : ''}${available ? ' available' : ''}${next ? ' next' : ''}`;
       const number = document.createElement('span');
@@ -301,7 +289,8 @@ class MenuController {
       holder.append(step);
     }
     this.byId('road-prev').disabled = start <= 1;
-    this.byId('road-page').textContent = `Уровни ${start}–${start + 7}`;
+    this.byId('road-next').disabled = start + 8 > store.maxLevel;
+    this.byId('road-page').textContent = `Уровни ${start}–${Math.min(start + 7, store.maxLevel)}`;
   }
   claimRoad(all) {
     const reward = all ? this.profile.claimAllRoadRewards() : this.profile.claimRoadReward();

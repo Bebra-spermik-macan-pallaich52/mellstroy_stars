@@ -195,23 +195,27 @@ class UI {
         const store = game.profile;
         const target = store.nextRoadReward;
         const name =
-          target.kind === 'character' && store.isUnlocked(target.characterIndex)
+          target?.kind === 'character' && store.isUnlocked(target.characterIndex)
             ? `${target.compensation} монет`
-            : target.name;
+            : target?.name;
         const leveled = game.reward && game.reward.levelAfter > game.reward.levelBefore;
         this.text(
           this.resultLevel,
           leveled
             ? `Новый уровень: ${store.level}!`
-            : `Уровень ${store.level} · ${store.levelProgress} / ${store.xpPerLevel} опыта`
+            : store.level === store.maxLevel
+              ? `Уровень ${store.level} · максимум`
+              : `Уровень ${store.level} · ${store.levelProgress} / ${store.xpPerLevel} опыта`
         );
         this.resultXp.max = store.xpPerLevel;
         this.resultXp.value = store.levelProgress;
         this.text(
           this.resultNext,
-          store.roadReadyCount
-            ? `Можно забрать: ${name}${store.roadReadyCount > 1 ? ` и ещё ${store.roadReadyCount - 1} наград` : ''}.`
-            : `${name} на уровне ${target.level} · ещё ${target.xp - store.profile.xp} опыта.`
+          !target
+            ? 'Все награды пути получены.'
+            : store.roadReadyCount
+              ? `Можно забрать: ${name}${store.roadReadyCount > 1 ? ` и ещё ${store.roadReadyCount - 1} наград` : ''}.`
+              : `${name} на уровне ${target.level} · ещё ${target.xp - store.profile.xp} опыта.`
         );
         this.text(
           this.resultRoad,
