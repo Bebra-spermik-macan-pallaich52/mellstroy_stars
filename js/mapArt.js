@@ -1,6 +1,4 @@
 'use strict';
-
-// Rendering only. Neither textures nor decorative paths affect collisions or bots.
 class MapArt {
   constructor() {
     this.image = null;
@@ -8,114 +6,217 @@ class MapArt {
     this.wallPatterns = new Map();
     this.wood = null;
     this.themes = {
-      arena: { tile: 0, ground: '#d8b579', side: '#925039', edge: '#56372e', path: '#f3d6a0' },
-      courtyard: { tile: 1, ground: '#99a57c', side: '#465e4c', edge: '#304d40', path: '#d5c9a0' },
-      crossroads: { tile: 2, ground: '#a89a98', side: '#5e485c', edge: '#453446', path: '#c6b5a7' }
+      arena: {
+        tile: 0,
+        ground: '#d8b579',
+        side: '#925039',
+        edge: '#56372e',
+        path: '#f3d6a0'
+      },
+      courtyard: {
+        tile: 1,
+        ground: '#99a57c',
+        side: '#465e4c',
+        edge: '#304d40',
+        path: '#d5c9a0'
+      },
+      crossroads: {
+        tile: 2,
+        ground: '#a89a98',
+        side: '#5e485c',
+        edge: '#453446',
+        path: '#c6b5a7'
+      }
     };
   }
-
   async load(loader) {
     this.image = await loader.load('assets/maps/materials.png');
-    this.grounds.clear(); this.wallPatterns.clear();
+    this.grounds.clear();
+    this.wallPatterns.clear();
   }
-
   tile(column, row, size) {
-    const canvas = document.createElement('canvas'); canvas.width = size; canvas.height = size;
-    const ctx = canvas.getContext('2d');
-    const width = this.image.naturalWidth / 3, height = this.image.naturalHeight / 2;
-    // Inset avoids neighboring materials bleeding into downsampled edges.
-    ctx.drawImage(this.image, column * width + 2, row * height + 2, width - 4, height - 4, 0, 0, size, size);
+    const canvas = document.createElement('canvas');
+    canvas.width = size;
+    canvas.height = size;
+    const canvasContext = canvas.getContext('2d');
+    const width = this.image.naturalWidth / 3;
+    const height = this.image.naturalHeight / 2;
+    canvasContext.drawImage(
+      this.image,
+      column * width + 2,
+      row * height + 2,
+      width - 4,
+      height - 4,
+      0,
+      0,
+      size,
+      size
+    );
     return canvas;
   }
-
   ground(map) {
     const key = `${map.id}:${map.width}x${map.height}`;
-    if (this.grounds.has(key)) return this.grounds.get(key);
+    if (this.grounds.has(key)) {
+      return this.grounds.get(key);
+    }
     const theme = this.themes[map.id];
-    const canvas = document.createElement('canvas'); canvas.width = map.width; canvas.height = map.height;
-    const ctx = canvas.getContext('2d');
-    ctx.fillStyle = theme.ground; ctx.fillRect(0, 0, map.width, map.height);
-    // Flat floor with sparse schematic marks; no repeated image edges or grain.
-    ctx.globalAlpha = 0.12; ctx.strokeStyle = theme.edge; ctx.lineWidth = 3;
+    const canvas = document.createElement('canvas');
+    canvas.width = map.width;
+    canvas.height = map.height;
+    const canvasContext = canvas.getContext('2d');
+    canvasContext.fillStyle = theme.ground;
+    canvasContext.fillRect(0, 0, map.width, map.height);
+    canvasContext.globalAlpha = 0.12;
+    canvasContext.strokeStyle = theme.edge;
+    canvasContext.lineWidth = 3;
     if (map.id === 'crossroads') {
       for (let y = 0, row = 0; y < map.height; y += 120, row++) {
-        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(map.width, y); ctx.stroke();
+        canvasContext.beginPath();
+        canvasContext.moveTo(0, y);
+        canvasContext.lineTo(map.width, y);
+        canvasContext.stroke();
         for (let x = row % 2 ? 120 : 0; x < map.width; x += 240) {
-          ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x, y + 120); ctx.stroke();
+          canvasContext.beginPath();
+          canvasContext.moveTo(x, y);
+          canvasContext.lineTo(x, y + 120);
+          canvasContext.stroke();
         }
       }
     } else {
       for (let y = 90, row = 0; y < map.height; y += 180, row++) {
         for (let x = 80 + (row % 2) * 100; x < map.width; x += 220) {
-          ctx.beginPath();
+          canvasContext.beginPath();
           if (map.id === 'courtyard') {
-            ctx.moveTo(x - 7, y - 8); ctx.lineTo(x, y); ctx.lineTo(x + 7, y - 8);
+            canvasContext.moveTo(x - 7, y - 8);
+            canvasContext.lineTo(x, y);
+            canvasContext.lineTo(x + 7, y - 8);
           } else {
-            ctx.moveTo(x, y); ctx.lineTo(x + 8, y - 4);
-            ctx.moveTo(x + 9, y + 5); ctx.lineTo(x + 17, y + 1);
+            canvasContext.moveTo(x, y);
+            canvasContext.lineTo(x + 8, y - 4);
+            canvasContext.moveTo(x + 9, y + 5);
+            canvasContext.lineTo(x + 17, y + 1);
           }
-          ctx.stroke();
+          canvasContext.stroke();
         }
       }
     }
-    ctx.globalAlpha = map.id === 'crossroads' ? 0.35 : 0.24;
-    ctx.strokeStyle = theme.path; ctx.lineWidth = map.id === 'courtyard' ? 110 : 145; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    canvasContext.globalAlpha = map.id === 'crossroads' ? 0.35 : 0.24;
+    canvasContext.strokeStyle = theme.path;
+    canvasContext.lineWidth = map.id === 'courtyard' ? 110 : 145;
+    canvasContext.lineCap = 'round';
+    canvasContext.lineJoin = 'round';
     for (const road of map.roads || []) {
-      ctx.beginPath(); road.forEach((point, index) => index ? ctx.lineTo(point.x, point.y) : ctx.moveTo(point.x, point.y)); ctx.stroke();
+      canvasContext.beginPath();
+      road.forEach((point, index) =>
+        index ? canvasContext.lineTo(point.x, point.y) : canvasContext.moveTo(point.x, point.y)
+      );
+      canvasContext.stroke();
     }
-    ctx.globalAlpha = 0.28; ctx.strokeStyle = theme.edge; ctx.lineWidth = 7;
-    ctx.strokeRect(3.5, 3.5, map.width - 7, map.height - 7);
-    ctx.globalAlpha = 1;
-    this.grounds.set(key, canvas); return canvas;
+    canvasContext.globalAlpha = 0.28;
+    canvasContext.strokeStyle = theme.edge;
+    canvasContext.lineWidth = 7;
+    canvasContext.strokeRect(3.5, 3.5, map.width - 7, map.height - 7);
+    canvasContext.globalAlpha = 1;
+    this.grounds.set(key, canvas);
+    return canvas;
   }
-
-  woodPattern(ctx) {
-    if (this.wood) return this.wood;
-    const canvas = document.createElement('canvas'); canvas.width = 128; canvas.height = 96;
-    const pen = canvas.getContext('2d'); pen.fillStyle = '#bc8750'; pen.fillRect(0, 0, 128, 96);
-    // Three flat planks. No grain, scratches or tiny nail details.
+  woodPattern(canvasContext) {
+    if (this.wood) {
+      return this.wood;
+    }
+    const canvas = document.createElement('canvas');
+    canvas.width = 128;
+    canvas.height = 96;
+    const pen = canvas.getContext('2d');
+    pen.fillStyle = '#bc8750';
+    pen.fillRect(0, 0, 128, 96);
     for (let y = 0; y < 96; y += 32) {
-      pen.fillStyle = y === 32 ? '#c49157' : '#bc8750'; pen.fillRect(0, y, 128, 32);
-      pen.strokeStyle = '#65452f'; pen.lineWidth = 3;
-      pen.beginPath(); pen.moveTo(0, y); pen.lineTo(128, y); pen.stroke();
+      pen.fillStyle = y === 32 ? '#c49157' : '#bc8750';
+      pen.fillRect(0, y, 128, 32);
+      pen.strokeStyle = '#65452f';
+      pen.lineWidth = 3;
+      pen.beginPath();
+      pen.moveTo(0, y);
+      pen.lineTo(128, y);
+      pen.stroke();
     }
-    this.wood = ctx.createPattern(canvas, 'repeat'); return this.wood;
+    this.wood = canvasContext.createPattern(canvas, 'repeat');
+    return this.wood;
   }
-
-  draw(ctx, map, camera = null) {
-    if (!this.image) return false;
+  draw(canvasContext, map, camera = null) {
+    if (!this.image) {
+      return false;
+    }
     const theme = this.themes[map.id];
-    ctx.save();
+    canvasContext.save();
     const ground = this.ground(map);
-    if (camera) ctx.drawImage(ground, camera.x, camera.y, camera.width, camera.height, camera.x, camera.y, camera.width, camera.height);
-    else ctx.drawImage(ground, 0, 0);
+    if (camera) {
+      canvasContext.drawImage(
+        ground,
+        camera.x,
+        camera.y,
+        camera.width,
+        camera.height,
+        camera.x,
+        camera.y,
+        camera.width,
+        camera.height
+      );
+    } else {
+      canvasContext.drawImage(ground, 0, 0);
+    }
     map.teamSpawns.forEach((spawns, team) => {
       for (const spawn of spawns) {
-        ctx.globalAlpha = 0.35; ctx.strokeStyle = team === 0 ? '#326c8b' : '#a64d50'; ctx.lineWidth = 3;
-        ctx.beginPath(); ctx.ellipse(spawn.x + 24, spawn.y + 48, 29, 12, 0, 0, Math.PI * 2); ctx.stroke();
-        ctx.globalAlpha = 1;
+        canvasContext.globalAlpha = 0.35;
+        canvasContext.strokeStyle = team === 0 ? '#326c8b' : '#a64d50';
+        canvasContext.lineWidth = 3;
+        canvasContext.beginPath();
+        canvasContext.ellipse(spawn.x + 24, spawn.y + 48, 29, 12, 0, 0, Math.PI * 2);
+        canvasContext.stroke();
+        canvasContext.globalAlpha = 1;
       }
     });
-    if (!this.wallPatterns.has(map.id)) this.wallPatterns.set(map.id, ctx.createPattern(this.tile(theme.tile, 1, 135), 'repeat'));
+    if (!this.wallPatterns.has(map.id)) {
+      this.wallPatterns.set(
+        map.id,
+        canvasContext.createPattern(this.tile(theme.tile, 1, 135), 'repeat')
+      );
+    }
     for (const wall of map.walls) {
-      if (camera && !camera.visible(wall, 20)) continue;
-      // The visible base is the collision rectangle. All bevels stay inside it.
-      ctx.fillStyle = wall.destructible ? '#745035' : theme.side;
-      ctx.fillRect(wall.x, wall.y, wall.width, wall.height);
-      ctx.fillStyle = wall.destructible ? this.woodPattern(ctx) : this.wallPatterns.get(map.id);
-      ctx.fillRect(wall.x + 3, wall.y + 3, wall.width - 6, wall.height - 9);
-      ctx.strokeStyle = wall.destructible ? '#523d30' : theme.edge; ctx.lineWidth = 3;
-      ctx.strokeRect(wall.x + 1.5, wall.y + 1.5, wall.width - 3, wall.height - 3);
-      ctx.strokeStyle = 'rgba(255,238,190,.5)'; ctx.lineWidth = 2;
-      ctx.beginPath(); ctx.moveTo(wall.x + 4, wall.y + 4); ctx.lineTo(wall.x + wall.width - 4, wall.y + 4); ctx.stroke();
+      if (camera && !camera.visible(wall, 20)) {
+        continue;
+      }
+      canvasContext.fillStyle = wall.destructible ? '#745035' : theme.side;
+      canvasContext.fillRect(wall.x, wall.y, wall.width, wall.height);
+      canvasContext.fillStyle = wall.destructible
+        ? this.woodPattern(canvasContext)
+        : this.wallPatterns.get(map.id);
+      canvasContext.fillRect(wall.x + 3, wall.y + 3, wall.width - 6, wall.height - 9);
+      canvasContext.strokeStyle = wall.destructible ? '#523d30' : theme.edge;
+      canvasContext.lineWidth = 3;
+      canvasContext.strokeRect(wall.x + 1.5, wall.y + 1.5, wall.width - 3, wall.height - 3);
+      canvasContext.strokeStyle = 'rgba(255,238,190,.5)';
+      canvasContext.lineWidth = 2;
+      canvasContext.beginPath();
+      canvasContext.moveTo(wall.x + 4, wall.y + 4);
+      canvasContext.lineTo(wall.x + wall.width - 4, wall.y + 4);
+      canvasContext.stroke();
       if (wall.destructible) {
         if (wall.health < wall.maxHealth) {
-          ctx.fillStyle = '#30212e'; ctx.fillRect(wall.x, wall.y - 9, wall.width, 5);
-          ctx.fillStyle = '#f8c64c'; ctx.fillRect(wall.x + 1, wall.y - 8, (wall.width - 2) * wall.health / wall.maxHealth, 3);
+          canvasContext.fillStyle = '#30212e';
+          canvasContext.fillRect(wall.x, wall.y - 9, wall.width, 5);
+          canvasContext.fillStyle = '#f8c64c';
+          canvasContext.fillRect(
+            wall.x + 1,
+            wall.y - 8,
+            ((wall.width - 2) * wall.health) / wall.maxHealth,
+            3
+          );
         }
       }
     }
-    ctx.restore(); return true;
+    canvasContext.restore();
+    return true;
   }
 }
 const mapArt = new MapArt();

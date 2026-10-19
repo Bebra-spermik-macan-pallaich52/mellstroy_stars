@@ -1,17 +1,41 @@
 'use strict';
 
 const mapCatalog = [
-  { id: 'arena', name: 'Песчаный двор', width: 1440, height: 960, description: 'Рыночные ряды, открытая площадь и два обхода по краям.' },
-  { id: 'courtyard', name: 'Двор коттеджа', width: 1600, height: 1120, description: 'Садовые дворики, извилистые проходы и четыре входа в центр.' },
-  { id: 'crossroads', name: 'Перекрёсток', width: 1728, height: 1080, description: 'Короткие улицы, тесные переулки и несколько путей для обхода.' }
+  {
+    id: 'arena',
+    name: 'Песчаный двор',
+    width: 1440,
+    height: 960,
+    description: 'Рыночные ряды, открытая площадь и два обхода по краям.'
+  },
+  {
+    id: 'courtyard',
+    name: 'Двор коттеджа',
+    width: 1600,
+    height: 1120,
+    description: 'Садовые дворики, извилистые проходы и четыре входа в центр.'
+  },
+  {
+    id: 'crossroads',
+    name: 'Перекрёсток',
+    width: 1728,
+    height: 1080,
+    description: 'Короткие улицы, тесные переулки и несколько путей для обхода.'
+  }
 ];
-
 function mapWall(x, y, width, height, destructible = false) {
-  return { x, y, width, height, ...(destructible ? { destructible: true } : {}) };
+  return {
+    x,
+    y,
+    width,
+    height,
+    ...(destructible
+      ? {
+          destructible: true
+        }
+      : {})
+  };
 }
-
-// Cover spacing is authored for the smallest (teamfight) version first.
-// Open passages leave at least 80px horizontally or 96px vertically for 48×64 actors.
 const mapLayouts = {
   arena: [
     mapWall(420, 173.367, 64, 258.1),
@@ -72,70 +96,202 @@ const mapLayouts = {
     mapWall(1459.995, 614.222, 129.998, 48.63)
   ]
 };
-
 const mapRoads = {
-  arena: [[[100, 640], [650, 710], [960, 640], [1400, 760], [1820, 640]], [[240, 90], [560, 130], [1180, 120], [1700, 160]], [[260, 1200], [920, 1110], [1500, 1200]]],
-  courtyard: [[[100, 800], [700, 800], [1120, 800], [1560, 800], [2140, 800]], [[1120, 100], [1200, 360], [1120, 800], [1200, 1000], [1120, 1500]], [[180, 550], [480, 560], [700, 400], [1210, 640]], [[1450, 950], [1600, 1100], [1950, 1450]]],
-  crossroads: [[[60, 800], [600, 820], [1280, 800], [1920, 700], [2500, 800]], [[1280, 70], [1280, 650], [1280, 1150], [1280, 1530]], [[200, 500], [2100, 500]], [[200, 1090], [2350, 1090]]]
+  arena: [
+    [
+      [100, 640],
+      [650, 710],
+      [960, 640],
+      [1400, 760],
+      [1820, 640]
+    ],
+    [
+      [240, 90],
+      [560, 130],
+      [1180, 120],
+      [1700, 160]
+    ],
+    [
+      [260, 1200],
+      [920, 1110],
+      [1500, 1200]
+    ]
+  ],
+  courtyard: [
+    [
+      [100, 800],
+      [700, 800],
+      [1120, 800],
+      [1560, 800],
+      [2140, 800]
+    ],
+    [
+      [1120, 100],
+      [1200, 360],
+      [1120, 800],
+      [1200, 1000],
+      [1120, 1500]
+    ],
+    [
+      [180, 550],
+      [480, 560],
+      [700, 400],
+      [1210, 640]
+    ],
+    [
+      [1450, 950],
+      [1600, 1100],
+      [1950, 1450]
+    ]
+  ],
+  crossroads: [
+    [
+      [60, 800],
+      [600, 820],
+      [1280, 800],
+      [1920, 700],
+      [2500, 800]
+    ],
+    [
+      [1280, 70],
+      [1280, 650],
+      [1280, 1150],
+      [1280, 1530]
+    ],
+    [
+      [200, 500],
+      [2100, 500]
+    ],
+    [
+      [200, 1090],
+      [2350, 1090]
+    ]
+  ]
 };
-
-function drawMap(ctx, camera = null) {
-  if (typeof mapArt !== 'undefined' && mapArt.draw(ctx, this, camera)) return;
-  ctx.fillStyle = { arena: '#d8b579', courtyard: '#99a57c', crossroads: '#a89a98' }[this.id];
-  ctx.fillRect(0, 0, this.width, this.height);
-  ctx.strokeStyle = '#554451'; ctx.lineWidth = 5;
-  ctx.strokeRect(2.5, 2.5, this.width - 5, this.height - 5);
+function drawMap(canvasContext, camera = null) {
+  if (typeof mapArt !== 'undefined' && mapArt.draw(canvasContext, this, camera)) {
+    return;
+  }
+  canvasContext.fillStyle = {
+    arena: '#d8b579',
+    courtyard: '#99a57c',
+    crossroads: '#a89a98'
+  }[this.id];
+  canvasContext.fillRect(0, 0, this.width, this.height);
+  canvasContext.strokeStyle = '#554451';
+  canvasContext.lineWidth = 5;
+  canvasContext.strokeRect(2.5, 2.5, this.width - 5, this.height - 5);
   this.teamSpawns.forEach((spawns, team) => {
-    ctx.strokeStyle = team === 0 ? '#458bac' : '#b9575b'; ctx.setLineDash([5, 5]);
-    for (const spawn of spawns) ctx.strokeRect(spawn.x, spawn.y, 48, 64);
-    ctx.setLineDash([]);
+    canvasContext.strokeStyle = team === 0 ? '#458bac' : '#b9575b';
+    canvasContext.setLineDash([5, 5]);
+    for (const spawn of spawns) {
+      canvasContext.strokeRect(spawn.x, spawn.y, 48, 64);
+    }
+    canvasContext.setLineDash([]);
   });
   for (const wall of this.walls) {
-    ctx.fillStyle = wall.destructible ? '#a17950' : '#796878'; ctx.fillRect(wall.x, wall.y, wall.width, wall.height);
-    ctx.fillStyle = wall.destructible ? '#c69a6b' : '#b9a18e'; ctx.fillRect(wall.x + 2, wall.y + 2, wall.width - 4, 4);
-    ctx.strokeStyle = '#554451'; ctx.lineWidth = 2;
-    ctx.strokeRect(wall.x + 1, wall.y + 1, wall.width - 2, wall.height - 2);
+    canvasContext.fillStyle = wall.destructible ? '#a17950' : '#796878';
+    canvasContext.fillRect(wall.x, wall.y, wall.width, wall.height);
+    canvasContext.fillStyle = wall.destructible ? '#c69a6b' : '#b9a18e';
+    canvasContext.fillRect(wall.x + 2, wall.y + 2, wall.width - 4, 4);
+    canvasContext.strokeStyle = '#554451';
+    canvasContext.lineWidth = 2;
+    canvasContext.strokeRect(wall.x + 1, wall.y + 1, wall.width - 2, wall.height - 2);
     if (wall.destructible) {
-      ctx.strokeStyle = '#674d38'; ctx.beginPath();
-      ctx.moveTo(wall.x + wall.width * 0.4, wall.y + 5); ctx.lineTo(wall.x + wall.width * 0.55, wall.y + wall.height * 0.5);
-      ctx.lineTo(wall.x + wall.width * 0.35, wall.y + wall.height - 4); ctx.stroke();
+      canvasContext.strokeStyle = '#674d38';
+      canvasContext.beginPath();
+      canvasContext.moveTo(wall.x + wall.width * 0.4, wall.y + 5);
+      canvasContext.lineTo(wall.x + wall.width * 0.55, wall.y + wall.height * 0.5);
+      canvasContext.lineTo(wall.x + wall.width * 0.35, wall.y + wall.height - 4);
+      canvasContext.stroke();
       if (wall.health < wall.maxHealth) {
-        ctx.fillStyle = '#17242e'; ctx.fillRect(wall.x, wall.y - 7, wall.width, 4);
-        ctx.fillStyle = '#efc583'; ctx.fillRect(wall.x, wall.y - 7, wall.width * wall.health / wall.maxHealth, 4);
+        canvasContext.fillStyle = '#17242e';
+        canvasContext.fillRect(wall.x, wall.y - 7, wall.width, 4);
+        canvasContext.fillStyle = '#efc583';
+        canvasContext.fillRect(wall.x, wall.y - 7, (wall.width * wall.health) / wall.maxHealth, 4);
       }
     }
   }
 }
-
-// Layout coordinates use the original design grid; scale all geometry together.
-const mapDesignSizes = { arena: [1920, 1280], courtyard: [2240, 1600], crossroads: [2560, 1600] };
-const teamfightMapSizes = { arena: [1152, 768], courtyard: [1280, 896], crossroads: [1384, 864] };
-
+const mapDesignSizes = {
+  arena: [1920, 1280],
+  courtyard: [2240, 1600],
+  crossroads: [2560, 1600]
+};
+const teamfightMapSizes = {
+  arena: [1152, 768],
+  courtyard: [1280, 896],
+  crossroads: [1384, 864]
+};
 function createMap(id = 'arena', modeId = 'donations') {
   const knownId = Object.prototype.hasOwnProperty.call(mapLayouts, id) ? id : 'arena';
-  const definition = mapCatalog.find(map => map.id === knownId);
-  const [width, height] = modeId === 'teamfight' ? teamfightMapSizes[knownId] : [definition.width, definition.height];
+  const definition = mapCatalog.find((map) => map.id === knownId);
+  const [width, height] =
+    modeId === 'teamfight' ? teamfightMapSizes[knownId] : [definition.width, definition.height];
   const [designWidth, designHeight] = mapDesignSizes[knownId];
-  const scaleX = width / designWidth, scaleY = height / designHeight;
-  const center = { x: width / 2, y: height / 2 };
+  const scaleX = width / designWidth;
+  const scaleY = height / designHeight;
+  const center = {
+    x: width / 2,
+    y: height / 2
+  };
   const spawnX = modeId === 'teamfight' ? 56 : 72;
   const spawns = [center.y - 32, 80, height - 144];
   return {
-    id: knownId, width, height, spawn: { x: spawnX, y: center.y - 32 }, navVersion: 0,
-    teamSpawns: [spawns.map(y => ({ x: spawnX, y })), spawns.map(y => ({ x: width - spawnX - 48, y }))],
+    id: knownId,
+    width,
+    height,
+    spawn: {
+      x: spawnX,
+      y: center.y - 32
+    },
+    navVersion: 0,
+    teamSpawns: [
+      spawns.map((y) => ({
+        x: spawnX,
+        y
+      })),
+      spawns.map((y) => ({
+        x: width - spawnX - 48,
+        y
+      }))
+    ],
     resourcePoint: center,
-    captureZone: { x: center.x - 140 * scaleX, y: center.y - 110 * scaleY, width: 280 * scaleX, height: 220 * scaleY },
-    roads: mapRoads[knownId].map(path => path.map(([x, y]) => ({ x: x * scaleX, y: y * scaleY }))),
-    walls: mapLayouts[knownId].map((wall, index) => ({ ...wall, x: wall.x * scaleX, y: wall.y * scaleY, width: wall.width * scaleX, height: wall.height * scaleY, id: `wall-${index}`,
-      ...(wall.destructible ? { health: 600, maxHealth: 600 } : {}) })),
+    captureZone: {
+      x: center.x - 140 * scaleX,
+      y: center.y - 110 * scaleY,
+      width: 280 * scaleX,
+      height: 220 * scaleY
+    },
+    roads: mapRoads[knownId].map((path) =>
+      path.map(([x, y]) => ({
+        x: x * scaleX,
+        y: y * scaleY
+      }))
+    ),
+    walls: mapLayouts[knownId].map((wall, index) => ({
+      ...wall,
+      x: wall.x * scaleX,
+      y: wall.y * scaleY,
+      width: wall.width * scaleX,
+      height: wall.height * scaleY,
+      id: `wall-${index}`,
+      ...(wall.destructible
+        ? {
+            health: 600,
+            maxHealth: 600
+          }
+        : {})
+    })),
     draw: drawMap
   };
 }
-
 function freezeMapTemplate(value) {
-  for (const entry of Object.values(value)) if (entry && typeof entry === 'object') freezeMapTemplate(entry);
+  for (const entry of Object.values(value)) {
+    if (entry && typeof entry === 'object') {
+      freezeMapTemplate(entry);
+    }
+  }
   return Object.freeze(value);
 }
-
-// Use createMap for live matches. This immutable fixture cannot lose its walls.
 const arena = freezeMapTemplate(createMap('arena'));
