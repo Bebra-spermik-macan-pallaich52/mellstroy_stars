@@ -153,7 +153,6 @@ class MenuController {
     const mode = this.modes[this.byId('mode').value] || this.modes.donations;
     const map = mapCatalog.find((item) => item.id === this.byId('map').value) || mapCatalog[0];
     this.byId('mode-description').textContent = mode.description;
-    this.byId('map-description').textContent = map?.description || '';
     this.byId('selected-mode-name').textContent = mode.name;
     this.byId('selected-map-name').textContent = map.name;
     this.byId('open-events').dataset.mode = this.byId('mode').value;
@@ -255,12 +254,9 @@ class MenuController {
       const title = document.createElement('strong');
       title.textContent = claimed ? reward.name : this.rewardName(reward);
       const detail = document.createElement('small');
-      detail.textContent =
-        reward.kind === 'character' && store.isUnlocked(reward.characterIndex) && !claimed
-          ? `Вместо бойца ${reward.name}`
-          : reward.kind === 'character'
-            ? 'Новый боец'
-            : 'На открытие бойцов';
+      if (reward.kind === 'character' && store.isUnlocked(reward.characterIndex) && !claimed) {
+        detail.textContent = `Вместо бойца ${reward.name}`;
+      }
       const requirement = document.createElement('span');
       requirement.className = 'road-requirement';
       requirement.textContent = `${reward.xp} опыта`;
@@ -284,7 +280,11 @@ class MenuController {
               : `На уровне ${level}`;
         action.addEventListener('click', () => this.claimRoad(false));
       }
-      card.append(art, title, detail, requirement, action);
+      card.append(art, title);
+      if (detail.textContent) {
+        card.append(detail);
+      }
+      card.append(requirement, action);
       step.append(number, card);
       holder.append(step);
     }
@@ -397,11 +397,7 @@ class MenuController {
   renderEvents() {
     const holder = this.byId('event-cards');
     holder.replaceChildren();
-    const art = {
-      donations: ['coin', 'СОБИРАЙ И БЕРЕГИ', 0],
-      cottage: ['cottage', 'ЗАЙМИ. ЗАХВАТИ. УДЕРЖИ.', 1],
-      teamfight: ['battle', 'ДЕСЯТЬ ПОБЕД ДО ФИНИША', 2]
-    };
+    const art = { donations: 0, cottage: 1, teamfight: 2 };
     for (const [id, mode] of Object.entries(this.modes)) {
       const button = document.createElement('button');
       button.className = `event-card event-${id}`;
@@ -410,16 +406,13 @@ class MenuController {
       button.setAttribute('aria-pressed', String(this.byId('mode').value === id));
       const stripe = document.createElement('span');
       stripe.className = 'event-card-stripe';
-      stripe.append(this.badge(art[id][2], 0));
+      stripe.append(this.badge(art[id], 0));
       const title = document.createElement('strong');
       title.textContent = mode.name;
       stripe.append(title);
       const illustration = document.createElement('span');
       illustration.className = 'event-illustration';
-      illustration.style.setProperty('--scene', art[id][2]);
-      const tag = document.createElement('small');
-      tag.textContent = art[id][1];
-      illustration.append(tag);
+      illustration.style.setProperty('--scene', art[id]);
       const rule = document.createElement('span');
       rule.className = 'event-rule';
       rule.textContent = mode.description;
@@ -457,10 +450,7 @@ class MenuController {
       preview.append(diagram, badge);
       const name = document.createElement('strong');
       name.textContent = map.name;
-      const size = createMap(map.id, this.byId('mode').value);
-      const caption = document.createElement('small');
-      caption.textContent = `${size.width} × ${size.height} · ${['рыночные улицы', 'садовые дворики', 'переулки'][index]}`;
-      button.append(preview, name, caption);
+      button.append(preview, name);
       button.addEventListener('click', () => {
         this.byId('map').value = map.id;
         this.updateChoices();

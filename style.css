@@ -280,14 +280,6 @@ svg {
   height:74px;
   flex-shrink:0;
 }
-.hero-nameplate>span {
-  display:block;
-  font-weight:500;
-  font-size:12px;
-  letter-spacing:.6px;
-  margin-bottom:6px;
-  color:#686b60;
-}
 .hero-nameplate strong {
   display:block;
   font:700 clamp(24px,3vw,40px)/1.04 var(--display);
@@ -342,15 +334,6 @@ svg {
   box-shadow:none;
   clip-path:none;
   border-left:2px solid #b3bba5;
-}
-.note-heading {
-  font-size:12px;
-  letter-spacing:.2px;
-  font-weight:500;
-  border-bottom:0;
-  padding-bottom:5px;
-  display:block;
-  color:#686b60;
 }
 .fighter-note p {
   font-size:15px;
@@ -484,17 +467,6 @@ button:active {
   color:#a15c58;
   font-style:normal;
 }
-.menu-footer {
-  background:var(--paper);
-  color:#707367;
-  padding:7px 22px;
-  display:flex;
-  justify-content:space-between;
-  font-size:9px;
-  letter-spacing:.4px;
-  min-height:26px;
-  border-top:1px solid #d7d1c3;
-}
 .menu-message {
   position:absolute;
   z-index:3;
@@ -533,12 +505,6 @@ button:active {
   font:700 13px var(--body);
   margin-left:10px;
   vertical-align:middle;
-}
-.eyebrow {
-  font-size:10px;
-  letter-spacing:.4px;
-  font-weight:500;
-  color:#727569;
 }
 .back-button {
   flex-shrink:0;
@@ -680,12 +646,6 @@ button:active {
   color:#65695d;
   opacity:1;
 }
-.screen-footnote {
-  text-align:center;
-  font-size:12px;
-  font-weight:700;
-  margin:20px 0 0;
-}
 .events-screen {
   background:#e9e4d7;
   color:var(--ink);
@@ -767,18 +727,6 @@ button:active {
   height:144px;
   position:relative;
 }
-.event-illustration small {
-  position:absolute;
-  bottom:0;
-  left:0;
-  right:0;
-  background:rgba(48,33,46,.88);
-  color:var(--paper);
-  padding:6px 10px;
-  font:700 8px var(--body);
-  letter-spacing:1px;
-  display:none;
-}
 .event-rule {
   display:block;
   font-size:11px;
@@ -819,11 +767,6 @@ button:active {
   font:700 20px var(--display);
   margin:0;
 }
-.map-heading>span {
-  font-size:11px;
-  text-align:right;
-  max-width:50%;
-}
 .map-cards {
   display:grid;
   grid-template-columns:repeat(3,1fr);
@@ -850,14 +793,7 @@ button:active {
 .map-card strong {
   display:block;
   font:700 17px var(--display);
-  padding:7px 10px 3px;
-}
-.map-card small {
-  display:block;
-  padding:0 10px 8px;
-  font-size:8px;
-  font-weight:800;
-  letter-spacing:.3px;
+  padding:10px;
 }
 .confirm-button {
   display:block;
@@ -1298,9 +1234,6 @@ input[type=range] {
     border-width:2px;
     box-shadow:none;
   }
-  .note-heading {
-    display:none;
-  }
   .fighter-note p {
     font-size:11px;
     margin:0 0 3px;
@@ -1382,9 +1315,6 @@ input[type=range] {
   }
   .map-card strong {
     font-size:15px;
-  }
-  .map-card small {
-    font-size:7px;
   }
   .map-cards {
     gap:12px;
@@ -1468,9 +1398,6 @@ input[type=range] {
   }
   .hero-nameplate strong {
     font-size:29px;
-  }
-  .hero-nameplate>span {
-    font-size:8px;
   }
   .hero-change {
     font-size:10px;
@@ -1571,12 +1498,6 @@ input[type=range] {
   .lobby-controls i {
     margin:0 4px;
   }
-  .menu-footer {
-    font-size:7px;
-    padding:8px 12px;
-    letter-spacing:1px;
-    min-height:24px;
-  }
   .screen-heading {
     gap:12px;
     margin-bottom:20px;
@@ -1588,9 +1509,6 @@ input[type=range] {
     display:block;
     font-size:11px;
     margin:5px 0 0;
-  }
-  .screen-heading .eyebrow {
-    font-size:8px;
   }
   .back-button {
     width:35px;
@@ -1660,10 +1578,6 @@ input[type=range] {
     border-left:1px solid #c9c4b6;
     background-size:auto 300%;
   }
-  .event-illustration small {
-    font-size:6px;
-    padding:5px;
-  }
   .event-rule {
     grid-column:1;
     grid-row:2;
@@ -1680,9 +1594,6 @@ input[type=range] {
   .map-heading h3 {
     font-size:19px;
     flex-shrink:0;
-  }
-  .map-heading>span {
-    font-size:9px;
   }
   .map-cards {
     grid-template-columns:1fr;
@@ -1706,12 +1617,6 @@ input[type=range] {
     grid-row:1;
     font-size:16px;
     padding:10px 11px 3px;
-  }
-  .map-card small {
-    grid-column:2;
-    grid-row:2;
-    font-size:7px;
-    padding:0 11px 8px;
   }
   .confirm-button {
     width:100%;
@@ -1829,9 +1734,6 @@ input[type=range] {
   .result-card p {
     font-size:11px;
   }
-  .result-card .eyebrow {
-    font-size:8px;
-  }
   .result-card .dialog-actions {
     margin-top:12px;
     gap:10px;
@@ -1939,7 +1841,6 @@ input[type=range] {
 .road-heading h3 { margin:0 0 5px; font:700 22px var(--display); }
 .road-heading p { margin:0; font-size:13px; }
 .road-heading .primary-button { font-size:14px; padding:10px 14px; flex-shrink:0; }
-.road-explanation { color:#686e60; font-size:12px; line-height:1.6; }
 .road-feedback { color:#4d653c; font-size:13px; line-height:1.6; }
 .road-feedback:empty { display:none; }
 .reward-road { list-style:none; display:flex; gap:20px; padding:8px 4px 14px; margin:10px 0; overflow-x:auto; scroll-snap-type:x proximity; scroll-padding-inline:4px; }
@@ -1980,7 +1881,6 @@ svg.road-art { width:64px; padding:20px 0; color:#8c692b; fill:#e3c472; }
   .road-heading h3 { font-size:20px; }
   .road-heading .primary-button { width:100%; }
   .road-step { flex-basis:168px; }
-  .road-explanation { font-size:11px; }
   .road-navigation { font-size:10px; }
   .result-progression { padding:8px 0 0; }
   .result-progression p { font-size:11px; }
