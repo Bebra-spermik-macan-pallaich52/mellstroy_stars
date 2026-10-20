@@ -13,8 +13,6 @@ class UI {
     this.reloadText = byId('reload-text');
     this.super = byId('super');
     this.superText = byId('super-text');
-    this.enemyFire = byId('enemy-fire');
-    this.modeSelect = byId('mode');
     this.status = byId('status');
     this.message = byId('message');
     this.stats = byId('stats');

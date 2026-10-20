@@ -1,27 +1,9 @@
 'use strict';
 
 const mapCatalog = [
-  {
-    id: 'arena',
-    name: 'Песчаный двор',
-    width: 1440,
-    height: 960,
-    description: 'Рыночные ряды, открытая площадь и два обхода по краям.'
-  },
-  {
-    id: 'courtyard',
-    name: 'Двор коттеджа',
-    width: 1600,
-    height: 1120,
-    description: 'Садовые дворики, извилистые проходы и четыре входа в центр.'
-  },
-  {
-    id: 'crossroads',
-    name: 'Перекрёсток',
-    width: 1728,
-    height: 1080,
-    description: 'Короткие улицы, тесные переулки и несколько путей для обхода.'
-  }
+  { id: 'arena', name: 'Песчаный двор', width: 1440, height: 960 },
+  { id: 'courtyard', name: 'Двор коттеджа', width: 1600, height: 1120 },
+  { id: 'crossroads', name: 'Перекрёсток', width: 1728, height: 1080 }
 ];
 function mapWall(x, y, width, height, destructible = false) {
   return { x, y, width, height, ...(destructible ? { destructible: true } : {}) };

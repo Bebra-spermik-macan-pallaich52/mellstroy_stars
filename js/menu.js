@@ -1,4 +1,5 @@
 'use strict';
+
 class MenuController {
   constructor(game, profile, audio) {
     this.game = game;
@@ -235,13 +236,12 @@ class MenuController {
       }
       const available = level <= store.level && !claimed;
       const next = level === target?.level;
-      const step = document.createElement('li');
-      step.className = `road-step${claimed ? ' claimed' : ''}${available ? ' available' : ''}${next ? ' next' : ''}`;
-      const number = document.createElement('span');
-      number.className = 'road-level';
-      number.textContent = level;
-      const card = document.createElement('div');
-      card.className = 'road-reward';
+      const step = this.element(
+        'li',
+        `road-step${claimed ? ' claimed' : ''}${available ? ' available' : ''}${next ? ' next' : ''}`
+      );
+      const number = this.element('span', 'road-level', level);
+      const card = this.element('div', 'road-reward');
       const art =
         reward.kind === 'character' ? document.createElement('canvas') : this.icon('coin');
       art.classList.add('road-art');
@@ -251,15 +251,12 @@ class MenuController {
         art.height = 130;
         this.paintPortrait(art, reward.characterIndex);
       }
-      const title = document.createElement('strong');
-      title.textContent = claimed ? reward.name : this.rewardName(reward);
+      const title = this.element('strong', null, claimed ? reward.name : this.rewardName(reward));
       const detail = document.createElement('small');
       if (reward.kind === 'character' && store.isUnlocked(reward.characterIndex) && !claimed) {
         detail.textContent = `Вместо бойца ${reward.name}`;
       }
-      const requirement = document.createElement('span');
-      requirement.className = 'road-requirement';
-      requirement.textContent = `${reward.xp} опыта`;
+      const requirement = this.element('span', 'road-requirement', `${reward.xp} опыта`);
       const action = document.createElement('button');
       action.type = 'button';
       action.className = available && next ? 'primary-button road-claim' : 'quiet-button';
@@ -335,6 +332,14 @@ class MenuController {
       this.byId(`${screen}-screen`).querySelector('[data-back]').focus({ preventScroll: true });
     }
   }
+  element(tag, className = null, text = '') {
+    const node = document.createElement(tag);
+    if (className) {
+      node.className = className;
+    }
+    node.textContent = text;
+    return node;
+  }
   icon(name) {
     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     svg.setAttribute('aria-hidden', 'true');
@@ -344,8 +349,7 @@ class MenuController {
     return svg;
   }
   badge(column, row) {
-    const span = document.createElement('span');
-    span.className = row === 0 ? 'game-badge mode-glyph' : 'game-badge';
+    const span = this.element('span', row === 0 ? 'game-badge mode-glyph' : 'game-badge');
     span.style.setProperty('--icon-x', `${column * 50}%`);
     span.style.setProperty('--icon-y', `${row * 100}%`);
     span.setAttribute('aria-hidden', 'true');
@@ -399,26 +403,18 @@ class MenuController {
     holder.replaceChildren();
     const art = { donations: 0, cottage: 1, teamfight: 2 };
     for (const [id, mode] of Object.entries(this.modes)) {
-      const button = document.createElement('button');
-      button.className = `event-card event-${id}`;
+      const button = this.element('button', `event-card event-${id}`);
       button.dataset.mode = id;
       button.type = 'button';
       button.setAttribute('aria-pressed', String(this.byId('mode').value === id));
-      const stripe = document.createElement('span');
-      stripe.className = 'event-card-stripe';
+      const stripe = this.element('span', 'event-card-stripe');
       stripe.append(this.badge(art[id], 0));
-      const title = document.createElement('strong');
-      title.textContent = mode.name;
+      const title = this.element('strong', null, mode.name);
       stripe.append(title);
-      const illustration = document.createElement('span');
-      illustration.className = 'event-illustration';
+      const illustration = this.element('span', 'event-illustration');
       illustration.style.setProperty('--scene', art[id]);
-      const rule = document.createElement('span');
-      rule.className = 'event-rule';
-      rule.textContent = mode.description;
-      const tick = document.createElement('span');
-      tick.className = 'selection-tick';
-      tick.textContent = '✓';
+      const rule = this.element('span', 'event-rule', mode.description);
+      const tick = this.element('span', 'selection-tick', '✓');
       tick.setAttribute('aria-hidden', 'true');
       button.append(stripe, illustration, rule, tick);
       button.addEventListener('click', () => {
@@ -433,13 +429,11 @@ class MenuController {
     const maps = this.byId('map-cards');
     maps.replaceChildren();
     mapCatalog.forEach((map, index) => {
-      const button = document.createElement('button');
-      button.className = 'map-card';
+      const button = this.element('button', 'map-card');
       button.type = 'button';
       button.dataset.map = map.id;
       button.setAttribute('aria-pressed', String(this.byId('map').value === map.id));
-      const preview = document.createElement('span');
-      preview.className = 'map-preview';
+      const preview = this.element('span', 'map-preview');
       preview.setAttribute('aria-hidden', 'true');
       const diagram = document.createElement('canvas');
       diagram.width = 360;
@@ -448,8 +442,7 @@ class MenuController {
       const badge = this.badge(index, 1);
       badge.classList.add('map-badge');
       preview.append(diagram, badge);
-      const name = document.createElement('strong');
-      name.textContent = map.name;
+      const name = this.element('strong', null, map.name);
       button.append(preview, name);
       button.addEventListener('click', () => {
         this.byId('map').value = map.id;
@@ -512,15 +505,19 @@ class MenuController {
     const roles = ['Стрелок', 'Поддержка', 'Танк', 'Защитник', 'Штурмовик'];
     this.definitions.forEach((definition, index) => {
       if (index === 0 || index === 5) {
-        const heading = document.createElement('h3');
-        heading.className = 'collection-section-title';
-        heading.textContent = index === 0 ? 'Бойцы пути прогресса' : 'Бойцы за монеты';
+        const heading = this.element(
+          'h3',
+          'collection-section-title',
+          index === 0 ? 'Бойцы пути прогресса' : 'Бойцы за монеты'
+        );
         holder.append(heading);
       }
       const unlocked = this.profile.isUnlocked(index);
       const selected = this.profile.profile.selectedCharacter === index;
-      const card = document.createElement('article');
-      card.className = `character-card fighter-${index}${selected ? ' selected' : ''}${unlocked ? '' : ' locked'}`;
+      const card = this.element(
+        'article',
+        `character-card fighter-${index}${selected ? ' selected' : ''}${unlocked ? '' : ' locked'}`
+      );
       const pick = document.createElement('button');
       pick.type = 'button';
       pick.className = 'character-pick';
@@ -529,21 +526,19 @@ class MenuController {
         `${definition.name}${unlocked ? ', выбрать персонажа' : ', ещё не открыт'}`
       );
       pick.setAttribute('aria-pressed', String(selected));
-      const role = document.createElement('span');
-      role.className = 'fighter-role';
-      role.textContent = definition.role || roles[index];
+      const role = this.element('span', 'fighter-role', definition.role || roles[index]);
       const portrait = document.createElement('canvas');
       portrait.width = 300;
       portrait.height = 240;
       portrait.className = 'character-portrait';
       portrait.setAttribute('aria-hidden', 'true');
       this.paintPortrait(portrait, index);
-      const name = document.createElement('strong');
-      name.className = 'character-name';
-      name.textContent = definition.name;
-      const marker = document.createElement('span');
-      marker.className = 'character-marker';
-      marker.textContent = selected ? '✓ Выбран' : unlocked ? 'Выбрать' : 'Закрыт';
+      const name = this.element('strong', 'character-name', definition.name);
+      const marker = this.element(
+        'span',
+        'character-marker',
+        selected ? '✓ Выбран' : unlocked ? 'Выбрать' : 'Закрыт'
+      );
       pick.append(role, portrait, name, marker);
       pick.addEventListener('click', () => {
         if (unlocked) {
@@ -557,8 +552,7 @@ class MenuController {
         }
       });
       card.append(pick);
-      const unlock = document.createElement('button');
-      unlock.className = 'character-unlock';
+      const unlock = this.element('button', 'character-unlock');
       unlock.type = 'button';
       unlock.textContent = unlocked
         ? `${definition.maxHealth} HP · ${definition.attack.count > 1 ? definition.attack.count + '×' : ''}${definition.attack.damage} урона`
@@ -580,9 +574,11 @@ class MenuController {
           this.renderCharacters();
         });
       }
-      const supply = document.createElement('p');
-      supply.className = 'fighter-supply';
-      supply.textContent = `${definition.attack.ammo} заряда · +1 / ${String(definition.attack.reload).replace('.', ',')} с`;
+      const supply = this.element(
+        'p',
+        'fighter-supply',
+        `${definition.attack.ammo} заряда · +1 / ${String(definition.attack.reload).replace('.', ',')} с`
+      );
       card.append(supply, unlock);
       holder.append(card);
     });
