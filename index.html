@@ -9,8 +9,17 @@
   <link rel="icon" href="data:,">
 </head>
 <body>
-  <main class="app">
+  <section id="profile-picker" class="profile-picker" role="dialog" aria-modal="true" aria-labelledby="profile-picker-title">
+    <header class="profile-picker-heading"><span class="profile-picker-brand">МС</span><h2 id="profile-picker-title">Кто играет?</h2></header>
+    <div id="profile-track" class="profile-track"></div>
+    <div class="profile-picker-actions"><button id="profile-previous" class="profile-arrow" aria-label="Предыдущий профиль">←</button><button id="profile-enter" class="profile-enter">Войти</button><button id="profile-next" class="profile-arrow" aria-label="Следующий профиль">→</button></div>
+    <p id="profile-choice" class="profile-choice" aria-live="polite">1 / 5</p>
+    <p class="profile-picker-keys"><kbd>A</kbd> <kbd>D</kbd> — выбор <span>·</span> <kbd>Enter</kbd> — войти</p>
+    <button id="profile-back" class="profile-picker-back" hidden>Назад</button>
+  </section>
+  <main class="app" id="game-shell" hidden inert>
     <svg class="svg-library" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs>
+      <symbol id="i-users" viewBox="0 0 48 48"><circle cx="18" cy="15" r="7"/><path d="M5 39v-5c0-8 26-8 26 0v5M32 9a7 7 0 0 1 0 14m3 5c5 1 8 3 8 7v4"/></symbol>
       <symbol id="i-back" viewBox="0 0 32 32"><path d="M21 5 10 16l11 11"/></symbol>
       <symbol id="i-fighters" viewBox="0 0 48 48"><path d="m12 32-4-13 7-7 6 2 2-7 9 1 8 14-7 17-16 1Z"/><path d="m15 15 6 9m3-14 5 12m4-7 3 9M11 29l14-2"/></symbol>
       <symbol id="i-arena" viewBox="0 0 48 48"><path d="m5 12 12-5 14 5 12-5v29l-12 5-14-5-12 5Z"/><path d="M17 7v29m14-24v29M22 20l5 5-5 5"/></symbol>
@@ -24,7 +33,7 @@
       <header class="menu-header">
         <a href="#" class="wordmark" id="home-link" aria-label="Меллстрой Старс, главное меню"><h1 id="game-title">МЕЛЛСТРОЙ<span>СТАРС</span></h1></a>
         <button id="open-profile" class="profile-badge" aria-label="Путь бойца и награды"><svg aria-hidden="true"><use href="#i-medal"/></svg><span><strong id="profile-name">Игрок</strong><small id="profile-level">Ур. 1</small></span></button>
-        <div class="wallet"><span class="coin-chip"><svg aria-hidden="true"><use href="#i-coin"/></svg><strong id="profile-coins">0</strong><small class="wallet-caption">Монеты</small></span><button id="open-settings" class="icon-button" aria-label="Настройки"><svg aria-hidden="true"><use href="#i-gear"/></svg></button></div>
+        <div class="wallet"><span class="coin-chip"><svg aria-hidden="true"><use href="#i-coin"/></svg><strong id="profile-coins">0</strong><small class="wallet-caption">Монеты</small></span><button id="switch-profile" class="icon-button" aria-label="Сменить профиль" title="Сменить профиль"><svg aria-hidden="true"><use href="#i-users"/></svg></button><button id="open-settings" class="icon-button" aria-label="Настройки"><svg aria-hidden="true"><use href="#i-gear"/></svg></button></div>
       </header>
 
       <section id="lobby-screen" class="menu-screen lobby-screen" aria-label="Лобби">
@@ -109,6 +118,7 @@
   <script src="js/ui.js"></script>
   <script src="js/menu.js"></script>
   <script src="js/game.js"></script>
+  <script src="js/profiles.js"></script>
   <script src="js/main.js"></script>
 </body>
 </html>

@@ -1,4 +1,5 @@
 'use strict';
+const profileSlotCount = 5;
 const progressionConfig = {
   xpPerLevel: 300,
   maxLevel: 15,
@@ -22,8 +23,10 @@ const progressionConfig = {
   }
 };
 class ProfileStore {
-  constructor(storage) {
-    this.key = 'mellstroy-stars.profile.v1';
+  constructor(storage, slot = 0) {
+    this.slot = Number.isInteger(slot) && slot >= 0 && slot < profileSlotCount ? slot : 0;
+    this.defaultName = `Игрок ${this.slot + 1}`;
+    this.key = `mellstroy-stars.profile.v1.slot-${this.slot + 1}`;
     this.storageAvailable = true;
     this.storageMessage = '';
     try {
@@ -37,7 +40,7 @@ class ProfileStore {
   defaults() {
     return {
       version: 1,
-      settings: { sound: true, music: false, volume: 0.45, nickname: 'Игрок' },
+      settings: { sound: true, music: false, volume: 0.45, nickname: this.defaultName, modeId: 'donations', mapId: 'arena' },
       profile: {
         coins: 0,
         xp: 0,
@@ -181,7 +184,7 @@ class ProfileStore {
     }
     const clean = this.defaults();
     const source = raw.profile;
-    for (const key of ['coins', 'xp']) {
+    for (const key of ['coins', 'xp', 'matches', 'wins', 'losses', 'draws', 'kills', 'deaths']) {
       clean.profile[key] = this.counter(source[key]);
     }
     clean.profile.unlocked = [
@@ -213,6 +216,18 @@ class ProfileStore {
     clean.profile.selectedCharacter = clean.profile.unlocked.includes(source.selectedCharacter)
       ? source.selectedCharacter
       : 0;
+    if (source.characters && typeof source.characters === 'object') {
+      for (let index = 0; index < this.definitions().length; index++) {
+        const stats = source.characters[index];
+        if (!stats || typeof stats !== 'object') {
+          continue;
+        }
+        clean.profile.characters[index] = {};
+        for (const key of ['matches', 'wins', 'kills', 'deaths']) {
+          clean.profile.characters[index][key] = this.counter(stats[key]);
+        }
+      }
+    }
     for (const key of ['sound', 'music']) {
       if (typeof raw.settings[key] === 'boolean') {
         clean.settings[key] = raw.settings[key];
@@ -222,8 +237,24 @@ class ProfileStore {
       clean.settings.volume = Math.max(0, Math.min(1, raw.settings.volume));
     }
     if (typeof raw.settings.nickname === 'string') {
-      clean.settings.nickname = raw.settings.nickname.trim().slice(0, 24) || 'Игрок';
+      clean.settings.nickname = raw.settings.nickname.trim().slice(0, 24) || this.defaultName;
     }
+    if (['donations', 'cottage', 'teamfight'].includes(raw.settings.modeId)) {
+      clean.settings.modeId = raw.settings.modeId;
+    }
+    if (['arena', 'courtyard', 'crossroads'].includes(raw.settings.mapId)) {
+      clean.settings.mapId = raw.settings.mapId;
+    }
+    clean.history = Array.isArray(raw.history) ? raw.history
+      .filter(entry => entry && typeof entry.matchId === 'string' && ['win', 'loss', 'draw'].includes(entry.outcome))
+      .slice(-20).map(entry => ({
+        matchId: entry.matchId.slice(0, 100),
+        outcome: entry.outcome,
+        modeId: ['donations', 'cottage', 'teamfight'].includes(entry.modeId) ? entry.modeId : 'donations',
+        characterIndex: this.validCharacter(entry.characterIndex) ? entry.characterIndex : 0,
+        kills: this.counter(entry.kills), deaths: this.counter(entry.deaths),
+        coins: this.counter(entry.coins), xp: this.counter(entry.xp)
+      })) : [];
     clean.completed = Array.isArray(raw.completed)
       ? [
           ...new Set(raw.completed.filter((id) => typeof id === 'string' && id.length <= 100))
@@ -237,7 +268,10 @@ class ProfileStore {
       return;
     }
     try {
-      const saved = this.storage.getItem(this.key);
+      let saved = this.storage.getItem(this.key);
+      if (!saved && this.slot === 0) {
+        saved = this.storage.getItem('mellstroy-stars.profile.v1');
+      }
       if (saved) {
         this.data = this.sanitize(JSON.parse(saved));
         this.save();
@@ -262,14 +296,7 @@ class ProfileStore {
       return false;
     }
     try {
-      const { coins, xp, selectedCharacter, unlocked, roadClaimedLevel } = this.profile;
-      const saved = {
-        version: this.data.version,
-        settings: this.settings,
-        profile: { coins, xp, selectedCharacter, unlocked, roadClaimedLevel },
-        completed: this.data.completed
-      };
-      this.storage.setItem(this.key, JSON.stringify(saved));
+      this.storage.setItem(this.key, JSON.stringify(this.data));
       this.storageAvailable = true;
       return true;
     } catch (_) {
@@ -287,7 +314,13 @@ class ProfileStore {
       this.settings.volume = Math.max(0, Math.min(1, changes.volume));
     }
     if (typeof changes.nickname === 'string') {
-      this.settings.nickname = changes.nickname.trim().slice(0, 24) || 'Игрок';
+      this.settings.nickname = changes.nickname.trim().slice(0, 24) || this.defaultName;
+    }
+    if (['donations', 'cottage', 'teamfight'].includes(changes.modeId)) {
+      this.settings.modeId = changes.modeId;
+    }
+    if (['arena', 'courtyard', 'crossroads'].includes(changes.mapId)) {
+      this.settings.mapId = changes.mapId;
     }
     this.save();
     return this.settings;

@@ -148,9 +148,12 @@ class MenuController {
       option.textContent = map.name;
       maps.append(option);
     });
+    this.byId('mode').value = this.profile.settings.modeId;
+    maps.value = this.profile.settings.mapId;
     this.updateChoices();
   }
   updateChoices() {
+    this.profile.updateSettings({ modeId: this.byId('mode').value, mapId: this.byId('map').value });
     const mode = this.modes[this.byId('mode').value] || this.modes.donations;
     const map = mapCatalog.find((item) => item.id === this.byId('map').value) || mapCatalog[0];
     this.byId('mode-description').textContent = mode.description;
