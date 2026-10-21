@@ -21,7 +21,7 @@ class ProfilePicker {
       card.type = 'button';
       card.className = 'profile-card';
       card.dataset.slot = index;
-      card.style.setProperty('--profile-color', ['#426a89', '#9c674c', '#657c63', '#796688', '#9a844d'][index]);
+      card.style.setProperty('--profile-color', ['#cbd3bd', '#dfc9a7', '#bccdd0', '#d6c4c1', '#c9c3d4'][index]);
       const avatar = document.createElement('span');
       avatar.className = 'profile-avatar';
       const canvas = document.createElement('canvas');
