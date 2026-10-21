@@ -1,10 +1,11 @@
 'use strict';
 
 class ProfilePicker {
-  constructor(profiles, onSelect, onCancel) {
+  constructor(profiles, onSelect, onCancel, drawPortrait) {
     this.profiles = profiles;
     this.onSelect = onSelect;
     this.onCancel = onCancel;
+    this.drawPortrait = drawPortrait;
     this.view = document.getElementById('profile-picker');
     this.shell = document.getElementById('game-shell');
     this.track = document.getElementById('profile-track');
@@ -23,11 +24,11 @@ class ProfilePicker {
       card.style.setProperty('--profile-color', ['#cbd3bd', '#dfc9a7', '#bccdd0', '#d6c4c1', '#c9c3d4'][index]);
       const avatar = document.createElement('span');
       avatar.className = 'profile-avatar';
-      const icon = document.createElement('span');
-      icon.className = 'profile-icon';
-      icon.style.backgroundPosition = `${index * 25}% 50%`;
-      icon.setAttribute('aria-hidden', 'true');
-      avatar.append(icon);
+      const canvas = document.createElement('canvas');
+      canvas.width = 240;
+      canvas.height = 240;
+      canvas.setAttribute('aria-hidden', 'true');
+      avatar.append(canvas);
       const number = document.createElement('span');
       number.className = 'profile-number';
       number.textContent = index + 1;
@@ -36,7 +37,7 @@ class ProfilePicker {
       card.append(avatar, number, name, progress);
       card.addEventListener('click', () => this.choose(index));
       this.track.append(card);
-      this.cards.push({ card, name, progress });
+      this.cards.push({ card, canvas, name, progress });
     }
     this.previous.addEventListener('click', () => this.choose(this.selected - 1));
     this.next.addEventListener('click', () => this.choose(this.selected + 1));
@@ -89,6 +90,7 @@ class ProfilePicker {
     for (let slot = 0; slot < this.cards.length; slot++) {
       const store = this.profiles[slot];
       const elements = this.cards[slot];
+      this.drawPortrait(elements.canvas, slot);
       elements.name.textContent = store.settings.nickname;
       elements.progress.textContent = `Ур. ${store.level} · ${store.profile.coins} монет`;
       elements.card.setAttribute('aria-label', `Профиль ${slot + 1}: ${store.settings.nickname}, уровень ${store.level}`);

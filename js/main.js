@@ -36,7 +36,7 @@ const profilePicker = new ProfilePicker(profiles, slot => {
   menu.show();
   audio.setSettings(profile.settings);
   audio.unlock();
-});
+}, (canvas, index) => menu.paintPortrait(canvas, index));
 document.getElementById('switch-profile').addEventListener('click', () => {
   if (game.active) {
     return;
