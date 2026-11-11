@@ -1,0 +1,132 @@
+[
+  {
+    "id": "month-01",
+    "expiry_date": "01/27",
+    "valid": true
+  },
+  {
+    "id": "month-12",
+    "expiry_date": "12/2027",
+    "valid": true
+  },
+  {
+    "id": "month-00",
+    "expiry_date": "00/27",
+    "valid": false
+  },
+  {
+    "id": "month-13",
+    "expiry_date": "13/27",
+    "valid": false
+  },
+  {
+    "id": "one-digit-month",
+    "expiry_date": "1/27",
+    "valid": false
+  },
+  {
+    "id": "three-digit-month",
+    "expiry_date": "001/27",
+    "valid": false
+  },
+  {
+    "id": "one-digit-year",
+    "expiry_date": "01/2",
+    "valid": false
+  },
+  {
+    "id": "three-digit-year",
+    "expiry_date": "01/027",
+    "valid": false
+  },
+  {
+    "id": "five-digit-year",
+    "expiry_date": "01/20277",
+    "valid": false
+  },
+  {
+    "id": "letters-month",
+    "expiry_date": "ab/27",
+    "valid": false
+  },
+  {
+    "id": "letters-year",
+    "expiry_date": "01/ab",
+    "valid": false
+  },
+  {
+    "id": "dash",
+    "expiry_date": "01-27",
+    "valid": false
+  },
+  {
+    "id": "spaces",
+    "expiry_date": " 01/27 ",
+    "valid": false
+  },
+  {
+    "id": "newline",
+    "expiry_date": "01/27\n",
+    "valid": false
+  },
+  {
+    "id": "unicode",
+    "expiry_date": "０１/２７",
+    "valid": false
+  },
+  {
+    "id": "past",
+    "expiry_date": "01/2001",
+    "valid": true
+  },
+  {
+    "id": "year-00",
+    "expiry_date": "01/00",
+    "valid": true
+  },
+  {
+    "id": "year-0000",
+    "expiry_date": "01/0000",
+    "valid": true
+  },
+  {
+    "id": "year-9999",
+    "expiry_date": "12/9999",
+    "valid": true
+  },
+  {
+    "id": "empty",
+    "expiry_date": "",
+    "valid": false
+  },
+  {
+    "id": "only-spaces",
+    "expiry_date": "   ",
+    "valid": false
+  },
+  {
+    "id": "none",
+    "expiry_date": null,
+    "valid": false
+  },
+  {
+    "id": "integer",
+    "expiry_date": 123,
+    "valid": false
+  },
+  {
+    "id": "boolean",
+    "expiry_date": true,
+    "valid": false
+  },
+  {
+    "id": "list",
+    "expiry_date": [],
+    "valid": false
+  },
+  {
+    "id": "object",
+    "expiry_date": {},
+    "valid": false
+  }
+]

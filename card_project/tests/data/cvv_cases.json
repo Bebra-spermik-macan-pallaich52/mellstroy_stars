@@ -1,0 +1,87 @@
+[
+  {
+    "id": "normal",
+    "cvv": "123",
+    "valid": true
+  },
+  {
+    "id": "zeroes",
+    "cvv": "000",
+    "valid": true
+  },
+  {
+    "id": "leading-zero",
+    "cvv": "007",
+    "valid": true
+  },
+  {
+    "id": "maximum",
+    "cvv": "999",
+    "valid": true
+  },
+  {
+    "id": "two-digits",
+    "cvv": "12",
+    "valid": false
+  },
+  {
+    "id": "four-digits",
+    "cvv": "1234",
+    "valid": false
+  },
+  {
+    "id": "letters",
+    "cvv": "12a",
+    "valid": false
+  },
+  {
+    "id": "spaces",
+    "cvv": " 123 ",
+    "valid": false
+  },
+  {
+    "id": "unicode",
+    "cvv": "١٢٣",
+    "valid": false
+  },
+  {
+    "id": "newline",
+    "cvv": "123\n",
+    "valid": false
+  },
+  {
+    "id": "empty",
+    "cvv": "",
+    "valid": false
+  },
+  {
+    "id": "only-spaces",
+    "cvv": "   ",
+    "valid": false
+  },
+  {
+    "id": "none",
+    "cvv": null,
+    "valid": false
+  },
+  {
+    "id": "integer",
+    "cvv": 123,
+    "valid": false
+  },
+  {
+    "id": "boolean",
+    "cvv": true,
+    "valid": false
+  },
+  {
+    "id": "list",
+    "cvv": [],
+    "valid": false
+  },
+  {
+    "id": "object",
+    "cvv": {},
+    "valid": false
+  }
+]

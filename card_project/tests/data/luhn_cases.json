@@ -1,0 +1,87 @@
+[
+  {
+    "id": "pdf-example",
+    "card_number": "4539148803436467",
+    "valid": true
+  },
+  {
+    "id": "spaced",
+    "card_number": "4539 1488 0343 6467",
+    "valid": true
+  },
+  {
+    "id": "visa",
+    "card_number": "4111111111111111",
+    "valid": true
+  },
+  {
+    "id": "mastercard",
+    "card_number": "5555555555554444",
+    "valid": true
+  },
+  {
+    "id": "classic",
+    "card_number": "79927398713",
+    "valid": true
+  },
+  {
+    "id": "invalid",
+    "card_number": "1234567890123456",
+    "valid": false
+  },
+  {
+    "id": "classic-invalid",
+    "card_number": "79927398714",
+    "valid": false
+  },
+  {
+    "id": "letters",
+    "card_number": "4111a111111111111",
+    "valid": false
+  },
+  {
+    "id": "unicode",
+    "card_number": "１２３",
+    "valid": false
+  },
+  {
+    "id": "zero",
+    "card_number": "0",
+    "valid": true
+  },
+  {
+    "id": "empty",
+    "card_number": "",
+    "valid": false
+  },
+  {
+    "id": "only-spaces",
+    "card_number": "   ",
+    "valid": false
+  },
+  {
+    "id": "none",
+    "card_number": null,
+    "valid": false
+  },
+  {
+    "id": "integer",
+    "card_number": 123,
+    "valid": false
+  },
+  {
+    "id": "boolean",
+    "card_number": true,
+    "valid": false
+  },
+  {
+    "id": "list",
+    "card_number": [],
+    "valid": false
+  },
+  {
+    "id": "object",
+    "card_number": {},
+    "valid": false
+  }
+]

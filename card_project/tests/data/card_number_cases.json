@@ -1,0 +1,102 @@
+[
+  {
+    "id": "visa",
+    "card_number": "4111111111111111",
+    "valid": true
+  },
+  {
+    "id": "mastercard",
+    "card_number": "5555555555554444",
+    "valid": true
+  },
+  {
+    "id": "spaces",
+    "card_number": " 4539 1488 0343 6467 ",
+    "valid": true
+  },
+  {
+    "id": "15-digits",
+    "card_number": "411111111111111",
+    "valid": false
+  },
+  {
+    "id": "17-digits",
+    "card_number": "41111111111111111",
+    "valid": false
+  },
+  {
+    "id": "bad-checksum",
+    "card_number": "1234567890123456",
+    "valid": false
+  },
+  {
+    "id": "changed-checksum",
+    "card_number": "4111111111111112",
+    "valid": false
+  },
+  {
+    "id": "letters",
+    "card_number": "411111111111111A",
+    "valid": false
+  },
+  {
+    "id": "hyphens",
+    "card_number": "4111-1111-1111-1111",
+    "valid": false
+  },
+  {
+    "id": "tab",
+    "card_number": "4111\t111111111111",
+    "valid": false
+  },
+  {
+    "id": "unicode",
+    "card_number": "４１１１１１１１１１１１１１１１",
+    "valid": false
+  },
+  {
+    "id": "newline",
+    "card_number": "4111111111111111\n",
+    "valid": false
+  },
+  {
+    "id": "zeroes",
+    "card_number": "0000000000000000",
+    "valid": true
+  },
+  {
+    "id": "empty",
+    "card_number": "",
+    "valid": false
+  },
+  {
+    "id": "only-spaces",
+    "card_number": "   ",
+    "valid": false
+  },
+  {
+    "id": "none",
+    "card_number": null,
+    "valid": false
+  },
+  {
+    "id": "integer",
+    "card_number": 123,
+    "valid": false
+  },
+  {
+    "id": "boolean",
+    "card_number": true,
+    "valid": false
+  },
+  {
+    "id": "list",
+    "card_number": [],
+    "valid": false
+  },
+  {
+    "id": "object",
+    "card_number": {},
+    "valid": false
+  }
+]

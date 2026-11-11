@@ -1,0 +1,112 @@
+[
+  {
+    "id": "normal",
+    "holder_name": "IVAN IVANOV",
+    "valid": true
+  },
+  {
+    "id": "mixed-case",
+    "holder_name": "Ivan Ivanov",
+    "valid": true
+  },
+  {
+    "id": "minimum",
+    "holder_name": "Ab Cd",
+    "valid": true
+  },
+  {
+    "id": "first-short",
+    "holder_name": "A Ivanov",
+    "valid": false
+  },
+  {
+    "id": "second-short",
+    "holder_name": "Ivan I",
+    "valid": false
+  },
+  {
+    "id": "one-word",
+    "holder_name": "Ivan",
+    "valid": false
+  },
+  {
+    "id": "three-words",
+    "holder_name": "Ivan Ivan Ivanov",
+    "valid": false
+  },
+  {
+    "id": "cyrillic",
+    "holder_name": "Иван Иванов",
+    "valid": false
+  },
+  {
+    "id": "digits",
+    "holder_name": "Ivan Ivanov2",
+    "valid": false
+  },
+  {
+    "id": "hyphen",
+    "holder_name": "Anne-Marie Smith",
+    "valid": false
+  },
+  {
+    "id": "apostrophe",
+    "holder_name": "John O'Neil",
+    "valid": false
+  },
+  {
+    "id": "accent",
+    "holder_name": "José Smith",
+    "valid": false
+  },
+  {
+    "id": "spaces",
+    "holder_name": "  Ivan   Ivanov  ",
+    "valid": true
+  },
+  {
+    "id": "tab",
+    "holder_name": "Ivan\tIvanov",
+    "valid": true
+  },
+  {
+    "id": "long",
+    "holder_name": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+    "valid": true
+  },
+  {
+    "id": "empty",
+    "holder_name": "",
+    "valid": false
+  },
+  {
+    "id": "only-spaces",
+    "holder_name": "   ",
+    "valid": false
+  },
+  {
+    "id": "none",
+    "holder_name": null,
+    "valid": false
+  },
+  {
+    "id": "integer",
+    "holder_name": 123,
+    "valid": false
+  },
+  {
+    "id": "boolean",
+    "holder_name": true,
+    "valid": false
+  },
+  {
+    "id": "list",
+    "holder_name": [],
+    "valid": false
+  },
+  {
+    "id": "object",
+    "holder_name": {},
+    "valid": false
+  }
+]

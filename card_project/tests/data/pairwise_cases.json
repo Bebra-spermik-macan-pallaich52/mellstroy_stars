@@ -1,0 +1,50 @@
+[
+  {
+    "id": "pair-1",
+    "card_number": "4111111111111111",
+    "holder_name": "Ivan Ivanov",
+    "expiry_date": "12/2027",
+    "cvv": "123",
+    "valid": true
+  },
+  {
+    "id": "pair-2",
+    "card_number": "4111111111111111",
+    "holder_name": null,
+    "expiry_date": null,
+    "cvv": null,
+    "valid": false
+  },
+  {
+    "id": "pair-3",
+    "card_number": null,
+    "holder_name": "Ivan Ivanov",
+    "expiry_date": "12/2027",
+    "cvv": null,
+    "valid": false
+  },
+  {
+    "id": "pair-4",
+    "card_number": null,
+    "holder_name": null,
+    "expiry_date": null,
+    "cvv": "123",
+    "valid": false
+  },
+  {
+    "id": "pair-5",
+    "card_number": "4111111111111111",
+    "holder_name": "Ivan Ivanov",
+    "expiry_date": null,
+    "cvv": "123",
+    "valid": false
+  },
+  {
+    "id": "pair-6",
+    "card_number": "4111111111111111",
+    "holder_name": null,
+    "expiry_date": "12/2027",
+    "cvv": "123",
+    "valid": false
+  }
+]

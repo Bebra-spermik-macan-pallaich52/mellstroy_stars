@@ -1,0 +1,530 @@
+[
+  {
+    "id": "all-valid",
+    "card_number": "4111111111111111",
+    "holder_name": "Ivan Ivanov",
+    "expiry_date": "12/2027",
+    "cvv": "123",
+    "valid": true
+  },
+  {
+    "card_number": "411111111111111",
+    "holder_name": "Ivan Ivanov",
+    "expiry_date": "12/2027",
+    "cvv": "123",
+    "id": "card_number-15-digits",
+    "valid": false
+  },
+  {
+    "card_number": "41111111111111111",
+    "holder_name": "Ivan Ivanov",
+    "expiry_date": "12/2027",
+    "cvv": "123",
+    "id": "card_number-17-digits",
+    "valid": false
+  },
+  {
+    "card_number": "1234567890123456",
+    "holder_name": "Ivan Ivanov",
+    "expiry_date": "12/2027",
+    "cvv": "123",
+    "id": "card_number-bad-checksum",
+    "valid": false
+  },
+  {
+    "card_number": "4111111111111112",
+    "holder_name": "Ivan Ivanov",
+    "expiry_date": "12/2027",
+    "cvv": "123",
+    "id": "card_number-changed-checksum",
+    "valid": false
+  },
+  {
+    "card_number": "411111111111111A",
+    "holder_name": "Ivan Ivanov",
+    "expiry_date": "12/2027",
+    "cvv": "123",
+    "id": "card_number-letters",
+    "valid": false
+  },
+  {
+    "card_number": "4111-1111-1111-1111",
+    "holder_name": "Ivan Ivanov",
+    "expiry_date": "12/2027",
+    "cvv": "123",
+    "id": "card_number-hyphens",
+    "valid": false
+  },
+  {
+    "card_number": "4111\t111111111111",
+    "holder_name": "Ivan Ivanov",
+    "expiry_date": "12/2027",
+    "cvv": "123",
+    "id": "card_number-tab",
+    "valid": false
+  },
+  {
+    "card_number": "４１１１１１１１１１１１１１１１",
+    "holder_name": "Ivan Ivanov",
+    "expiry_date": "12/2027",
+    "cvv": "123",
+    "id": "card_number-unicode",
+    "valid": false
+  },
+  {
+    "card_number": "4111111111111111\n",
+    "holder_name": "Ivan Ivanov",
+    "expiry_date": "12/2027",
+    "cvv": "123",
+    "id": "card_number-newline",
+    "valid": false
+  },
+  {
+    "card_number": "",
+    "holder_name": "Ivan Ivanov",
+    "expiry_date": "12/2027",
+    "cvv": "123",
+    "id": "card_number-empty",
+    "valid": false
+  },
+  {
+    "card_number": "   ",
+    "holder_name": "Ivan Ivanov",
+    "expiry_date": "12/2027",
+    "cvv": "123",
+    "id": "card_number-only-spaces",
+    "valid": false
+  },
+  {
+    "card_number": null,
+    "holder_name": "Ivan Ivanov",
+    "expiry_date": "12/2027",
+    "cvv": "123",
+    "id": "card_number-none",
+    "valid": false
+  },
+  {
+    "card_number": 123,
+    "holder_name": "Ivan Ivanov",
+    "expiry_date": "12/2027",
+    "cvv": "123",
+    "id": "card_number-integer",
+    "valid": false
+  },
+  {
+    "card_number": true,
+    "holder_name": "Ivan Ivanov",
+    "expiry_date": "12/2027",
+    "cvv": "123",
+    "id": "card_number-boolean",
+    "valid": false
+  },
+  {
+    "card_number": [],
+    "holder_name": "Ivan Ivanov",
+    "expiry_date": "12/2027",
+    "cvv": "123",
+    "id": "card_number-list",
+    "valid": false
+  },
+  {
+    "card_number": {},
+    "holder_name": "Ivan Ivanov",
+    "expiry_date": "12/2027",
+    "cvv": "123",
+    "id": "card_number-object",
+    "valid": false
+  },
+  {
+    "card_number": "4111111111111111",
+    "holder_name": "A Ivanov",
+    "expiry_date": "12/2027",
+    "cvv": "123",
+    "id": "holder_name-first-short",
+    "valid": false
+  },
+  {
+    "card_number": "4111111111111111",
+    "holder_name": "Ivan I",
+    "expiry_date": "12/2027",
+    "cvv": "123",
+    "id": "holder_name-second-short",
+    "valid": false
+  },
+  {
+    "card_number": "4111111111111111",
+    "holder_name": "Ivan",
+    "expiry_date": "12/2027",
+    "cvv": "123",
+    "id": "holder_name-one-word",
+    "valid": false
+  },
+  {
+    "card_number": "4111111111111111",
+    "holder_name": "Ivan Ivan Ivanov",
+    "expiry_date": "12/2027",
+    "cvv": "123",
+    "id": "holder_name-three-words",
+    "valid": false
+  },
+  {
+    "card_number": "4111111111111111",
+    "holder_name": "Иван Иванов",
+    "expiry_date": "12/2027",
+    "cvv": "123",
+    "id": "holder_name-cyrillic",
+    "valid": false
+  },
+  {
+    "card_number": "4111111111111111",
+    "holder_name": "Ivan Ivanov2",
+    "expiry_date": "12/2027",
+    "cvv": "123",
+    "id": "holder_name-digits",
+    "valid": false
+  },
+  {
+    "card_number": "4111111111111111",
+    "holder_name": "Anne-Marie Smith",
+    "expiry_date": "12/2027",
+    "cvv": "123",
+    "id": "holder_name-hyphen",
+    "valid": false
+  },
+  {
+    "card_number": "4111111111111111",
+    "holder_name": "John O'Neil",
+    "expiry_date": "12/2027",
+    "cvv": "123",
+    "id": "holder_name-apostrophe",
+    "valid": false
+  },
+  {
+    "card_number": "4111111111111111",
+    "holder_name": "José Smith",
+    "expiry_date": "12/2027",
+    "cvv": "123",
+    "id": "holder_name-accent",
+    "valid": false
+  },
+  {
+    "card_number": "4111111111111111",
+    "holder_name": "",
+    "expiry_date": "12/2027",
+    "cvv": "123",
+    "id": "holder_name-empty",
+    "valid": false
+  },
+  {
+    "card_number": "4111111111111111",
+    "holder_name": "   ",
+    "expiry_date": "12/2027",
+    "cvv": "123",
+    "id": "holder_name-only-spaces",
+    "valid": false
+  },
+  {
+    "card_number": "4111111111111111",
+    "holder_name": null,
+    "expiry_date": "12/2027",
+    "cvv": "123",
+    "id": "holder_name-none",
+    "valid": false
+  },
+  {
+    "card_number": "4111111111111111",
+    "holder_name": 123,
+    "expiry_date": "12/2027",
+    "cvv": "123",
+    "id": "holder_name-integer",
+    "valid": false
+  },
+  {
+    "card_number": "4111111111111111",
+    "holder_name": true,
+    "expiry_date": "12/2027",
+    "cvv": "123",
+    "id": "holder_name-boolean",
+    "valid": false
+  },
+  {
+    "card_number": "4111111111111111",
+    "holder_name": [],
+    "expiry_date": "12/2027",
+    "cvv": "123",
+    "id": "holder_name-list",
+    "valid": false
+  },
+  {
+    "card_number": "4111111111111111",
+    "holder_name": {},
+    "expiry_date": "12/2027",
+    "cvv": "123",
+    "id": "holder_name-object",
+    "valid": false
+  },
+  {
+    "card_number": "4111111111111111",
+    "holder_name": "Ivan Ivanov",
+    "expiry_date": "00/27",
+    "cvv": "123",
+    "id": "expiry_date-month-00",
+    "valid": false
+  },
+  {
+    "card_number": "4111111111111111",
+    "holder_name": "Ivan Ivanov",
+    "expiry_date": "13/27",
+    "cvv": "123",
+    "id": "expiry_date-month-13",
+    "valid": false
+  },
+  {
+    "card_number": "4111111111111111",
+    "holder_name": "Ivan Ivanov",
+    "expiry_date": "1/27",
+    "cvv": "123",
+    "id": "expiry_date-one-digit-month",
+    "valid": false
+  },
+  {
+    "card_number": "4111111111111111",
+    "holder_name": "Ivan Ivanov",
+    "expiry_date": "001/27",
+    "cvv": "123",
+    "id": "expiry_date-three-digit-month",
+    "valid": false
+  },
+  {
+    "card_number": "4111111111111111",
+    "holder_name": "Ivan Ivanov",
+    "expiry_date": "01/2",
+    "cvv": "123",
+    "id": "expiry_date-one-digit-year",
+    "valid": false
+  },
+  {
+    "card_number": "4111111111111111",
+    "holder_name": "Ivan Ivanov",
+    "expiry_date": "01/027",
+    "cvv": "123",
+    "id": "expiry_date-three-digit-year",
+    "valid": false
+  },
+  {
+    "card_number": "4111111111111111",
+    "holder_name": "Ivan Ivanov",
+    "expiry_date": "01/20277",
+    "cvv": "123",
+    "id": "expiry_date-five-digit-year",
+    "valid": false
+  },
+  {
+    "card_number": "4111111111111111",
+    "holder_name": "Ivan Ivanov",
+    "expiry_date": "ab/27",
+    "cvv": "123",
+    "id": "expiry_date-letters-month",
+    "valid": false
+  },
+  {
+    "card_number": "4111111111111111",
+    "holder_name": "Ivan Ivanov",
+    "expiry_date": "01/ab",
+    "cvv": "123",
+    "id": "expiry_date-letters-year",
+    "valid": false
+  },
+  {
+    "card_number": "4111111111111111",
+    "holder_name": "Ivan Ivanov",
+    "expiry_date": "01-27",
+    "cvv": "123",
+    "id": "expiry_date-dash",
+    "valid": false
+  },
+  {
+    "card_number": "4111111111111111",
+    "holder_name": "Ivan Ivanov",
+    "expiry_date": " 01/27 ",
+    "cvv": "123",
+    "id": "expiry_date-spaces",
+    "valid": false
+  },
+  {
+    "card_number": "4111111111111111",
+    "holder_name": "Ivan Ivanov",
+    "expiry_date": "01/27\n",
+    "cvv": "123",
+    "id": "expiry_date-newline",
+    "valid": false
+  },
+  {
+    "card_number": "4111111111111111",
+    "holder_name": "Ivan Ivanov",
+    "expiry_date": "０１/２７",
+    "cvv": "123",
+    "id": "expiry_date-unicode",
+    "valid": false
+  },
+  {
+    "card_number": "4111111111111111",
+    "holder_name": "Ivan Ivanov",
+    "expiry_date": "",
+    "cvv": "123",
+    "id": "expiry_date-empty",
+    "valid": false
+  },
+  {
+    "card_number": "4111111111111111",
+    "holder_name": "Ivan Ivanov",
+    "expiry_date": "   ",
+    "cvv": "123",
+    "id": "expiry_date-only-spaces",
+    "valid": false
+  },
+  {
+    "card_number": "4111111111111111",
+    "holder_name": "Ivan Ivanov",
+    "expiry_date": null,
+    "cvv": "123",
+    "id": "expiry_date-none",
+    "valid": false
+  },
+  {
+    "card_number": "4111111111111111",
+    "holder_name": "Ivan Ivanov",
+    "expiry_date": 123,
+    "cvv": "123",
+    "id": "expiry_date-integer",
+    "valid": false
+  },
+  {
+    "card_number": "4111111111111111",
+    "holder_name": "Ivan Ivanov",
+    "expiry_date": true,
+    "cvv": "123",
+    "id": "expiry_date-boolean",
+    "valid": false
+  },
+  {
+    "card_number": "4111111111111111",
+    "holder_name": "Ivan Ivanov",
+    "expiry_date": [],
+    "cvv": "123",
+    "id": "expiry_date-list",
+    "valid": false
+  },
+  {
+    "card_number": "4111111111111111",
+    "holder_name": "Ivan Ivanov",
+    "expiry_date": {},
+    "cvv": "123",
+    "id": "expiry_date-object",
+    "valid": false
+  },
+  {
+    "card_number": "4111111111111111",
+    "holder_name": "Ivan Ivanov",
+    "expiry_date": "12/2027",
+    "cvv": "12",
+    "id": "cvv-two-digits",
+    "valid": false
+  },
+  {
+    "card_number": "4111111111111111",
+    "holder_name": "Ivan Ivanov",
+    "expiry_date": "12/2027",
+    "cvv": "1234",
+    "id": "cvv-four-digits",
+    "valid": false
+  },
+  {
+    "card_number": "4111111111111111",
+    "holder_name": "Ivan Ivanov",
+    "expiry_date": "12/2027",
+    "cvv": "12a",
+    "id": "cvv-letters",
+    "valid": false
+  },
+  {
+    "card_number": "4111111111111111",
+    "holder_name": "Ivan Ivanov",
+    "expiry_date": "12/2027",
+    "cvv": " 123 ",
+    "id": "cvv-spaces",
+    "valid": false
+  },
+  {
+    "card_number": "4111111111111111",
+    "holder_name": "Ivan Ivanov",
+    "expiry_date": "12/2027",
+    "cvv": "١٢٣",
+    "id": "cvv-unicode",
+    "valid": false
+  },
+  {
+    "card_number": "4111111111111111",
+    "holder_name": "Ivan Ivanov",
+    "expiry_date": "12/2027",
+    "cvv": "123\n",
+    "id": "cvv-newline",
+    "valid": false
+  },
+  {
+    "card_number": "4111111111111111",
+    "holder_name": "Ivan Ivanov",
+    "expiry_date": "12/2027",
+    "cvv": "",
+    "id": "cvv-empty",
+    "valid": false
+  },
+  {
+    "card_number": "4111111111111111",
+    "holder_name": "Ivan Ivanov",
+    "expiry_date": "12/2027",
+    "cvv": "   ",
+    "id": "cvv-only-spaces",
+    "valid": false
+  },
+  {
+    "card_number": "4111111111111111",
+    "holder_name": "Ivan Ivanov",
+    "expiry_date": "12/2027",
+    "cvv": null,
+    "id": "cvv-none",
+    "valid": false
+  },
+  {
+    "card_number": "4111111111111111",
+    "holder_name": "Ivan Ivanov",
+    "expiry_date": "12/2027",
+    "cvv": 123,
+    "id": "cvv-integer",
+    "valid": false
+  },
+  {
+    "card_number": "4111111111111111",
+    "holder_name": "Ivan Ivanov",
+    "expiry_date": "12/2027",
+    "cvv": true,
+    "id": "cvv-boolean",
+    "valid": false
+  },
+  {
+    "card_number": "4111111111111111",
+    "holder_name": "Ivan Ivanov",
+    "expiry_date": "12/2027",
+    "cvv": [],
+    "id": "cvv-list",
+    "valid": false
+  },
+  {
+    "card_number": "4111111111111111",
+    "holder_name": "Ivan Ivanov",
+    "expiry_date": "12/2027",
+    "cvv": {},
+    "id": "cvv-object",
+    "valid": false
+  }
+]
